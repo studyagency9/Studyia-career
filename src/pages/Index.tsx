@@ -125,7 +125,7 @@ const HeroSection = () => {
                 <div className="w-3 h-3 rounded-full bg-destructive/70" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/70" />
                 <div className="w-3 h-3 rounded-full bg-success/70" />
-                <span className="ml-4 text-sm text-muted-foreground">Aperçu en temps réel</span>
+                <span className="ml-4 text-sm text-muted-foreground">{t('home.cvPreview.realTimePreview')}</span>
               </div>
               
               <div className="p-6 md:p-8">
@@ -176,15 +176,15 @@ const HeroSection = () => {
                   {/* Right side - Controls preview */}
                   <div className="w-full md:w-64 space-y-4">
                     <div className="bg-muted/50 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-foreground mb-3">Progression</h4>
+                      <h4 className="text-sm font-semibold text-foreground mb-3">{t('home.cvPreview.progression')}</h4>
                       <div className="w-full bg-muted rounded-full h-2 mb-2">
                         <div className="bg-primary h-2 rounded-full" style={{ width: "75%" }} />
                       </div>
-                      <p className="text-xs text-muted-foreground">75% complété</p>
+                      <p className="text-xs text-muted-foreground">75% {t('home.cvPreview.completed')}</p>
                     </div>
                     
                     <div className="bg-muted/50 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-foreground mb-3">Modèle actuel</h4>
+                      <h4 className="text-sm font-semibold text-foreground mb-3">{t('home.cvPreview.currentModel')}</h4>
                       <div className="aspect-[3/4] bg-background rounded border border-border flex items-center justify-center">
                         <FileText className="w-8 h-8 text-muted-foreground" />
                       </div>
@@ -520,6 +520,24 @@ const Footer = () => {
               <li><a href="#" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors">{t('home.footer.contact')}</a></li>
             </ul>
           </div>
+
+          <div>
+            <h4 className="text-primary-foreground font-semibold mb-4">Partenaires</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/partner-info" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors flex items-center gap-2 group">
+                  <span className="w-2 h-2 rounded-full bg-primary group-hover:scale-125 transition-transform"></span>
+                  Devenir Partenaire
+                </Link>
+              </li>
+              <li>
+                <Link to="/partner/login" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors flex items-center gap-2 group">
+                  <span className="w-2 h-2 rounded-full bg-blue-bright group-hover:scale-125 transition-transform"></span>
+                  Connexion Partenaire
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -532,6 +550,196 @@ const Footer = () => {
         </div>
       </div>
     </footer>
+  );
+};
+
+// Partner Promotion Section
+const PartnerPromotionSection = () => {
+  const { t } = useTranslation();
+  
+  return (
+    <section className="py-20 md:py-32 bg-gradient-to-br from-primary/5 via-blue-bright/5 to-primary/5 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0">
+        <motion.div
+          className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 -right-32 w-96 h-96 bg-blue-bright/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.5, 0.3, 0.5],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+      </div>
+
+      <div className="container relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+          >
+            {/* Left Content */}
+            <div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
+              >
+                <Users className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">{t('home.partner.promo.badge')}</span>
+              </motion.div>
+
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+                {t('home.partner.promo.title')}
+              </h2>
+
+              <p className="text-lg text-muted-foreground mb-8">
+                {t('home.partner.promo.subtitle')}
+              </p>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-blue-bright flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">{t('home.partner.promo.feature1Title')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('home.partner.promo.feature1Desc')}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">{t('home.partner.promo.feature2Title')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('home.partner.promo.feature2Desc')}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">{t('home.partner.promo.feature3Title')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('home.partner.promo.feature3Desc')}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link to="/partner-info">
+                  <Button size="lg" className="bg-gradient-to-r from-primary to-blue-bright hover:shadow-lg hover:shadow-primary/50 transition-all gap-2 w-full sm:w-auto">
+                    {t('home.partner.promo.learnMore')}
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <Link to="/partner/signup">
+                  <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
+                    {t('home.partner.promo.requestAccess')}
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Visual */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative"
+            >
+              <div className="relative bg-gradient-to-br from-background to-muted border border-border rounded-2xl p-8 shadow-2xl">
+                {/* Mock Dashboard Preview */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-4 border-b border-border">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-blue-bright flex items-center justify-center">
+                        <Users className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground">{t('home.partner.promo.dashboard')}</h4>
+                        <p className="text-sm text-muted-foreground">{t('home.partner.promo.dashboardSubtitle')}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
+                      <FileText className="w-8 h-8 text-primary mb-2" />
+                      <p className="text-2xl font-bold text-foreground">247</p>
+                      <p className="text-xs text-muted-foreground">{t('home.partner.promo.cvsCreated')}</p>
+                    </div>
+                    <div className="bg-blue-bright/5 rounded-xl p-4 border border-blue-bright/10">
+                      <Download className="w-8 h-8 text-blue-bright mb-2" />
+                      <p className="text-2xl font-bold text-foreground">189</p>
+                      <p className="text-xs text-muted-foreground">{t('home.partner.promo.downloads')}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-sm text-foreground flex-1">CV Marketing - Jean Dupont</span>
+                      <span className="text-xs text-muted-foreground">{t('home.partner.promo.today')}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      <span className="text-sm text-foreground flex-1">CV Commercial - Marie Kane</span>
+                      <span className="text-xs text-muted-foreground">{t('home.partner.promo.yesterday')}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <div className="w-2 h-2 rounded-full bg-purple-500" />
+                      <span className="text-sm text-foreground flex-1">CV IT - Paul Mbarga</span>
+                      <span className="text-xs text-muted-foreground">{t('home.partner.promo.daysAgo')} 2 {t('home.partner.promo.daysAgoSuffix')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating badge */}
+                <motion.div
+                  className="absolute -top-4 -right-4 bg-gradient-to-br from-primary to-blue-bright text-white px-4 py-2 rounded-full shadow-lg text-sm font-semibold"
+                  animate={{
+                    y: [0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  {t('home.partner.promo.premium')}
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
   );
 };
 
@@ -552,6 +760,7 @@ const Index = () => {
         <section id="testimonials">
           <TestimonialsSection />
         </section>
+        <PartnerPromotionSection />
         <PartnersSection />
         <FinalCTASection />
       </main>
