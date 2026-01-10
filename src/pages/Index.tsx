@@ -522,18 +522,18 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-primary-foreground font-semibold mb-4">Partenaires</h4>
+            <h4 className="text-primary-foreground font-semibold mb-4">{t('home.footer.partners')}</h4>
             <ul className="space-y-2">
               <li>
                 <Link to="/partner-info" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors flex items-center gap-2 group">
                   <span className="w-2 h-2 rounded-full bg-primary group-hover:scale-125 transition-transform"></span>
-                  Devenir Partenaire
+                  {t('home.footer.becomePartner')}
                 </Link>
               </li>
               <li>
                 <Link to="/partner/login" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors flex items-center gap-2 group">
                   <span className="w-2 h-2 rounded-full bg-blue-bright group-hover:scale-125 transition-transform"></span>
-                  Connexion Partenaire
+                  {t('home.footer.partnerLogin')}
                 </Link>
               </li>
             </ul>

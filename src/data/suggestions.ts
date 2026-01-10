@@ -36,7 +36,7 @@ export const getMonths = (lang: 'fr' | 'en' = 'fr') => {
   return lang === 'en' ? monthsEn : monthsFr;
 };
 
-export const jobTitles = [
+const jobTitlesFr = [
   // Administration & Secrétariat
   "Assistant(e) Administratif(ve)",
   "Secrétaire",
@@ -621,7 +621,7 @@ export const jobTitles = [
   "Auto-Entrepreneur(se)",
 ];
 
-export const degrees = [
+const degreesFr = [
   // Enseignement Général
   "Certificat d'Études Primaires (CEP)",
   "Brevet d'Études du Premier Cycle (BEPC)",
@@ -1081,7 +1081,7 @@ const _deprecatedSummarySuggestionGroups = [
   }
 ];
 
-export const allSkills = [
+const allSkillsFr = [
   {
     category: "Langues",
     skills: ["Français", "Anglais", "Espagnol", "Allemand", "Portugais", "Arabe", "Chinois", "Russe", "Japonais", "Italien"]
@@ -1115,3 +1115,128 @@ export const allSkills = [
     skills: ["Support technique", "Helpdesk", "Zendesk", "Relation client", "Gestion des litiges", "Communication interpersonnelle"]
   }
 ];
+
+const allSkillsEn = [
+  {
+    category: "Languages",
+    skills: ["French", "English", "Spanish", "German", "Portuguese", "Arabic", "Chinese", "Russian", "Japanese", "Italian"]
+  },
+  {
+    category: "Computer & Office",
+    skills: ["Microsoft Word", "Microsoft Excel", "Microsoft PowerPoint", "Google Suite", "LibreOffice", "Email Management (Outlook, Gmail)", "Fast Typing", "Internet Research", "Canva", "Trello", "Slack", "Notion"]
+  },
+  {
+    category: "Web & Mobile Development",
+    skills: ["HTML5", "CSS3", "JavaScript", "TypeScript", "React", "Angular", "Vue.js", "Node.js", "Express.js", "Python", "Django", "Flask", "PHP", "Laravel", "Symfony", "Java", "Spring", "Ruby on Rails", "SQL", "PostgreSQL", "MySQL", "MongoDB", "GraphQL", "REST APIs", "Git", "Docker", "Kubernetes", "CI/CD", "Swift (iOS)", "Kotlin (Android)", "React Native", "Flutter"]
+  },
+  {
+    category: "Marketing & Sales",
+    skills: ["SEO", "SEA (Google Ads)", "Content Marketing", "Email Marketing", "Social Media (Facebook, Instagram, LinkedIn)", "Google Analytics", "CRM (Salesforce, HubSpot)", "Sales Negotiation", "Closing", "Prospecting", "Customer Retention", "Merchandising", "Market Research"]
+  },
+  {
+    category: "Design & Creation",
+    skills: ["Adobe Photoshop", "Adobe Illustrator", "Adobe InDesign", "Figma", "Sketch", "Adobe XD", "UI Design", "UX Design", "Video Editing (Adobe Premiere, Final Cut)", "Motion Design (After Effects)", "Photography"]
+  },
+  {
+    category: "Project Management & Soft Skills",
+    skills: ["Project Management", "Agile Method", "Scrum", "Communication", "Teamwork", "Leadership", "Organization", "Rigor", "Autonomy", "Adaptability", "Initiative", "Problem Solving", "Stress Management", "Creativity", "Punctuality"]
+  },
+  {
+    category: "Finance & Accounting",
+    skills: ["General Accounting", "Financial Analysis", "Management Control", "Audit", "Taxation", "Payroll Management", "Sage", "QuickBooks", "Advanced Excel"]
+  },
+  {
+    category: "Support & Customer Service",
+    skills: ["Technical Support", "Helpdesk", "Zendesk", "Customer Relations", "Dispute Management", "Interpersonal Communication"]
+  }
+];
+
+// English job titles (abbreviated list - main positions)
+const jobTitlesEn = [
+  // Administration & Secretariat
+  "Administrative Assistant", "Secretary", "Executive Secretary", "Executive Assistant", "Receptionist",
+  "Switchboard Operator", "Front Desk Agent", "Office Manager", "HR Assistant", "Accounting Assistant",
+  
+  // Sales & Commerce
+  "Sales Representative", "Salesperson", "Sales Advisor", "Store Manager", "Account Manager",
+  "Business Developer", "Key Account Manager", "Cashier", "Merchandiser",
+  
+  // IT & Tech
+  "Web Developer", "Full-Stack Developer", "Front-End Developer", "Back-End Developer", "Mobile Developer",
+  "Software Engineer", "IT Project Manager", "Product Manager", "DevOps Engineer", "System Administrator",
+  "IT Technician", "Data Analyst", "Data Scientist", "UX Designer", "UI Designer", "Community Manager",
+  
+  // Accounting & Finance
+  "Accountant", "Chief Accountant", "Financial Controller", "Auditor", "CFO", "Payroll Manager",
+  "Financial Analyst", "Banker", "Insurance Agent",
+  
+  // HR & Management
+  "HR Manager", "Recruiter", "Training Manager", "HR Director", "General Manager", "CEO",
+  
+  // Marketing & Communication
+  "Marketing Manager", "Digital Marketing Manager", "Communication Manager", "Content Manager",
+  "SEO Specialist", "Graphic Designer", "Copywriter",
+  
+  // Engineering & Technical
+  "Civil Engineer", "Mechanical Engineer", "Electrical Engineer", "Quality Engineer", "Maintenance Technician",
+  
+  // Healthcare
+  "Nurse", "Doctor", "Pharmacist", "Medical Secretary", "Lab Technician",
+  
+  // Education
+  "Teacher", "Professor", "Trainer", "Educational Advisor",
+  
+  // Hospitality & Tourism
+  "Hotel Manager", "Receptionist", "Chef", "Waiter/Waitress", "Bartender", "Tour Guide",
+  
+  // Logistics & Transport
+  "Logistics Manager", "Warehouse Manager", "Driver", "Delivery Person", "Supply Chain Manager",
+  
+  // Legal
+  "Lawyer", "Legal Assistant", "Paralegal", "Notary",
+  
+  // Other
+  "Consultant", "Freelancer", "Entrepreneur", "Manager", "CEO", "Intern", "Volunteer"
+];
+
+// English degrees (abbreviated list - main diplomas)
+const degreesEn = [
+  // General Education
+  "Primary School Certificate", "Junior High School Certificate", "High School Diploma",
+  "GCE O-Level", "GCE A-Level", "Baccalaureate",
+  
+  // Technical & Professional
+  "Technical Diploma", "Professional Diploma", "Vocational Certificate",
+  
+  // Higher Education
+  "Associate Degree", "Bachelor's Degree", "Bachelor of Arts (BA)", "Bachelor of Science (BS)",
+  "Bachelor of Business Administration (BBA)", "Bachelor of Engineering", "Bachelor of Laws (LLB)",
+  "Master's Degree", "Master of Arts (MA)", "Master of Science (MS)", "Master of Business Administration (MBA)",
+  "Master of Engineering", "Master of Laws (LLM)", "PhD", "Doctorate",
+  
+  // Professional Certifications
+  "Professional Certificate", "Technical Certificate", "Diploma", "Advanced Diploma",
+  "HND (Higher National Diploma)", "BTS", "DUT", "License", "Master",
+  
+  // Specialized
+  "Medical Degree", "Nursing Degree", "Engineering Degree", "Law Degree", "Teaching Certificate",
+  "Accounting Certificate", "IT Certification", "Project Management Certification"
+];
+
+// Export functions that return data based on language
+export const getJobTitles = (lang: 'fr' | 'en' = 'fr'): string[] => {
+  return lang === 'en' ? jobTitlesEn : jobTitlesFr;
+};
+
+export const getDegrees = (lang: 'fr' | 'en' = 'fr'): string[] => {
+  return lang === 'en' ? degreesEn : degreesFr;
+};
+
+export const getAllSkills = (lang: 'fr' | 'en' = 'fr') => {
+  return lang === 'en' ? allSkillsEn : allSkillsFr;
+};
+
+// Legacy exports for backward compatibility
+export const jobTitles = jobTitlesFr;
+export const degrees = degreesFr;
+export const allSkills = allSkillsFr;

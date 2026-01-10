@@ -9,6 +9,7 @@ import {
   Sparkles,
   User,
   ChevronRight,
+  Upload,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,11 @@ const PartnerLayout = ({ children }: PartnerLayoutProps) => {
       icon: FileText,
       path: '/partner/cvs',
       badge: savedCVs.length,
+    },
+    {
+      label: t('home.partner.upload.title'),
+      icon: Upload,
+      path: '/partner/upload',
     },
     {
       label: t('home.partner.pricing.badge'),

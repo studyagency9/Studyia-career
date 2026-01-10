@@ -19,12 +19,14 @@ import {
 import PartnerLayout from '@/components/partner/PartnerLayout';
 import { useToast } from '@/hooks/use-toast';
 import { generatePDF } from '@/utils/pdfGenerator';
+import { useTranslation } from '@/i18n/i18nContext';
 
 const CVsPage = () => {
   const { savedCVs, deleteCV } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [cvToDelete, setCvToDelete] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const filteredCVs = savedCVs.filter(cv =>
     cv.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -34,8 +36,8 @@ const CVsPage = () => {
     deleteCV(id);
     setCvToDelete(null);
     toast({
-      title: 'CV supprimé',
-      description: 'Le CV a été supprimé avec succès.',
+      title: t('home.partner.cvs.cvDeleted'),
+      description: t('home.partner.cvs.cvDeletedDesc'),
     });
   };
 
@@ -43,13 +45,13 @@ const CVsPage = () => {
     try {
       await generatePDF(cv.data);
       toast({
-        title: 'Téléchargement réussi',
-        description: 'Le CV a été téléchargé en PDF.',
+        title: t('home.partner.cvs.downloadSuccess'),
+        description: t('home.partner.cvs.downloadSuccessDesc'),
       });
     } catch (error) {
       toast({
-        title: 'Erreur',
-        description: 'Impossible de télécharger le CV.',
+        title: t('home.partner.cvs.error'),
+        description: t('home.partner.cvs.downloadError'),
         variant: 'destructive',
       });
     }
@@ -67,16 +69,16 @@ const CVsPage = () => {
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Mes CV</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-2">{t('home.partner.cvs.title')}</h1>
               <p className="text-muted-foreground">
-                Gérez tous vos documents professionnels ({savedCVs.length} CV)
+                {t('home.partner.cvs.subtitle').replace('{{count}}', savedCVs.length.toString())}
               </p>
             </div>
 
             <Link to="/partner/create">
               <Button size="lg" className="bg-gradient-to-r from-primary to-blue-bright hover:shadow-lg hover:shadow-primary/50 transition-all">
                 <Plus className="w-5 h-5 mr-2" />
-                Nouveau CV
+                {t('home.partner.cvs.newCV')}
               </Button>
             </Link>
           </div>
@@ -93,7 +95,7 @@ const CVsPage = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Rechercher un CV..."
+              placeholder={t('home.partner.cvs.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-12 bg-background border-border focus:border-primary transition-colors"
@@ -127,7 +129,7 @@ const CVsPage = () => {
                           {cv.data?.personalInfo?.firstName} {cv.data?.personalInfo?.lastName}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {cv.data?.targetJob || 'Sans titre'}
+                          {cv.data?.targetJob || t('home.partner.cvs.untitled')}
                         </p>
                       </div>
                     </div>
@@ -155,7 +157,7 @@ const CVsPage = () => {
                         <Link to={`/partner/builder/${cv.id}`} className="flex-1">
                           <Button variant="outline" size="sm" className="w-full group-hover:border-primary group-hover:text-primary transition-colors">
                             <Edit className="w-4 h-4 mr-2" />
-                            Modifier
+                            {t('home.partner.cvs.edit')}
                           </Button>
                         </Link>
                         <Button
@@ -192,18 +194,18 @@ const CVsPage = () => {
                 <FileText className="w-10 h-10 text-primary" />
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-3">
-                {searchQuery ? 'Aucun CV trouvé' : 'Aucun CV pour le moment'}
+                {searchQuery ? t('home.partner.cvs.noCVFound') : t('home.partner.cvs.noCVYet')}
               </h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 {searchQuery
-                  ? 'Essayez avec un autre terme de recherche'
-                  : 'Commencez par créer votre premier CV professionnel'}
+                  ? t('home.partner.cvs.tryAnotherSearch')
+                  : t('home.partner.cvs.createFirstCV')}
               </p>
               {!searchQuery && (
                 <Link to="/partner/create">
                   <Button size="lg" className="bg-gradient-to-r from-primary to-blue-bright hover:shadow-lg hover:shadow-primary/50 transition-all">
                     <Plus className="w-5 h-5 mr-2" />
-                    Créer mon premier CV
+                    {t('home.partner.cvs.createFirstCVButton')}
                   </Button>
                 </Link>
               )}
@@ -215,18 +217,18 @@ const CVsPage = () => {
         <AlertDialog open={!!cvToDelete} onOpenChange={() => setCvToDelete(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Supprimer ce CV ?</AlertDialogTitle>
+              <AlertDialogTitle>{t('home.partner.cvs.deleteTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                Cette action est irréversible. Le CV sera définitivement supprimé de votre historique.
+                {t('home.partner.cvs.deleteDescription')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogCancel>{t('home.partner.cvs.cancel')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => cvToDelete && handleDelete(cvToDelete)}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Supprimer
+                {t('home.partner.cvs.delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

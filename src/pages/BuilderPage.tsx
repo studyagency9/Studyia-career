@@ -53,7 +53,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link, useLocation } from "react-router-dom";
 import { AutocompleteInput } from "@/components/AutocompleteInput";
 import { DateSelector, YearSelector } from "@/components/DateSelector";
-import { jobTitles, degrees, getSummarySuggestions, allSkills } from "@/data/suggestions";
+import { getJobTitles, getDegrees, getSummarySuggestions, getAllSkills } from "@/data/suggestions";
 import { FileSignature, Rocket, UserCheck } from 'lucide-react';
 import { templateComponents, templateInfoBase } from "@/components/CVTemplates";
 import { CVAnalysis } from "@/components/CVAnalysis";
@@ -409,7 +409,8 @@ const PersonalInfoStep = ({ data, onChange, errors }: { data: PersonalInfo; onCh
 
 // Step 2: Target Job with Autocomplete
 const TargetJobStep = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const jobTitles = getJobTitles(language);
   
   return (
     <div className="space-y-6">
@@ -448,7 +449,8 @@ const SortableExperienceItem = ({
   updateExperience: (id: string, field: keyof Experience, value: string | boolean) => void;
   removeExperience: (id: string) => void;
 }) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const jobTitles = getJobTitles(language);
   const {
     attributes,
     listeners,
@@ -585,11 +587,13 @@ const ExperiencesStep = ({ data, onChange }: { data: Experience[]; onChange: (da
 
 };
 
-// Step 4: Education with Autocomplete
+// Step 4: Education
 const EducationStep = ({ data, onChange }: { data: Education[]; onChange: (data: Education[]) => void }) => {
+  const { t, language } = useTranslation();
+  const degrees = getDegrees(language);
+  
   const addEducation = () => {
-    const newEdu: Education = { id: Date.now().toString(), degree: "", school: "", location: "", startDate: "", endDate: "", description: "" };
-    onChange([...data, newEdu]);
+    onChange([...data, { id: Date.now().toString(), degree: "", school: "", location: "", startDate: "", endDate: "", description: "" }]);
   };
 
   const updateEducation = (id: string, field: keyof Education, value: string) => {
@@ -599,8 +603,6 @@ const EducationStep = ({ data, onChange }: { data: Education[]; onChange: (data:
   const removeEducation = (id: string) => {
     onChange(data.filter(edu => edu.id !== id));
   };
-
-  const { t } = useTranslation();
   
   return (
     <div className="space-y-6">
@@ -663,6 +665,8 @@ const EducationStep = ({ data, onChange }: { data: Education[]; onChange: (data:
 
 // Step 5: Skills
 const SkillsStep = ({ data, onChange }: { data: string[]; onChange: (data: string[]) => void }) => {
+  const { t, language } = useTranslation();
+  const allSkills = getAllSkills(language);
   const [inputValue, setInputValue] = useState("");
   const flatSkillList = allSkills.flatMap(cat => cat.skills);
 
@@ -677,8 +681,6 @@ const SkillsStep = ({ data, onChange }: { data: string[]; onChange: (data: strin
   const removeSkill = (skillToRemove: string) => {
     onChange(data.filter(skill => skill !== skillToRemove));
   };
-
-  const { t } = useTranslation();
   
   return (
     <div className="space-y-6">
@@ -872,8 +874,26 @@ const BuilderPage = () => {
   };
 
   useEffect(() => {
-    if (location.state?.uploadedData) {
-      const data = location.state.uploadedData;
+    // Essayer de charger depuis location.state d'abord
+    let dataToLoad = location.state?.uploadedData;
+    
+    // Si pas de données dans location.state, essayer de charger depuis localStorage
+    if (!dataToLoad) {
+      const storedData = localStorage.getItem('cv_data');
+      if (storedData) {
+        try {
+          dataToLoad = JSON.parse(storedData);
+          // Nettoyer localStorage après chargement pour éviter de recharger à chaque fois
+          localStorage.removeItem('cv_data');
+        } catch (e) {
+          console.error('Error parsing stored CV data:', e);
+        }
+      }
+    }
+    
+    // Si des données ont été trouvées, les charger
+    if (dataToLoad) {
+      const data = dataToLoad;
       const newCVData = { ...initialCVData };
 
       if (data.personalInfo) newCVData.personalInfo = { ...newCVData.personalInfo, ...data.personalInfo };

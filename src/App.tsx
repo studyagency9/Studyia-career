@@ -23,6 +23,7 @@ const RequestSentPage = lazy(() => import("./pages/partner/RequestSentPage"));
 const DashboardPage = lazy(() => import("./pages/partner/DashboardPage"));
 const CVsPage = lazy(() => import("./pages/partner/CVsPage"));
 const CreateCVPage = lazy(() => import("./pages/partner/CreateCVPage"));
+const UploadCVPage = lazy(() => import("./pages/partner/UploadCVPage"));
 const PartnerBuilderPage = lazy(() => import("./pages/partner/PartnerBuilderPage"));
 const PricingPage = lazy(() => import("./pages/partner/PricingPage"));
 
@@ -70,6 +71,7 @@ const AppRoutes = () => (
             <Route path="/partner/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/partner/cvs" element={<ProtectedRoute><CVsPage /></ProtectedRoute>} />
             <Route path="/partner/create" element={<ProtectedRoute><CreateCVPage /></ProtectedRoute>} />
+            <Route path="/partner/upload" element={<ProtectedRoute><UploadCVPage /></ProtectedRoute>} />
             <Route path="/partner/builder/:id" element={<ProtectedRoute><PartnerBuilderPage /></ProtectedRoute>} />
             <Route path="/partner/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
             

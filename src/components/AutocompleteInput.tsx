@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/i18nContext";
 
 interface AutocompleteInputProps {
   value: string;
@@ -24,6 +25,7 @@ export const AutocompleteInput = ({
   maxSuggestions = 8,
   className,
 }: AutocompleteInputProps) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -143,7 +145,7 @@ export const AutocompleteInput = ({
               onClick={() => handleSelect(value)}
               className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-muted text-muted-foreground border-t border-border"
             >
-              Utiliser "{value}" (personnalisé)
+              {t('builder.common.useCustom').replace('{value}', value)}
             </button>
           )}
         </div>

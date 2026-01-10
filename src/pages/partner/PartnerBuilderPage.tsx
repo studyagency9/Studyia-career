@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Save, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/i18n/i18nContext';
 import PartnerLayout from '@/components/partner/PartnerLayout';
 import BuilderPage from '@/pages/BuilderPage';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,9 @@ const PartnerBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
   const { getCV, saveCV, updateCV } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [cvName, setCvName] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [cvData, setCvData] = useState<any>(null);
@@ -32,8 +35,27 @@ const PartnerBuilderPage = () => {
     if (id === 'new') {
       setIsNewCV(true);
       setShowSaveDialog(true);
-      // Nettoyer le localStorage pour un nouveau CV
-      localStorage.removeItem('cv_data');
+      
+      // Vérifier si des données uploadées sont passées via location.state
+      if (location.state?.uploadedData) {
+        const data = location.state.uploadedData;
+        // Stocker dans localStorage pour que BuilderPage puisse les charger
+        localStorage.setItem('cv_data', JSON.stringify(data));
+        setCvData(data);
+        
+        // Nettoyer le state pour éviter de recharger les données au prochain render
+        navigate(location.pathname, { replace: true, state: {} });
+      } else {
+        // Sinon, vérifier si des données existent déjà dans le localStorage
+        const uploadedData = localStorage.getItem('cv_data');
+        if (uploadedData) {
+          try {
+            setCvData(JSON.parse(uploadedData));
+          } catch (e) {
+            console.error('Error parsing uploaded CV data:', e);
+          }
+        }
+      }
     } else if (id) {
       const existingCV = getCV(id);
       if (existingCV) {
@@ -43,8 +65,8 @@ const PartnerBuilderPage = () => {
         localStorage.setItem('cv_data', JSON.stringify(existingCV.data));
       } else {
         toast({
-          title: 'CV introuvable',
-          description: 'Ce CV n\'existe pas ou a été supprimé.',
+          title: t('home.partner.builder.cvNotFound'),
+          description: t('home.partner.builder.cvNotFoundDesc'),
           variant: 'destructive',
         });
         navigate('/partner/cvs');
@@ -55,8 +77,8 @@ const PartnerBuilderPage = () => {
   const handleSave = () => {
     if (!cvName.trim()) {
       toast({
-        title: 'Nom requis',
-        description: 'Veuillez donner un nom à votre CV.',
+        title: t('home.partner.builder.nameRequired'),
+        description: t('home.partner.builder.nameRequiredDesc'),
         variant: 'destructive',
       });
       setShowSaveDialog(true);
@@ -67,8 +89,8 @@ const PartnerBuilderPage = () => {
     const builderData = localStorage.getItem('cv_data');
     if (!builderData) {
       toast({
-        title: 'Erreur',
-        description: 'Aucune donnée à enregistrer.',
+        title: t('home.partner.builder.error'),
+        description: t('home.partner.builder.noDataToSave'),
         variant: 'destructive',
       });
       return;
@@ -87,8 +109,8 @@ const PartnerBuilderPage = () => {
       });
 
       toast({
-        title: 'CV créé',
-        description: 'Votre CV a été créé avec succès.',
+        title: t('home.partner.builder.cvCreated'),
+        description: t('home.partner.builder.cvCreatedDesc'),
       });
 
       navigate('/partner/cvs');
@@ -96,8 +118,8 @@ const PartnerBuilderPage = () => {
       updateCV(id, data);
 
       toast({
-        title: 'CV mis à jour',
-        description: 'Vos modifications ont été enregistrées.',
+        title: t('home.partner.builder.cvUpdated'),
+        description: t('home.partner.builder.cvUpdatedDesc'),
       });
     }
   };
@@ -127,13 +149,13 @@ const PartnerBuilderPage = () => {
                 className="text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Retour
+                {t('home.partner.builder.back')}
               </Button>
               <div className="h-6 w-px bg-border" />
               <div>
-                <p className="text-sm font-medium text-foreground">{cvName || 'Nouveau CV'}</p>
+                <p className="text-sm font-medium text-foreground">{cvName || t('home.partner.builder.newCV')}</p>
                 <p className="text-xs text-muted-foreground">
-                  {isNewCV || id === 'new' ? 'Création en cours' : 'Modification'}
+                  {isNewCV || id === 'new' ? t('home.partner.builder.creating') : t('home.partner.builder.editing')}
                 </p>
               </div>
             </div>
@@ -143,7 +165,7 @@ const PartnerBuilderPage = () => {
               className="bg-gradient-to-r from-primary to-blue-bright hover:shadow-lg hover:shadow-primary/50 transition-all"
             >
               <Save className="w-4 h-4 mr-2" />
-              Enregistrer
+              {t('home.partner.builder.save')}
             </Button>
           </div>
         </motion.div>
@@ -157,18 +179,18 @@ const PartnerBuilderPage = () => {
         <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nommer votre CV</DialogTitle>
+              <DialogTitle>{t('home.partner.builder.nameYourCV')}</DialogTitle>
               <DialogDescription>
-                Donnez un nom à votre CV pour le retrouver facilement dans votre historique.
+                {t('home.partner.builder.nameYourCVDesc')}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="cvName">Nom du CV</Label>
+                <Label htmlFor="cvName">{t('home.partner.builder.cvName')}</Label>
                 <Input
                   id="cvName"
-                  placeholder="Ex: CV Développeur Web 2024"
+                  placeholder={t('home.partner.builder.cvNamePlaceholder')}
                   value={cvName}
                   onChange={(e) => setCvName(e.target.value)}
                   onKeyDown={(e) => {
@@ -183,10 +205,10 @@ const PartnerBuilderPage = () => {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => navigate('/partner/cvs')}>
-                Annuler
+                {t('home.partner.builder.cancel')}
               </Button>
               <Button onClick={handleNameSubmit} disabled={!cvName.trim()}>
-                Continuer
+                {t('home.partner.builder.continue')}
               </Button>
             </DialogFooter>
           </DialogContent>
