@@ -24,6 +24,7 @@ const DashboardPage = lazy(() => import("./pages/partner/DashboardPage"));
 const CVsPage = lazy(() => import("./pages/partner/CVsPage"));
 const CreateCVPage = lazy(() => import("./pages/partner/CreateCVPage"));
 const PartnerBuilderPage = lazy(() => import("./pages/partner/PartnerBuilderPage"));
+const PricingPage = lazy(() => import("./pages/partner/PricingPage"));
 
 // Composant de chargement avec i18n
 const PageLoader = () => {
@@ -70,6 +71,7 @@ const AppRoutes = () => (
             <Route path="/partner/cvs" element={<ProtectedRoute><CVsPage /></ProtectedRoute>} />
             <Route path="/partner/create" element={<ProtectedRoute><CreateCVPage /></ProtectedRoute>} />
             <Route path="/partner/builder/:id" element={<ProtectedRoute><PartnerBuilderPage /></ProtectedRoute>} />
+            <Route path="/partner/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

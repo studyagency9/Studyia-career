@@ -128,8 +128,8 @@ https://studyia-career.vercel.app
 
     } catch (error) {
       toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue. Veuillez réessayer.',
+        title: t('home.partner.login.error'),
+        description: t('home.partner.login.errorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -187,31 +187,31 @@ https://studyia-career.vercel.app
             </Link>
 
             <h1 className="text-4xl lg:text-5xl font-bold text-primary-foreground mb-6 leading-tight">
-              Devenez
+              {t('home.partner.info.heroTitle')}
               <br />
-              <span className="text-gradient">Partenaire Premium</span>
+              <span className="text-gradient">{t('home.partner.info.heroTitleHighlight')}</span>
             </h1>
 
             <p className="text-lg text-primary-foreground/70 mb-8">
-              Soumettez votre demande d'accès à l'espace partenaire. Notre équipe validera votre demande sous 24-48h.
+              {t('home.partner.info.heroSubtitle')}
             </p>
 
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-primary-foreground/80">
                 <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                <span>Création illimitée de CV professionnels</span>
+                <span>{t('home.partner.info.feature1Desc')}</span>
               </div>
               <div className="flex items-center gap-3 text-primary-foreground/80">
                 <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                <span>Historique et gestion de tous vos documents</span>
+                <span>{t('home.partner.info.feature4Desc')}</span>
               </div>
               <div className="flex items-center gap-3 text-primary-foreground/80">
                 <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                <span>Support multilingue (FR/EN)</span>
+                <span>{t('home.partner.info.feature2Desc')}</span>
               </div>
               <div className="flex items-center gap-3 text-primary-foreground/80">
                 <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                <span>Interface premium et intuitive</span>
+                <span>{t('home.partner.info.feature6Desc')}</span>
               </div>
             </div>
           </motion.div>

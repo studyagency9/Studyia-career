@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import PartnerLayout from '@/components/partner/PartnerLayout';
 import { useI18n } from '@/i18n/i18nContext';
+import { useTranslation } from '@/i18n/i18nContext';
 
 const CreateCVPage = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<'fr' | 'en' | null>(null);
   const navigate = useNavigate();
   const { setLanguage } = useI18n();
+  const { t } = useTranslation();
 
   const handleLanguageSelect = (lang: 'fr' | 'en') => {
     setSelectedLanguage(lang);
@@ -28,14 +30,14 @@ const CreateCVPage = () => {
       code: 'fr' as const,
       name: 'Français',
       flag: '🇫🇷',
-      description: 'Créez votre CV en français',
+      description: t('home.partner.createCV.frenchDescription'),
       gradient: 'from-blue-500 to-blue-600',
     },
     {
       code: 'en' as const,
       name: 'English',
       flag: '🇬🇧',
-      description: 'Create your CV in English',
+      description: t('home.partner.createCV.englishDescription'),
       gradient: 'from-red-500 to-red-600',
     },
   ];
@@ -67,7 +69,7 @@ const CreateCVPage = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="text-4xl font-bold text-foreground mb-4"
               >
-                Choisissez la langue de votre CV
+                {t('home.partner.createCV.title')}
               </motion.h1>
 
               <motion.p
@@ -76,7 +78,7 @@ const CreateCVPage = () => {
                 transition={{ duration: 0.5, delay: 0.4 }}
                 className="text-lg text-muted-foreground max-w-2xl mx-auto"
               >
-                Sélectionnez la langue dans laquelle vous souhaitez créer votre CV professionnel. Vous pourrez toujours la modifier plus tard.
+                {t('home.partner.createCV.subtitle')}
               </motion.p>
             </div>
 
@@ -140,13 +142,13 @@ const CreateCVPage = () => {
                 disabled={!selectedLanguage}
                 className="bg-gradient-to-r from-primary to-blue-bright hover:shadow-lg hover:shadow-primary/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed px-8 h-14 text-lg"
               >
-                Continuer
+                {t('home.partner.createCV.continue')}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
 
               {!selectedLanguage && (
                 <p className="text-sm text-muted-foreground mt-4">
-                  Veuillez sélectionner une langue pour continuer
+                  {t('home.partner.createCV.selectLanguage')}
                 </p>
               )}
             </motion.div>

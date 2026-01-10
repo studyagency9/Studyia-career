@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/i18n/i18nContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -16,6 +17,7 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,21 +27,21 @@ const LoginPage = () => {
       const success = await login(email, password);
       if (success) {
         toast({
-          title: 'Connexion réussie',
-          description: 'Bienvenue dans votre espace partenaire !',
+          title: t('home.partner.login.loginSuccess'),
+          description: t('home.partner.login.loginSuccessDesc'),
         });
         navigate('/partner/dashboard');
       } else {
         toast({
-          title: 'Erreur de connexion',
-          description: 'Email ou mot de passe incorrect.',
+          title: t('home.partner.login.loginError'),
+          description: t('home.partner.login.loginErrorDesc'),
           variant: 'destructive',
         });
       }
     } catch (error) {
       toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue. Veuillez réessayer.',
+        title: t('home.partner.login.error'),
+        description: t('home.partner.login.errorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -97,13 +99,13 @@ const LoginPage = () => {
             </Link>
 
             <h1 className="text-4xl lg:text-5xl font-bold text-primary-foreground mb-6 leading-tight">
-              Espace Partenaire
+              {t('home.partner.login.partnerSpace')}
               <br />
-              <span className="text-gradient">Premium</span>
+              <span className="text-gradient">{t('home.partner.login.partnerSpacePremium')}</span>
             </h1>
 
             <p className="text-lg text-primary-foreground/70 mb-8">
-              Accédez à votre tableau de bord professionnel pour gérer vos CV, suivre votre historique et créer des documents de qualité exceptionnelle.
+              {t('home.partner.login.subtitle')}
             </p>
 
             <div className="space-y-4">
@@ -111,19 +113,19 @@ const LoginPage = () => {
                 <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                   <Shield className="w-5 h-5 text-primary" />
                 </div>
-                <span>Données sécurisées et confidentielles</span>
+                <span>{t('home.partner.login.secureData')}</span>
               </div>
               <div className="flex items-center gap-3 text-primary-foreground/80">
                 <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                   <Zap className="w-5 h-5 text-primary" />
                 </div>
-                <span>Création illimitée de CV professionnels</span>
+                <span>{t('home.partner.login.unlimitedCreation')}</span>
               </div>
               <div className="flex items-center gap-3 text-primary-foreground/80">
                 <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-primary" />
                 </div>
-                <span>Interface premium et intuitive</span>
+                <span>{t('home.partner.login.premiumInterface')}</span>
               </div>
             </div>
           </motion.div>
@@ -136,21 +138,21 @@ const LoginPage = () => {
           >
             <div className="bg-background/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-border/50 p-8 lg:p-10">
               <div className="mb-8">
-                <h2 className="text-3xl font-bold text-foreground mb-2">Connexion</h2>
-                <p className="text-muted-foreground">Accédez à votre espace partenaire</p>
+                <h2 className="text-3xl font-bold text-foreground mb-2">{t('home.partner.login.title')}</h2>
+                <p className="text-muted-foreground">{t('home.partner.login.subtitle')}</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-foreground font-medium">
-                    Adresse email
+                    {t('home.partner.login.email')}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
-                      placeholder="votre@email.com"
+                      placeholder={t('home.partner.login.emailPlaceholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 h-12 bg-background border-border focus:border-primary transition-colors"
@@ -161,14 +163,14 @@ const LoginPage = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-foreground font-medium">
-                    Mot de passe
+                    {t('home.partner.login.password')}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
+                      placeholder={t('home.partner.login.passwordPlaceholder')}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 pr-10 h-12 bg-background border-border focus:border-primary transition-colors"
@@ -193,7 +195,7 @@ const LoginPage = () => {
                     <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      Se connecter
+                      {t('home.partner.login.signIn')}
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </>
                   )}
@@ -202,19 +204,19 @@ const LoginPage = () => {
 
               <div className="mt-8 text-center">
                 <p className="text-muted-foreground">
-                  Pas encore de compte ?{' '}
+                  {t('home.partner.login.noAccount')}{' '}
                   <Link
                     to="/partner/signup"
                     className="text-primary font-semibold hover:text-primary/80 transition-colors"
                   >
-                    Créer un compte
+                    {t('home.partner.login.createAccount')}
                   </Link>
                 </p>
               </div>
 
               <div className="mt-6 pt-6 border-t border-border">
                 <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-2">
-                  ← Retour à l'accueil
+                  ← {t('home.partner.login.backHome')}
                 </Link>
               </div>
             </div>
