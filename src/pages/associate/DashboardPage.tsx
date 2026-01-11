@@ -8,6 +8,7 @@ import { useAssociateAuth } from '@/contexts/AssociateAuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
+import { InstallPWAPrompt } from '@/components/InstallPWAPrompt';
 
 const DashboardPage = () => {
   const { associate, stats, balance, sales, logout } = useAssociateAuth();
@@ -16,6 +17,7 @@ const DashboardPage = () => {
   const { t } = useTranslation();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showPWAPrompt, setShowPWAPrompt] = useState(false);
 
   if (!associate) return null;
 
@@ -27,6 +29,20 @@ const DashboardPage = () => {
     } else {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
+      
+      // Déclencher le prompt PWA lors de la première copie du lien
+      const hasTriggeredPWA = localStorage.getItem('studyia_associate_pwa_triggered');
+      console.log('🔍 Copie du lien - hasTriggeredPWA:', hasTriggeredPWA);
+      if (!hasTriggeredPWA) {
+        console.log('✅ Déclenchement du prompt PWA dans 1 seconde...');
+        localStorage.setItem('studyia_associate_pwa_triggered', 'true');
+        setTimeout(() => {
+          console.log('🚀 Affichage du prompt PWA maintenant');
+          setShowPWAPrompt(true);
+        }, 1000);
+      } else {
+        console.log('⚠️ Prompt PWA déjà déclenché auparavant');
+      }
     }
     toast({
       title: t('associate.dashboard.copied'),
@@ -487,6 +503,12 @@ const DashboardPage = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* PWA Install Prompt */}
+      <InstallPWAPrompt 
+        triggerShow={showPWAPrompt} 
+        onClose={() => setShowPWAPrompt(false)} 
+      />
     </div>
   );
 };

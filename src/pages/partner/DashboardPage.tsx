@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import PartnerLayout from '@/components/partner/PartnerLayout';
 import { useTranslation } from '@/i18n/i18nContext';
+import { DownloadAppDialog } from '@/components/DownloadAppDialog';
 
 const DashboardPage = () => {
   const { partner, savedCVs, currentPlan, remainingQuota, quotaPercentage, canCreateCV } = useAuth();
@@ -405,6 +406,9 @@ const DashboardPage = () => {
           </motion.div>
         )}
       </div>
+
+      {/* Download App Dialog */}
+      <DownloadAppDialog />
     </PartnerLayout>
   );
 };
