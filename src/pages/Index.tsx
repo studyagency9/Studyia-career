@@ -538,6 +538,24 @@ const Footer = () => {
               </li>
             </ul>
           </div>
+
+          <div>
+            <h4 className="text-primary-foreground font-semibold mb-4">Associés</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/associate/signup" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors flex items-center gap-2 group">
+                  <span className="w-2 h-2 rounded-full bg-green-500 group-hover:scale-125 transition-transform"></span>
+                  Devenir Associé
+                </Link>
+              </li>
+              <li>
+                <Link to="/associate/login" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors flex items-center gap-2 group">
+                  <span className="w-2 h-2 rounded-full bg-green-400 group-hover:scale-125 transition-transform"></span>
+                  Connexion Associé
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-4">

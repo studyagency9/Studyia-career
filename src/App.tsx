@@ -8,6 +8,8 @@ import { I18nProvider, useTranslation } from "@/i18n/i18nContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SkipToContent } from "@/components/SkipToContent";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AssociateAuthProvider, useAssociateAuth } from "@/contexts/AssociateAuthContext";
+import { useReferralTracking } from "@/hooks/useReferralTracking";
 
 // Lazy loading des pages pour améliorer les performances
 const Index = lazy(() => import("./pages/Index"));
@@ -27,6 +29,13 @@ const UploadCVPage = lazy(() => import("./pages/partner/UploadCVPage"));
 const PartnerBuilderPage = lazy(() => import("./pages/partner/PartnerBuilderPage"));
 const PricingPage = lazy(() => import("./pages/partner/PricingPage"));
 
+// Associate pages (Associés)
+const AssociateSignupPage = lazy(() => import("./pages/associate/SignupPage"));
+const AssociateLoginPage = lazy(() => import("./pages/associate/LoginPage"));
+const AssociateDashboardPage = lazy(() => import("./pages/associate/DashboardPage"));
+const AssociateSalesPage = lazy(() => import("./pages/associate/SalesPage"));
+const AssociateWithdrawPage = lazy(() => import("./pages/associate/WithdrawPage"));
+
 // Composant de chargement avec i18n
 const PageLoader = () => {
   const { t } = useTranslation();
@@ -40,10 +49,22 @@ const PageLoader = () => {
   );
 };
 
-// Protected Route Component
+// Protected Route Component for Partners
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/partner/login" replace />;
+};
+
+// Protected Route Component for Associates
+const ProtectedAssociateRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAssociateAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/associate/login" replace />;
+};
+
+// Composant de tracking de parrainage
+const ReferralTracker = () => {
+  useReferralTracking();
+  return null;
 };
 
 // Composant interne avec accès au contexte i18n
@@ -54,6 +75,7 @@ const AppRoutes = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ReferralTracker />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Public routes */}
@@ -75,6 +97,15 @@ const AppRoutes = () => (
             <Route path="/partner/builder/:id" element={<ProtectedRoute><PartnerBuilderPage /></ProtectedRoute>} />
             <Route path="/partner/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
             
+            {/* Associate authentication routes */}
+            <Route path="/associate/signup" element={<AssociateSignupPage />} />
+            <Route path="/associate/login" element={<AssociateLoginPage />} />
+            
+            {/* Protected associate routes */}
+            <Route path="/associate/dashboard" element={<ProtectedAssociateRoute><AssociateDashboardPage /></ProtectedAssociateRoute>} />
+            <Route path="/associate/sales" element={<ProtectedAssociateRoute><AssociateSalesPage /></ProtectedAssociateRoute>} />
+            <Route path="/associate/withdraw" element={<ProtectedAssociateRoute><AssociateWithdrawPage /></ProtectedAssociateRoute>} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -88,7 +119,9 @@ const App = () => (
   <ErrorBoundary>
     <I18nProvider>
       <AuthProvider>
-        <AppRoutes />
+        <AssociateAuthProvider>
+          <AppRoutes />
+        </AssociateAuthProvider>
       </AuthProvider>
     </I18nProvider>
   </ErrorBoundary>
