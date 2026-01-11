@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useSEO } from '@/hooks/useSEO';
+import { getWebPageSchema } from '@/utils/seo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Mail, Lock, User, Phone, TrendingUp, DollarSign, Users, Sparkles, Zap, Target, ArrowRight, Check, MapPin, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,6 +31,18 @@ const AssociateSignupPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  
+  useSEO({
+    title: 'Devenir Associé Commercial - Studyia Career | Gagnez des commissions',
+    description: 'Rejoignez le programme d\'associés commerciaux Studyia Career. Vendez des CV professionnels, gagnez des commissions attractives et développez votre réseau. Inscription gratuite.',
+    keywords: 'devenir associé, commercial Studyia, gagner commissions, vente CV, programme affiliation',
+    canonical: 'https://career.studyia.net/associate/signup',
+    structuredData: getWebPageSchema({
+      name: 'Inscription Associé Commercial',
+      description: 'Formulaire d\'inscription pour devenir associé commercial',
+      url: 'https://career.studyia.net/associate/signup'
+    })
+  });
 
   const handleCountryChange = (countryCode: string) => {
     setFormData({ ...formData, country: countryCode, city: '' });

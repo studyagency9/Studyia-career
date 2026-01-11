@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useSEO } from '@/hooks/useSEO';
+import { getWebPageSchema } from '@/utils/seo';
 import { 
   Sparkles, 
   FileText, 
@@ -25,6 +27,18 @@ import { useTranslation } from '@/i18n/i18nContext';
 
 const PartnerInfoPage = () => {
   const { t } = useTranslation();
+  
+  useSEO({
+    title: 'Devenir Partenaire Studyia Career - Programme Partenaires Professionnels',
+    description: 'Rejoignez le programme partenaires de Studyia Career. Créez des CV pour vos clients, gérez votre portefeuille et développez votre activité. Idéal pour les agences de recrutement, centres de formation et consultants RH.',
+    keywords: 'partenaire Studyia, programme partenaires, agence recrutement, consultant RH, création CV professionnelle, business CV',
+    canonical: 'https://career.studyia.net/partner-info',
+    structuredData: getWebPageSchema({
+      name: 'Programme Partenaires Studyia Career',
+      description: 'Informations sur le programme partenaires pour professionnels',
+      url: 'https://career.studyia.net/partner-info'
+    })
+  });
   const features = [
     {
       icon: FileText,

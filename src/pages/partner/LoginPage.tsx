@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSEO } from '@/hooks/useSEO';
+import { getWebPageSchema } from '@/utils/seo';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles, Shield, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +21,18 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useTranslation();
+  
+  useSEO({
+    title: 'Connexion Partenaire - Studyia Career | Espace Professionnel',
+    description: 'Connectez-vous à votre espace partenaire Studyia Career. Gérez vos CV, suivez vos clients et accédez à tous vos outils professionnels.',
+    keywords: 'connexion partenaire, login professionnel, espace partenaire Studyia',
+    canonical: 'https://career.studyia.net/partner/login',
+    structuredData: getWebPageSchema({
+      name: 'Connexion Partenaire',
+      description: 'Page de connexion pour les partenaires professionnels',
+      url: 'https://career.studyia.net/partner/login'
+    })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

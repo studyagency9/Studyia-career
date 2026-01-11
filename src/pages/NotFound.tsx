@@ -1,8 +1,16 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useSEO } from "@/hooks/useSEO";
 
 const NotFound = () => {
   const location = useLocation();
+  
+  useSEO({
+    title: '404 - Page non trouvée | Studyia Career',
+    description: 'La page que vous recherchez n\'existe pas ou a été déplacée.',
+    noindex: true,
+    nofollow: true
+  });
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);

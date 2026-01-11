@@ -1,0 +1,15 @@
+/* TEAM */
+Developer: Studyia Team
+Site: https://career.studyia.net
+Location: Cameroun, Gabon, Guinée Équatoriale
+
+/* THANKS */
+Merci à tous nos utilisateurs et partenaires qui font confiance à Studyia Career
+
+/* SITE */
+Last update: 2026-01-11
+Standards: HTML5, CSS3, JavaScript ES6+
+Components: React, TypeScript, TailwindCSS
+Software: Vite, React Router
+SEO: Optimized for search engines
+Accessibility: WCAG 2.1 AA compliant

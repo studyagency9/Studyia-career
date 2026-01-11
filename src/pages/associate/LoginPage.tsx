@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useSEO } from '@/hooks/useSEO';
+import { getWebPageSchema } from '@/utils/seo';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, Lock, TrendingUp, Sparkles, ArrowRight, Eye, EyeOff, Zap, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +21,18 @@ const AssociateLoginPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  
+  useSEO({
+    title: 'Connexion Associé - Studyia Career | Espace Commercial',
+    description: 'Connectez-vous à votre espace associé commercial Studyia Career. Suivez vos ventes, vos commissions et gérez vos retraits.',
+    keywords: 'connexion associé, login commercial, espace associé Studyia, commercial CV',
+    canonical: 'https://career.studyia.net/associate/login',
+    structuredData: getWebPageSchema({
+      name: 'Connexion Associé',
+      description: 'Page de connexion pour les associés commerciaux',
+      url: 'https://career.studyia.net/associate/login'
+    })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

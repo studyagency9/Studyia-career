@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LanguageSwitcherDemo } from "@/components/LanguageSwitcherDemo";
 import { useTranslation } from "@/i18n/i18nContext";
+import { useSEO } from "@/hooks/useSEO";
+import { getOrganizationSchema, getWebSiteSchema, getSoftwareApplicationSchema, getHowToSchema } from "@/utils/seo";
 
 // Animation variants
 const fadeInUp = {
@@ -763,6 +765,30 @@ const PartnerPromotionSection = () => {
 
 // Main Index Page
 const Index = () => {
+  const { t } = useTranslation();
+  
+  useSEO({
+    title: 'Studyia Career - Créez un CV professionnel qui ouvre des portes | Cameroun, Gabon, Guinée Équatoriale',
+    description: 'Créez un CV professionnel en quelques minutes avec Studyia Career. Guidé étape par étape, templates approuvés par les recruteurs, téléchargement PDF instantané. Gratuit pour le Cameroun, Gabon et Guinée Équatoriale.',
+    keywords: 'CV professionnel, créer CV, curriculum vitae, emploi Cameroun, emploi Gabon, emploi Guinée Équatoriale, recrutement Afrique, template CV, modèle CV gratuit, CV PDF, carrière Afrique francophone',
+    canonical: 'https://career.studyia.net/',
+    ogType: 'website',
+    structuredData: [
+      getOrganizationSchema(),
+      getWebSiteSchema(),
+      getSoftwareApplicationSchema(),
+      getHowToSchema({
+        name: 'Comment créer un CV professionnel avec Studyia Career',
+        description: 'Guide étape par étape pour créer votre CV professionnel',
+        steps: [
+          { name: 'Choisir un template', text: 'Sélectionnez parmi nos templates professionnels approuvés par les recruteurs' },
+          { name: 'Remplir vos informations', text: 'Complétez votre profil, expériences, formations et compétences de manière guidée' },
+          { name: 'Télécharger votre CV', text: 'Exportez votre CV en PDF de haute qualité, prêt à envoyer aux recruteurs' }
+        ]
+      })
+    ]
+  });
+  
   return (
     <div className="min-h-screen">
       <Header />

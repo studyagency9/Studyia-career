@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSEO } from '@/hooks/useSEO';
+import { getWebPageSchema } from '@/utils/seo';
 import { ArrowLeft, UploadCloud, AlertTriangle } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -29,6 +31,18 @@ const UploadPage = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  
+  useSEO({
+    title: 'Améliorer mon CV existant - Studyia Career | Upload et optimisation de CV',
+    description: 'Téléchargez votre CV existant (PDF, DOCX) et améliorez-le avec Studyia Career. Notre IA analyse votre CV et vous aide à le restructurer avec un design professionnel.',
+    keywords: 'améliorer CV, optimiser CV, upload CV, télécharger CV, refaire CV, moderniser CV, CV PDF',
+    canonical: 'https://career.studyia.net/upload',
+    structuredData: getWebPageSchema({
+      name: 'Améliorer votre CV existant',
+      description: 'Téléchargez et améliorez votre CV avec notre outil d\'optimisation',
+      url: 'https://career.studyia.net/upload'
+    })
+  });
 
   const handleUploadSuccess = (data: any) => {
     navigate('/builder', { state: { uploadedData: data } });

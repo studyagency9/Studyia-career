@@ -1,0 +1,70 @@
+{
+  "name": "Studyia Career - Associés",
+  "short_name": "Studyia Associés",
+  "description": "Application mobile pour les commerciaux Studyia Career",
+  "start_url": "/associate/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "scope": "/associate/",
+  "icons": [
+    {
+      "src": "/pwa-icon-192.png.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-icon-512.png.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Accéder au tableau de bord",
+      "url": "/associate/dashboard",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "Ventes",
+      "short_name": "Ventes",
+      "description": "Voir mes ventes",
+      "url": "/associate/sales",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "Retrait",
+      "short_name": "Retrait",
+      "description": "Demander un retrait",
+      "url": "/associate/withdraw",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any"
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { useSEO } from "@/hooks/useSEO";
+import { getWebPageSchema } from "@/utils/seo";
 import {
   DndContext,
   closestCenter,
@@ -824,6 +826,18 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, previewRef, pdfTr
 // Main Builder Page
 const BuilderPage = () => {
   const { t } = useTranslation();
+  
+  useSEO({
+    title: 'Créer mon CV professionnel - Studyia Career | Générateur de CV gratuit',
+    description: 'Créez votre CV professionnel en quelques minutes avec notre générateur guidé. Choisissez un template, remplissez vos informations et téléchargez votre CV en PDF. Gratuit et facile à utiliser.',
+    keywords: 'créer CV, générateur CV, CV en ligne, faire un CV, CV gratuit, template CV, modèle CV professionnel',
+    canonical: 'https://career.studyia.net/builder',
+    structuredData: getWebPageSchema({
+      name: 'Créateur de CV Professionnel',
+      description: 'Outil de création de CV professionnel guidé étape par étape',
+      url: 'https://career.studyia.net/builder'
+    })
+  });
   const [currentStep, setCurrentStep] = useState(1);
   const [cvData, setCVData] = useState<CVData>(initialCVData);
   

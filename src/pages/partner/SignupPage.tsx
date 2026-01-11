@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSEO } from '@/hooks/useSEO';
+import { getWebPageSchema } from '@/utils/seo';
 import { motion } from 'framer-motion';
 import { Mail, User, Building, ArrowRight, Sparkles, CheckCircle, Phone, MapPin, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +28,18 @@ const SignupPage = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const [availableCities, setAvailableCities] = useState<string[]>([]);
+  
+  useSEO({
+    title: 'Devenir Partenaire - Studyia Career | Inscription Professionnelle',
+    description: 'Inscrivez-vous comme partenaire professionnel Studyia Career. Créez des CV pour vos clients, développez votre activité et rejoignez notre réseau de professionnels RH.',
+    keywords: 'inscription partenaire, devenir partenaire Studyia, partenaire professionnel, agence recrutement',
+    canonical: 'https://career.studyia.net/partner/signup',
+    structuredData: getWebPageSchema({
+      name: 'Inscription Partenaire',
+      description: 'Formulaire d\'inscription pour devenir partenaire professionnel',
+      url: 'https://career.studyia.net/partner/signup'
+    })
+  });
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
