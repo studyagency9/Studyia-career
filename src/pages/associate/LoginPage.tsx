@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAssociateAuth } from '@/contexts/AssociateAuthContext';
+import { useTranslation } from '@/hooks/useTranslation';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 const AssociateLoginPage = () => {
   const [email, setEmail] = useState('');
@@ -16,6 +18,7 @@ const AssociateLoginPage = () => {
   const { login } = useAssociateAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,14 +29,14 @@ const AssociateLoginPage = () => {
 
     if (success) {
       toast({
-        title: 'Connexion réussie',
-        description: 'Bienvenue dans votre espace associé',
+        title: t('associate.login.success'),
+        description: t('associate.login.successDesc'),
       });
       navigate('/associate/dashboard');
     } else {
       toast({
-        title: 'Erreur de connexion',
-        description: 'Email ou mot de passe incorrect',
+        title: t('associate.login.error'),
+        description: t('associate.login.errorDesc'),
         variant: 'destructive',
       });
     }
@@ -70,6 +73,11 @@ const AssociateLoginPage = () => {
       </div>
 
       <div className="w-full max-w-md relative z-10">
+        {/* Language Switcher - Top Right */}
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher variant="light" />
+        </div>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -79,16 +87,16 @@ const AssociateLoginPage = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 via-green-500/10 to-primary/10 border border-primary/20 mb-4">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent">
-              Espace Associés
+              {t('associate.login.badge')}
             </span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
             <span className="bg-gradient-to-r from-primary via-blue-600 to-green-600 bg-clip-text text-transparent">
-              Bon retour !
+              {t('associate.login.title')}
             </span>
           </h1>
           <p className="text-muted-foreground">
-            Connectez-vous pour accéder à votre dashboard
+            {t('associate.login.subtitle')}
           </p>
         </motion.div>
 
@@ -103,15 +111,15 @@ const AssociateLoginPage = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-green-600 mb-4 shadow-lg">
               <LogIn className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold mb-1">Connexion</h2>
+            <h2 className="text-2xl font-bold mb-1">{t('associate.login.formTitle')}</h2>
             <p className="text-sm text-muted-foreground">
-              Accédez à votre espace associé
+              {t('associate.login.formSubtitle')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('associate.login.email')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -127,7 +135,7 @@ const AssociateLoginPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password">{t('associate.login.password')}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -162,11 +170,11 @@ const AssociateLoginPage = () => {
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
                   />
-                  Connexion en cours...
+                  {t('associate.login.connecting')}
                 </>
               ) : (
                 <>
-                  Se connecter
+                  {t('associate.login.connect')}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </>
               )}
@@ -176,16 +184,16 @@ const AssociateLoginPage = () => {
           <div className="relative mt-6">
             <div className="absolute inset-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
             <p className="relative text-center text-sm text-muted-foreground bg-card px-4 -mt-2">
-              Pas encore associé ?{' '}
+              {t('associate.login.notMember')}{' '}
               <Link to="/associate/signup" className="font-semibold bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent hover:underline">
-                Créer un compte
+                {t('associate.login.createAccount')}
               </Link>
             </p>
           </div>
 
           <div className="mt-6 text-center">
             <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-              ← Retour à l'accueil
+              ← {t('associate.common.backToHome')}
             </Link>
           </div>
         </motion.div>
@@ -202,9 +210,9 @@ const AssociateLoginPage = () => {
               <Zap className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium mb-1">Astuce pour maximiser vos gains</p>
+              <p className="text-sm font-medium mb-1">{t('associate.login.tipTitle')}</p>
               <p className="text-xs text-muted-foreground">
-                Partagez votre lien sur WhatsApp, Facebook et par email. Plus vous partagez, plus vous gagnez !
+                {t('associate.login.tipDesc')}
               </p>
             </div>
           </div>
@@ -219,15 +227,15 @@ const AssociateLoginPage = () => {
         >
           <div className="text-center p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
             <div className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">500</div>
-            <div className="text-xs text-muted-foreground mt-1">FCFA/CV</div>
+            <div className="text-xs text-muted-foreground mt-1">{t('associate.signup.perCV')}</div>
           </div>
           <div className="text-center p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
             <div className="text-2xl font-bold bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">6K</div>
-            <div className="text-xs text-muted-foreground mt-1">FCFA/Pro</div>
+            <div className="text-xs text-muted-foreground mt-1">{t('associate.signup.perPro')}</div>
           </div>
           <div className="text-center p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50">
             <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-primary bg-clip-text text-transparent">12K</div>
-            <div className="text-xs text-muted-foreground mt-1">FCFA/Business</div>
+            <div className="text-xs text-muted-foreground mt-1">{t('associate.signup.perBusiness')}</div>
           </div>
         </motion.div>
       </div>

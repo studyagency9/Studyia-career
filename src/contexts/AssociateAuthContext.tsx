@@ -6,6 +6,8 @@ export interface Associate {
   firstName: string;
   lastName: string;
   phone: string;
+  country: string;
+  city: string;
   referralCode: string;
   referralLink: string;
   totalSales: number;
@@ -70,6 +72,8 @@ interface SignupData {
   firstName: string;
   lastName: string;
   phone: string;
+  country: string;
+  city: string;
 }
 
 const AssociateAuthContext = createContext<AssociateAuthContextType | undefined>(undefined);
@@ -115,6 +119,8 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
       firstName: data.firstName,
       lastName: data.lastName,
       phone: data.phone,
+      country: data.country,
+      city: data.city,
       referralCode,
       referralLink,
       totalSales: 0,

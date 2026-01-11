@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAssociateAuth } from '@/contexts/AssociateAuthContext';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const WithdrawPage = () => {
   const { balance } = useAssociateAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<'mobile_money'>('mobile_money');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -31,8 +33,8 @@ const WithdrawPage = () => {
 
     if (withdrawAmount < minWithdrawal) {
       toast({
-        title: 'Montant insuffisant',
-        description: `Le montant minimum de retrait est de ${minWithdrawal.toLocaleString()} FCFA`,
+        title: t('associate.withdraw.errorMinTitle'),
+        description: `${t('associate.withdraw.errorMinDesc')} ${minWithdrawal.toLocaleString()} FCFA`,
         variant: 'destructive',
       });
       return;
@@ -40,16 +42,16 @@ const WithdrawPage = () => {
 
     if (withdrawAmount > balance.available) {
       toast({
-        title: 'Solde insuffisant',
-        description: 'Vous ne pouvez pas retirer plus que votre solde disponible',
+        title: t('associate.withdraw.errorBalanceTitle'),
+        description: t('associate.withdraw.errorBalanceDesc'),
         variant: 'destructive',
       });
       return;
     }
 
     toast({
-      title: 'Demande envoyée',
-      description: 'Votre demande de retrait sera traitée sous 24-48h',
+      title: t('associate.withdraw.successTitle'),
+      description: t('associate.withdraw.successDesc'),
     });
 
     setAmount('');
@@ -95,7 +97,7 @@ const WithdrawPage = () => {
           <Link to="/associate/dashboard">
             <Button variant="outline" size="sm" className="gap-2 mb-4">
               <ArrowLeft className="w-4 h-4" />
-              Retour au Dashboard
+              {t('associate.common.backToDashboard')}
             </Button>
           </Link>
         </motion.div>
@@ -110,16 +112,16 @@ const WithdrawPage = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 via-green-500/10 to-primary/10 border border-primary/20 mb-3">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent">
-              Retrait de gains
+              {t('associate.withdraw.badge')}
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold mb-2">
             <span className="bg-gradient-to-r from-primary via-blue-600 to-green-600 bg-clip-text text-transparent">
-              Retirer mes gains
+              {t('associate.withdraw.title')}
             </span>
           </h1>
           <p className="text-muted-foreground">
-            Demandez un retrait de vos commissions en toute sécurité
+            {t('associate.withdraw.subtitle')}
           </p>
         </motion.div>
 
@@ -139,7 +141,7 @@ const WithdrawPage = () => {
               <div className="relative z-10">
                 <div className="flex items-center gap-2 mb-3">
                   <Wallet className="w-5 h-5" />
-                  <p className="text-white/80 text-sm font-medium">Solde disponible</p>
+                  <p className="text-white/80 text-sm font-medium">{t('associate.withdraw.balanceAvailable')}</p>
                 </div>
                 <p className="text-5xl md:text-6xl font-bold mb-2">
                   {balance.available.toLocaleString()}
@@ -153,24 +155,24 @@ const WithdrawPage = () => {
                 <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-green-600">
                   <Info className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="font-bold text-lg">Informations</h3>
+                <h3 className="font-bold text-lg">{t('associate.withdraw.infoTitle')}</h3>
               </div>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span><strong>Minimum :</strong> {minWithdrawal.toLocaleString()} FCFA</span>
+                  <span><strong>{t('associate.withdraw.infoMinimum')}</strong> {minWithdrawal.toLocaleString()} FCFA</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span><strong>Délai :</strong> 24-48h</span>
+                  <span><strong>{t('associate.withdraw.infoDelay')}</strong> {t('associate.withdraw.delay24h')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span><strong>Frais :</strong> 2% (min 500 FCFA)</span>
+                  <span><strong>{t('associate.withdraw.infoFees')}</strong> {t('associate.withdraw.fees2percent')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span><strong>Méthodes :</strong> MTN Money, Orange Money</span>
+                  <span><strong>{t('associate.withdraw.infoMethods')}</strong> {t('associate.withdraw.methodsMTNOrange')}</span>
                 </li>
               </ul>
             </Card>
@@ -189,21 +191,21 @@ const WithdrawPage = () => {
                   <DollarSign className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold">Demande de retrait</h2>
-                  <p className="text-sm text-muted-foreground">Remplissez le formulaire ci-dessous</p>
+                  <h2 className="text-2xl font-bold">{t('associate.withdraw.formTitle')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('associate.withdraw.formSubtitle')}</p>
                 </div>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Amount */}
                 <div className="space-y-3">
-                  <Label htmlFor="amount" className="text-base font-semibold">Montant à retirer *</Label>
+                  <Label htmlFor="amount" className="text-base font-semibold">{t('associate.withdraw.amountLabel')} *</Label>
                   <div className="relative">
                     <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="amount"
                       type="number"
-                      placeholder="10000"
+                      placeholder={t('associate.withdraw.amountPlaceholder')}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       className="pl-12 h-14 text-lg font-semibold"
@@ -219,16 +221,16 @@ const WithdrawPage = () => {
                       className="p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-green-600/10 border border-green-500/20"
                     >
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">Montant demandé</span>
+                        <span className="text-muted-foreground">{t('associate.withdraw.amountRequested')}</span>
                         <span className="font-semibold">{parseInt(amount).toLocaleString()} FCFA</span>
                       </div>
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">Frais de traitement</span>
+                        <span className="text-muted-foreground">{t('associate.withdraw.processingFees')}</span>
                         <span className="font-semibold text-orange-600">-{fees[method].toLocaleString()} FCFA</span>
                       </div>
                       <div className="pt-2 border-t border-green-500/20">
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-green-600">Vous recevrez</span>
+                          <span className="font-semibold text-green-600">{t('associate.withdraw.youWillReceive')}</span>
                           <span className="text-2xl font-bold text-green-600">{netAmount.toLocaleString()} FCFA</span>
                         </div>
                       </div>
@@ -243,8 +245,8 @@ const WithdrawPage = () => {
                       <Smartphone className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold mb-1">Mobile Money uniquement</p>
-                      <p className="text-sm text-muted-foreground">Retraits via MTN Money ou Orange Money avec frais de 2% (minimum 500 FCFA)</p>
+                      <p className="font-semibold mb-1">{t('associate.withdraw.methodInfo')}</p>
+                      <p className="text-sm text-muted-foreground">{t('associate.withdraw.methodDesc')}</p>
                     </div>
                   </div>
                 </div>
@@ -256,7 +258,7 @@ const WithdrawPage = () => {
                   className="space-y-5"
                 >
                   <div className="space-y-3">
-                    <Label className="text-base font-semibold">Opérateur Mobile Money *</Label>
+                    <Label className="text-base font-semibold">{t('associate.withdraw.operatorLabel')} *</Label>
                     <div className="grid grid-cols-2 gap-4">
                       <button
                         type="button"
@@ -275,7 +277,7 @@ const WithdrawPage = () => {
                           }`}>
                             <span className="text-2xl font-bold text-white">MTN</span>
                           </div>
-                          <span className="font-bold">MTN Money</span>
+                          <span className="font-bold">{t('associate.withdraw.mtnMoney')}</span>
                           {provider === 'MTN' && <Check className="w-5 h-5 text-primary" />}
                         </div>
                       </button>
@@ -297,7 +299,7 @@ const WithdrawPage = () => {
                           }`}>
                             <span className="text-xl font-bold text-white">OM</span>
                           </div>
-                          <span className="font-bold">Orange Money</span>
+                          <span className="font-bold">{t('associate.withdraw.orangeMoney')}</span>
                           {provider === 'Orange' && <Check className="w-5 h-5 text-orange-600" />}
                         </div>
                       </button>
@@ -305,13 +307,13 @@ const WithdrawPage = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="mobileNumber" className="text-base font-semibold">Numéro Mobile Money *</Label>
+                    <Label htmlFor="mobileNumber" className="text-base font-semibold">{t('associate.withdraw.phoneLabel')} *</Label>
                     <div className="relative">
                       <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="mobileNumber"
                         type="tel"
-                        placeholder="+237 6XX XXX XXX"
+                        placeholder={t('associate.withdraw.phonePlaceholder')}
                         value={mobileNumber}
                         onChange={(e) => setMobileNumber(e.target.value)}
                         className="pl-12 h-14 text-base"
@@ -329,7 +331,7 @@ const WithdrawPage = () => {
                   disabled={!amount || parseInt(amount) < minWithdrawal || parseInt(amount) > balance.available}
                 >
                   <Zap className="w-5 h-5 mr-2" />
-                  Demander le retrait
+                  {t('associate.withdraw.submitButton')}
                 </Button>
               </form>
             </Card>

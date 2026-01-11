@@ -6,11 +6,14 @@ import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAssociateAuth } from '@/contexts/AssociateAuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const DashboardPage = () => {
   const { associate, stats, balance, sales, logout } = useAssociateAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -26,8 +29,8 @@ const DashboardPage = () => {
       setTimeout(() => setCopiedLink(false), 2000);
     }
     toast({
-      title: 'Copié !',
-      description: type === 'code' ? 'Code de parrainage copié' : 'Lien copié',
+      title: t('associate.dashboard.copied'),
+      description: type === 'code' ? t('associate.dashboard.codeCopied') : t('associate.dashboard.linkCopied'),
     });
   };
 
@@ -86,7 +89,7 @@ const DashboardPage = () => {
               <Link to="/">
                 <Button variant="outline" size="sm" className="gap-2">
                   <ArrowLeft className="w-4 h-4" />
-                  <span className="hidden sm:inline">Accueil</span>
+                  <span className="hidden sm:inline">{t('associate.common.backToHome')}</span>
                 </Button>
               </Link>
               <div className="h-8 w-px bg-border" />
@@ -103,6 +106,7 @@ const DashboardPage = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <LanguageSwitcher />
               <Button
                 variant="outline"
                 size="sm"
@@ -113,7 +117,7 @@ const DashboardPage = () => {
                 className="gap-2"
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Déconnexion</span>
+                <span className="hidden sm:inline">{t('associate.common.logout')}</span>
               </Button>
             </div>
           </div>
@@ -129,16 +133,16 @@ const DashboardPage = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 via-green-500/10 to-primary/10 border border-primary/20 mb-3">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent">
-              Dashboard Associé
+              {t('associate.dashboard.badge')}
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold mb-2">
             <span className="bg-gradient-to-r from-primary via-blue-600 to-green-600 bg-clip-text text-transparent">
-              Bienvenue, {associate.firstName} ! 👋
+              {t('associate.dashboard.welcome')}, {associate.firstName} ! 👋
             </span>
           </h1>
           <p className="text-muted-foreground">
-            Voici un aperçu de vos performances et gains
+            {t('associate.dashboard.subtitle')}
           </p>
         </motion.div>
 
@@ -157,7 +161,7 @@ const DashboardPage = () => {
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-3">
                 <Wallet className="w-5 h-5" />
-                <span className="text-white/80 text-sm font-medium">Solde disponible</span>
+                <span className="text-white/80 text-sm font-medium">{t('associate.dashboard.balanceAvailable')}</span>
               </div>
               
               <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
@@ -167,11 +171,11 @@ const DashboardPage = () => {
                   </h2>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                      <p className="text-white/70 text-xs mb-1">En attente</p>
+                      <p className="text-white/70 text-xs mb-1">{t('associate.dashboard.balancePending')}</p>
                       <p className="font-bold text-lg">{balance.pending.toLocaleString()} FCFA</p>
                     </div>
                     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                      <p className="text-white/70 text-xs mb-1">Déjà retiré</p>
+                      <p className="text-white/70 text-xs mb-1">{t('associate.dashboard.balanceWithdrawn')}</p>
                       <p className="font-bold text-lg">{balance.withdrawn.toLocaleString()} FCFA</p>
                     </div>
                   </div>
@@ -180,7 +184,7 @@ const DashboardPage = () => {
                 <Link to="/associate/withdraw" className="w-full lg:w-auto">
                   <Button size="lg" variant="secondary" className="w-full lg:w-auto whitespace-nowrap shadow-xl hover:shadow-2xl hover:scale-105 transition-all">
                     <Download className="w-5 h-5 mr-2" />
-                    Retirer mes gains
+                    {t('associate.dashboard.withdrawButton')}
                   </Button>
                 </Link>
               </div>
@@ -201,7 +205,7 @@ const DashboardPage = () => {
                 <BarChart3 className="w-5 h-5 text-primary" />
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
-              <p className="font-semibold text-sm">Mes ventes</p>
+              <p className="font-semibold text-sm">{t('associate.dashboard.mySales')}</p>
             </Card>
           </Link>
           
@@ -211,7 +215,7 @@ const DashboardPage = () => {
                 <Download className="w-5 h-5 text-green-600" />
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
-              <p className="font-semibold text-sm">Retirer</p>
+              <p className="font-semibold text-sm">{t('associate.dashboard.withdraw')}</p>
             </Card>
           </Link>
           
@@ -224,7 +228,7 @@ const DashboardPage = () => {
                 <Copy className="w-5 h-5 text-blue-600" />
                 {copiedLink && <Check className="w-4 h-4 text-green-600" />}
               </div>
-              <p className="font-semibold text-sm">Copier lien</p>
+              <p className="font-semibold text-sm">{t('associate.dashboard.copyLink')}</p>
             </Card>
           </button>
           
@@ -237,7 +241,7 @@ const DashboardPage = () => {
                 <Share2 className="w-5 h-5 text-green-600" />
                 <ExternalLink className="w-4 h-4 text-muted-foreground" />
               </div>
-              <p className="font-semibold text-sm">Partager</p>
+              <p className="font-semibold text-sm">{t('associate.dashboard.share')}</p>
             </Card>
           </button>
         </motion.div>
@@ -250,10 +254,10 @@ const DashboardPage = () => {
                 <div className="p-2 md:p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
                   <TrendingUp className="w-4 md:w-5 h-4 md:h-5 text-white" />
                 </div>
-                <span className="text-xs font-medium text-muted-foreground">Aujourd'hui</span>
+                <span className="text-xs font-medium text-muted-foreground">{t('associate.dashboard.statsToday')}</span>
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-1">{stats.today.sales}</h3>
-              <p className="text-xs md:text-sm text-muted-foreground mb-2">Ventes</p>
+              <p className="text-xs md:text-sm text-muted-foreground mb-2">{t('associate.dashboard.sales')}</p>
               <p className="text-base md:text-lg font-bold text-green-600">
                 +{stats.today.commission.toLocaleString()} FCFA
               </p>
@@ -266,10 +270,10 @@ const DashboardPage = () => {
                 <div className="p-2 md:p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
                   <Users className="w-4 md:w-5 h-4 md:h-5 text-white" />
                 </div>
-                <span className="text-xs font-medium text-muted-foreground">Cette semaine</span>
+                <span className="text-xs font-medium text-muted-foreground">{t('associate.dashboard.statsWeek')}</span>
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-1">{stats.thisWeek.sales}</h3>
-              <p className="text-xs md:text-sm text-muted-foreground mb-2">Ventes</p>
+              <p className="text-xs md:text-sm text-muted-foreground mb-2">{t('associate.dashboard.sales')}</p>
               <p className="text-base md:text-lg font-bold text-blue-600">
                 +{stats.thisWeek.commission.toLocaleString()} FCFA
               </p>
@@ -282,10 +286,10 @@ const DashboardPage = () => {
                 <div className="p-2 md:p-3 rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg">
                   <DollarSign className="w-4 md:w-5 h-4 md:h-5 text-white" />
                 </div>
-                <span className="text-xs font-medium text-muted-foreground">Ce mois</span>
+                <span className="text-xs font-medium text-muted-foreground">{t('associate.dashboard.statsMonth')}</span>
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-1">{stats.thisMonth.sales}</h3>
-              <p className="text-xs md:text-sm text-muted-foreground mb-2">Ventes</p>
+              <p className="text-xs md:text-sm text-muted-foreground mb-2">{t('associate.dashboard.sales')}</p>
               <p className="text-base md:text-lg font-bold text-primary">
                 +{stats.thisMonth.commission.toLocaleString()} FCFA
               </p>
@@ -298,10 +302,10 @@ const DashboardPage = () => {
                 <div className="p-2 md:p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg">
                   <Target className="w-4 md:w-5 h-4 md:h-5 text-white" />
                 </div>
-                <span className="text-xs font-medium text-muted-foreground">Total</span>
+                <span className="text-xs font-medium text-muted-foreground">{t('associate.dashboard.statsTotal')}</span>
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-1">{stats.allTime.sales}</h3>
-              <p className="text-xs md:text-sm text-muted-foreground mb-2">Ventes totales</p>
+              <p className="text-xs md:text-sm text-muted-foreground mb-2">{t('associate.dashboard.totalSales')}</p>
               <p className="text-base md:text-lg font-bold text-orange-600">
                 {stats.allTime.commission.toLocaleString()} FCFA
               </p>
@@ -318,14 +322,14 @@ const DashboardPage = () => {
                   <Share2 className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">Votre lien de parrainage</h3>
-                  <p className="text-xs text-muted-foreground">Partagez pour gagner des commissions</p>
+                  <h3 className="text-xl font-bold">{t('associate.dashboard.referralTitle')}</h3>
+                  <p className="text-xs text-muted-foreground">{t('associate.dashboard.referralSubtitle')}</p>
                 </div>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm text-muted-foreground mb-2 block">Code de parrainage</label>
+                  <label className="text-sm text-muted-foreground mb-2 block">{t('associate.dashboard.referralCode')}</label>
                   <div className="flex gap-2">
                     <div className="flex-1 p-4 bg-gradient-to-br from-primary/10 to-green-500/10 rounded-xl font-mono text-xl font-bold border border-primary/20">
                       {associate.referralCode}
@@ -342,7 +346,7 @@ const DashboardPage = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm text-muted-foreground mb-2 block">Lien de parrainage</label>
+                  <label className="text-sm text-muted-foreground mb-2 block">{t('associate.dashboard.referralLink')}</label>
                   <div className="flex gap-2">
                     <div className="flex-1 p-4 bg-muted/50 rounded-xl text-sm break-all border border-border">
                       {associate.referralLink}
@@ -359,7 +363,7 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="pt-6 border-t border-border/50">
-                  <p className="text-sm font-medium text-muted-foreground mb-3">Partager sur :</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-3">{t('associate.dashboard.shareOn')}</p>
                   <div className="grid grid-cols-2 gap-3">
                     <Button
                       onClick={shareOnWhatsApp}
@@ -367,7 +371,7 @@ const DashboardPage = () => {
                       className="bg-gradient-to-r from-green-600 to-green-700 hover:shadow-lg hover:scale-105 transition-all"
                     >
                       <Share2 className="w-4 h-4 mr-2" />
-                      WhatsApp
+                      {t('associate.dashboard.whatsapp')}
                     </Button>
                     <Button
                       onClick={shareOnFacebook}
@@ -375,7 +379,7 @@ const DashboardPage = () => {
                       className="bg-gradient-to-r from-blue-600 to-blue-700 hover:shadow-lg hover:scale-105 transition-all"
                     >
                       <Share2 className="w-4 h-4 mr-2" />
-                      Facebook
+                      {t('associate.dashboard.facebook')}
                     </Button>
                   </div>
                 </div>
@@ -392,13 +396,13 @@ const DashboardPage = () => {
                     <BarChart3 className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold">Dernières ventes</h3>
-                    <p className="text-xs text-muted-foreground">5 plus récentes</p>
+                    <h3 className="text-xl font-bold">{t('associate.dashboard.recentSales')}</h3>
+                    <p className="text-xs text-muted-foreground">{t('associate.dashboard.recentSalesCount')}</p>
                   </div>
                 </div>
                 <Link to="/associate/sales">
                   <Button variant="outline" size="sm" className="gap-2">
-                    Voir tout
+                    {t('associate.dashboard.viewAll')}
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </Link>
@@ -409,8 +413,8 @@ const DashboardPage = () => {
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-4">
                     <Users className="w-8 h-8 opacity-50" />
                   </div>
-                  <p className="font-medium mb-1">Aucune vente pour le moment</p>
-                  <p className="text-sm">Partagez votre lien pour commencer !</p>
+                  <p className="font-medium mb-1">{t('associate.dashboard.noSales')}</p>
+                  <p className="text-sm">{t('associate.dashboard.noSalesDesc')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -424,10 +428,10 @@ const DashboardPage = () => {
                     >
                       <div className="flex-1">
                         <p className="font-medium">
-                          {sale.customerName || 'Client anonyme'}
+                          {sale.customerName || t('associate.dashboard.anonymousClient')}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {sale.cvType === 'public' ? 'CV Public' : 'Partenaire SaaS'}
+                          {sale.cvType === 'public' ? t('associate.dashboard.publicCV') : t('associate.dashboard.partnerSaaS')}
                         </p>
                       </div>
                       <div className="text-right">
@@ -459,23 +463,23 @@ const DashboardPage = () => {
                 <Zap className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg md:text-xl font-bold mb-3">💡 Conseils pour maximiser vos gains</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-3">💡 {t('associate.dashboard.tipsTitle')}</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Partagez votre lien sur vos réseaux sociaux (WhatsApp, Facebook, Instagram)</span>
+                    <span>{t('associate.dashboard.tip1')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Créez du contenu autour de la création de CV professionnels</span>
+                    <span>{t('associate.dashboard.tip2')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Ciblez les étudiants, demandeurs d'emploi et professionnels en reconversion</span>
+                    <span>{t('associate.dashboard.tip3')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Proposez votre aide pour créer des CV en échange d'une commission</span>
+                    <span>{t('associate.dashboard.tip4')}</span>
                   </li>
                 </ul>
               </div>

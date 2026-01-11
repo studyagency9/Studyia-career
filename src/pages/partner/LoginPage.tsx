@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/i18n/i18nContext';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -83,6 +84,11 @@ const LoginPage = () => {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
 
       <div className="container relative z-10 max-w-6xl mx-auto px-4">
+        {/* Language Switcher - Top Right */}
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher />
+        </div>
+
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Branding */}
           <motion.div

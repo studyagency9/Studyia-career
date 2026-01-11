@@ -13,15 +13,23 @@ const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
 ];
 
-export const LanguageSwitcher = () => {
+interface LanguageSwitcherProps {
+  variant?: 'default' | 'light';
+}
+
+export const LanguageSwitcher = ({ variant = 'default' }: LanguageSwitcherProps) => {
   const { language, setLanguage } = useI18n();
 
   const currentLanguage = languages.find(lang => lang.code === language);
 
+  const buttonClassName = variant === 'light'
+    ? "gap-2 bg-white/90 backdrop-blur-sm text-foreground hover:bg-white hover:shadow-lg border border-border/50 w-auto justify-center"
+    : "gap-2 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10 w-full justify-center";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10 w-full justify-center">
+        <Button variant="ghost" size="sm" className={buttonClassName}>
           <Globe className="w-4 h-4" />
           <span className="flex items-center gap-1.5">
             <span>{currentLanguage?.flag}</span>

@@ -540,18 +540,18 @@ const Footer = () => {
           </div>
 
           <div>
-            <h4 className="text-primary-foreground font-semibold mb-4">Associés</h4>
+            <h4 className="text-primary-foreground font-semibold mb-4">{t('home.footer.associates')}</h4>
             <ul className="space-y-2">
               <li>
                 <Link to="/associate/signup" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors flex items-center gap-2 group">
                   <span className="w-2 h-2 rounded-full bg-green-500 group-hover:scale-125 transition-transform"></span>
-                  Devenir Associé
+                  {t('home.footer.becomeAssociate')}
                 </Link>
               </li>
               <li>
                 <Link to="/associate/login" className="text-primary-foreground/60 hover:text-primary-foreground text-sm transition-colors flex items-center gap-2 group">
                   <span className="w-2 h-2 rounded-full bg-green-400 group-hover:scale-125 transition-transform"></span>
-                  Connexion Associé
+                  {t('home.footer.associateLogin')}
                 </Link>
               </li>
             </ul>

@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAssociateAuth } from '@/contexts/AssociateAuthContext';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '@/hooks/useTranslation';
 
 const SalesPage = () => {
   const { sales, stats } = useAssociateAuth();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'validated' | 'pending' | 'cancelled'>('all');
 
@@ -26,17 +28,17 @@ const SalesPage = () => {
     const config = {
       validated: {
         style: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-200 dark:border-green-800',
-        label: 'Validée',
+        label: t('associate.sales.statusValidated'),
         icon: <Check className="w-3 h-3" />
       },
       pending: {
         style: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border border-orange-200 dark:border-orange-800',
-        label: 'En attente',
+        label: t('associate.sales.statusPending'),
         icon: <Clock className="w-3 h-3" />
       },
       cancelled: {
         style: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800',
-        label: 'Annulée',
+        label: t('associate.sales.statusCancelled'),
         icon: <X className="w-3 h-3" />
       },
     };
@@ -91,7 +93,7 @@ const SalesPage = () => {
           <Link to="/associate/dashboard">
             <Button variant="outline" size="sm" className="gap-2 mb-4">
               <ArrowLeft className="w-4 h-4" />
-              Retour au Dashboard
+              {t('associate.common.backToDashboard')}
             </Button>
           </Link>
         </motion.div>
@@ -106,16 +108,16 @@ const SalesPage = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 via-green-500/10 to-primary/10 border border-primary/20 mb-3">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent">
-              Historique des ventes
+              {t('associate.sales.badge')}
             </span>
           </div>
           <h1 className="text-3xl md:text-5xl font-bold mb-2">
             <span className="bg-gradient-to-r from-primary via-blue-600 to-green-600 bg-clip-text text-transparent">
-              Mes ventes
+              {t('associate.sales.title')}
             </span>
           </h1>
           <p className="text-muted-foreground">
-            Suivez toutes vos ventes et commissions en temps réel
+            {t('associate.sales.subtitle')}
           </p>
         </motion.div>
 
@@ -131,7 +133,7 @@ const SalesPage = () => {
               <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg">
                 <TrendingUp className="w-5 h-5 text-white" />
               </div>
-              <p className="text-sm font-medium text-muted-foreground">Total des ventes</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('associate.sales.totalSales')}</p>
             </div>
             <p className="text-4xl font-bold">{stats.allTime.sales}</p>
           </Card>
@@ -140,7 +142,7 @@ const SalesPage = () => {
               <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
                 <DollarSign className="w-5 h-5 text-white" />
               </div>
-              <p className="text-sm font-medium text-muted-foreground">Commissions totales</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('associate.sales.totalCommissions')}</p>
             </div>
             <p className="text-4xl font-bold text-green-600">
               {stats.allTime.commission.toLocaleString()} FCFA
@@ -151,7 +153,7 @@ const SalesPage = () => {
               <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
                 <Target className="w-5 h-5 text-white" />
               </div>
-              <p className="text-sm font-medium text-muted-foreground">Commission moyenne</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('associate.sales.avgCommission')}</p>
             </div>
             <p className="text-4xl font-bold text-blue-600">
               {stats.allTime.sales > 0 
@@ -172,7 +174,7 @@ const SalesPage = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
-                placeholder="Rechercher par nom ou email..."
+                placeholder={t('associate.sales.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-11 h-12 text-base"
@@ -185,7 +187,7 @@ const SalesPage = () => {
                 size="lg"
                 className={statusFilter === 'all' ? 'bg-gradient-to-r from-primary to-blue-600' : ''}
               >
-                Toutes
+                {t('associate.sales.filterAll')}
               </Button>
               <Button
                 variant={statusFilter === 'validated' ? 'default' : 'outline'}
@@ -193,7 +195,7 @@ const SalesPage = () => {
                 size="lg"
                 className={statusFilter === 'validated' ? 'bg-gradient-to-r from-green-500 to-green-600' : ''}
               >
-                Validées
+                {t('associate.sales.filterValidated')}
               </Button>
               <Button
                 variant={statusFilter === 'pending' ? 'default' : 'outline'}
@@ -201,7 +203,7 @@ const SalesPage = () => {
                 size="lg"
                 className={statusFilter === 'pending' ? 'bg-gradient-to-r from-orange-500 to-orange-600' : ''}
               >
-                En attente
+                {t('associate.sales.filterPending')}
               </Button>
             </div>
           </div>
@@ -219,11 +221,11 @@ const SalesPage = () => {
             <table className="w-full">
               <thead className="bg-gradient-to-r from-muted/50 to-muted/30 border-b border-border">
                 <tr>
-                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">Client</th>
-                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">Type</th>
-                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">Commission</th>
-                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">Statut</th>
-                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">Date</th>
+                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">{t('associate.sales.tableClient')}</th>
+                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">{t('associate.sales.tableType')}</th>
+                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">{t('associate.sales.tableCommission')}</th>
+                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">{t('associate.sales.tableStatus')}</th>
+                  <th className="text-left p-4 font-bold text-sm uppercase tracking-wide">{t('associate.sales.tableDate')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,8 +236,8 @@ const SalesPage = () => {
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
                           <Search className="w-8 h-8 text-muted-foreground opacity-50" />
                         </div>
-                        <p className="font-medium text-muted-foreground">Aucune vente trouvée</p>
-                        <p className="text-sm text-muted-foreground">Essayez de modifier vos filtres</p>
+                        <p className="font-medium text-muted-foreground">{t('associate.sales.noSales')}</p>
+                        <p className="text-sm text-muted-foreground">{t('associate.sales.noSalesDesc')}</p>
                       </div>
                     </td>
                   </tr>
@@ -251,7 +253,7 @@ const SalesPage = () => {
                       <td className="p-4">
                         <div>
                           <p className="font-medium">
-                            {sale.customerName || 'Client anonyme'}
+                            {sale.customerName || t('associate.sales.anonymousClient')}
                           </p>
                           {sale.customerEmail && (
                             <p className="text-sm text-muted-foreground">
@@ -262,7 +264,7 @@ const SalesPage = () => {
                       </td>
                       <td className="p-4">
                         <span className="text-sm">
-                          {sale.cvType === 'public' ? 'CV Public' : 'Partenaire SaaS'}
+                          {sale.cvType === 'public' ? t('associate.sales.publicCV') : t('associate.sales.partnerSaaS')}
                         </span>
                       </td>
                       <td className="p-4">
