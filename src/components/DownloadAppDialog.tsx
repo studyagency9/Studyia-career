@@ -28,16 +28,24 @@ export const DownloadAppDialog = () => {
   };
 
   const handleDownload = () => {
-    // Créer un fichier raccourci .url pour Windows
+    // Créer un fichier raccourci .url pour Windows avec icône personnalisée
     const dashboardUrl = `${window.location.origin}/partner/dashboard`;
-    const shortcutContent = `[InternetShortcut]\nURL=${dashboardUrl}\nIconIndex=0`;
+    const faviconUrl = `${window.location.origin}/favicon.svg`;
+    
+    // Format .url avec icône personnalisée
+    const shortcutContent = `[InternetShortcut]
+URL=${dashboardUrl}
+IconFile=${faviconUrl}
+IconIndex=0
+[{000214A0-0000-0000-C000-000000000046}]
+Prop3=19,11`;
     
     // Créer un blob et télécharger le fichier
     const blob = new Blob([shortcutContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'Studyia Career - Dashboard.url';
+    link.download = '🎯 Studyia Career - Dashboard Partner.url';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
