@@ -190,7 +190,7 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       }
 
       // TEMPORARY: Hardcoded API key until backend is set up
-      const apiKey = "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";
+      const apiKey = "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";
       
       if (!apiKey) {
         throw new Error(t('upload.apiKeyMissing'));
