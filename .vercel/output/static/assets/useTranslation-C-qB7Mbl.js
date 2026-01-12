@@ -1,1 +1,0 @@
-import{u as e,E as a}from"./index-BEFO6H8i.js";const i=()=>{const{language:s}=e();return{t:n=>{const r=n.split(".");let t=a[s];for(const o of r)if(t&&typeof t=="object"&&o in t)t=t[o];else return console.warn(`Translation key not found: ${n}`),n;return typeof t=="string"?t:n}}};export{i as u};
