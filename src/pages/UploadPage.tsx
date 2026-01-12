@@ -189,14 +189,26 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
         throw new Error(t('upload.docxNotSupported'));
       }
 
-      const response = await fetch("/api/upload", {
+      // TEMPORARY: Hardcoded API key until backend is set up
+      const apiKey = "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";
+      
+      if (!apiKey) {
+        throw new Error(t('upload.apiKeyMissing'));
+      }
+
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": "https://career.studyia.net",
+          "X-Title": "Studyia Career CV Builder"
         },
         body: JSON.stringify({
-          cvText,
-          systemPrompt,
+          model: "meta-llama/llama-3.3-70b-instruct:free",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Here is the CV text to analyze:\n\n${cvText}` }
           ]
         }),
       });
