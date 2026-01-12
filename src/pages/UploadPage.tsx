@@ -216,6 +216,12 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       if (!response.ok) {
         const errorData = await response.json();
         console.error('OpenRouter API Error:', errorData);
+        
+        // Handle 401 Unauthorized errors with user-friendly message
+        if (response.status === 401) {
+          throw new Error(t('upload.apiKeyError'));
+        }
+        
         throw new Error(errorData.error?.message || `API Error: ${response.status} - ${response.statusText}`);
       }
 

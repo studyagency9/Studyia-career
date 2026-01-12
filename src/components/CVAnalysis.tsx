@@ -99,7 +99,8 @@ export const CVAnalysis = ({ cvData, onApplySuggestion, onPreviewAllSuggestions,
       setIsLoading(true);
       setError(null);
       
-      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+      // TEMPORARY: Hardcoded API key until backend is set up
+      const apiKey = "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";
       
       if (!apiKey) {
         setError(t('analysis.apiKeyMissing'));
@@ -657,6 +658,12 @@ ${JSON.stringify(cvData, null, 2)}`;
 
         if (!response.ok) {
           const errorText = await response.text();
+          
+          // Handle 401 Unauthorized errors with user-friendly message
+          if (response.status === 401) {
+            throw new Error(t('analysis.apiKeyError'));
+          }
+          
           throw new Error(`API error: ${errorText}`);
         }
 

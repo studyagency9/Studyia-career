@@ -417,6 +417,7 @@ export const translations = {
       analysisError: 'Échec de l\'analyse du CV via l\'API.',
       genericError: 'Une erreur est survenue lors de l\'analyse du CV. Veuillez réessayer.',
       networkError: 'Vérifiez votre connexion internet et réessayez.',
+      apiKeyError: 'Clé API invalide ou expirée. Veuillez contacter le support.',
       docxNotSupported: 'Les fichiers DOCX ne sont pas supportés dans cette version. Veuillez télécharger un PDF.',
       apiKeyMissing: 'La clé API OpenRouter n\'est pas configurée.',
       noJsonFound: 'Aucun objet JSON valide trouvé dans la réponse de l\'IA.',
@@ -642,6 +643,7 @@ export const translations = {
       optimizing: 'Optimisation en cours...',
       apiKeyMissing: 'Clé API manquante. Veuillez ajouter VITE_OPENROUTER_API_KEY dans votre fichier .env.local',
       apiError: 'Une erreur est survenue lors de l\'analyse de votre CV. Veuillez réessayer.',
+      apiKeyError: 'Clé API invalide ou expirée. Veuillez contacter le support.',
       networkError: 'Vérifiez votre connexion internet et réessayez.',
     },
     errors: {
@@ -1276,6 +1278,7 @@ export const translations = {
       analysisError: 'Failed to analyze CV via API.',
       genericError: 'An error occurred while analyzing the CV. Please try again.',
       networkError: 'Check your internet connection and try again.',
+      apiKeyError: 'Invalid or expired API key. Please contact support.',
       docxNotSupported: 'DOCX files are not supported in this version. Please upload a PDF.',
       apiKeyMissing: 'OpenRouter API key is not configured.',
       noJsonFound: 'No valid JSON object found in the AI response.',
@@ -1501,6 +1504,7 @@ export const translations = {
       optimizing: 'Optimizing...',
       apiKeyMissing: 'API key missing. Please add VITE_OPENROUTER_API_KEY in your .env.local file',
       apiError: 'An error occurred while analyzing your CV. Please try again.',
+      apiKeyError: 'Invalid or expired API key. Please contact support.',
       networkError: 'Check your internet connection and try again.',
     },
     errors: {
