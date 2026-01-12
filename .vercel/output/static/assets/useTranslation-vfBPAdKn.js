@@ -1,1 +1,0 @@
-import{u as t,E as o}from"./index-CcJ1OsnK.js";const n=()=>{const{language:n}=t();return{t:t=>{const r=t.split(".");let e=o[n];for(const o of r){if(!e||"object"!=typeof e||!(o in e))return t;e=e[o]}return"string"==typeof e?e:t}}};export{n as u};

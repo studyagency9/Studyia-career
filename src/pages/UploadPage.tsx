@@ -190,7 +190,8 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       }
 
       const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-      if (!apiKey) {
+      
+      if (!apiKey || apiKey === 'your_api_key_here') {
         throw new Error(t('upload.apiKeyMissing'));
       }
 
@@ -199,11 +200,11 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
         headers: {
           "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:8080/", // Required by OpenRouter for free-tier users
-          "X-Title": "Studyia Career CV Builder"      // Required by OpenRouter for free-tier users
+          "HTTP-Referer": "https://career.studyia.net", // Required by OpenRouter
+          "X-Title": "Studyia Career CV Builder"        // Required by OpenRouter
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-3.3-70b-instruct:free", // Or any other suitable model
+          model: "meta-llama/llama-3.3-70b-instruct:free",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: `Here is the CV text to analyze:\n\n${cvText}` }
@@ -213,7 +214,8 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || t('upload.analysisError'));
+        console.error('OpenRouter API Error:', errorData);
+        throw new Error(errorData.error?.message || `API Error: ${response.status} - ${response.statusText}`);
       }
 
       const result = await response.json();

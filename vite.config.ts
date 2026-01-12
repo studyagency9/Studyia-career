@@ -11,6 +11,9 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [react(), vercel(), mode === "development" && componentTagger()].filter(Boolean),
+  define: {
+    'import.meta.env.VITE_OPENROUTER_API_KEY': JSON.stringify(process.env.VITE_OPENROUTER_API_KEY),
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

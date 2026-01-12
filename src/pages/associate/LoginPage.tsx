@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAssociateAuth } from '@/contexts/AssociateAuthContext';
-import { useTranslation } from '@/hooks/useTranslation';
+import { useTranslation } from '@/i18n/i18nContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 const AssociateLoginPage = () => {
