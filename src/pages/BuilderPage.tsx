@@ -439,8 +439,8 @@ const TargetJobStep = ({ value, onChange }: { value: string; onChange: (value: s
   );
 };
 
-// Sortable Item for Experiences
-const SortableExperienceItem = ({
+// Experience Item (simplified without drag-and-drop)
+const ExperienceItem = ({
   exp,
   index,
   updateExperience,
@@ -453,28 +453,11 @@ const SortableExperienceItem = ({
 }) => {
   const { t, language } = useTranslation();
   const jobTitles = getJobTitles(language);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: exp.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
 
   return (
-    <div ref={setNodeRef} style={style} className="bg-card rounded-xl border border-border p-4 space-y-4 touch-none">
+    <div className="bg-card rounded-xl border border-border p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button {...attributes} {...listeners} className="cursor-grab p-1 text-muted-foreground hover:bg-muted rounded-md">
-            <GripVertical className="w-5 h-5" />
-          </button>
-          <h3 className="font-semibold text-foreground">{t('builder.experience.experienceNumber')} {index + 1}</h3>
-        </div>
+        <h3 className="font-semibold text-foreground">{t('builder.experience.experienceNumber')} {index + 1}</h3>
         <Button variant="ghost" size="sm" onClick={() => removeExperience(exp.id)} className="text-destructive hover:text-destructive">
           <Trash2 className="w-4 h-4" />
         </Button>
@@ -502,7 +485,7 @@ const SortableExperienceItem = ({
         </div>
         <div className="space-y-2">
           <Label>{t('builder.experience.endDate')}</Label>
-          <DateSelector value={exp.endDate} onChange={(v) => updateExperience(exp.id, "endDate", v)} disabled={exp.current} />
+          <DateSelector value={exp.endDate} onChange={(v) => updateExperience(exp.id, "endDate", v)} disabled={exp.current} minDate={exp.startDate} />
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input type="checkbox" checked={exp.current} onChange={(e) => updateExperience(exp.id, "current", e.target.checked)} className="rounded border-border" />
             {t('builder.common.current')}
@@ -519,15 +502,8 @@ const SortableExperienceItem = ({
   );
 };
 
-// Step 3: Experiences with Date Selectors
+// Step 3: Experiences (simplified without drag-and-drop)
 const ExperiencesStep = ({ data, onChange }: { data: Experience[]; onChange: (data: Experience[]) => void }) => {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   const addExperience = () => {
     const newExp: Experience = { id: Date.now().toString(), title: "", company: "", location: "", startDate: "", endDate: "", current: false, description: "" };
     onChange([...data, newExp]);
@@ -539,15 +515,6 @@ const ExperiencesStep = ({ data, onChange }: { data: Experience[]; onChange: (da
 
   const removeExperience = (id: string) => {
     onChange(data.filter(exp => exp.id !== id));
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = data.findIndex((exp) => exp.id === active.id);
-      const newIndex = data.findIndex((exp) => exp.id === over.id);
-      onChange(arrayMove(data, oldIndex, newIndex));
-    }
   };
 
   const { t } = useTranslation();
@@ -566,22 +533,18 @@ const ExperiencesStep = ({ data, onChange }: { data: Experience[]; onChange: (da
           <Button onClick={addExperience}><Plus className="w-4 h-4 mr-2" />{t('builder.experience.add')}</Button>
         </div>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={data} strategy={verticalListSortingStrategy}>
-            <div className="space-y-4">
-              {data.map((exp, index) => (
-                <SortableExperienceItem
-                  key={exp.id}
-                  exp={exp}
-                  index={index}
-                  updateExperience={updateExperience}
-                  removeExperience={removeExperience}
-                />
-              ))}
-              <Button variant="outline" onClick={addExperience} className="w-full"><Plus className="w-4 h-4 mr-2" />{t('builder.experience.addAnother')}</Button>
-            </div>
-          </SortableContext>
-        </DndContext>
+        <div className="space-y-4">
+          {data.map((exp, index) => (
+            <ExperienceItem
+              key={exp.id}
+              exp={exp}
+              index={index}
+              updateExperience={updateExperience}
+              removeExperience={removeExperience}
+            />
+          ))}
+          <Button variant="outline" onClick={addExperience} className="w-full"><Plus className="w-4 h-4 mr-2" />{t('builder.experience.addAnother')}</Button>
+        </div>
       )}
       <p className="text-sm text-muted-foreground">💡 {t('builder.experience.noExperienceTip')}</p>
     </div>
@@ -744,9 +707,9 @@ const SkillsStep = ({ data, onChange }: { data: string[]; onChange: (data: strin
 };
 
 // Step 6: Template Selection
-const TemplateStep = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
+const TemplateStep = ({ value, onChange, onNext }: { value: string; onChange: (value: string) => void; onNext?: () => void }) => {
   const { t } = useTranslation();
-  
+  const isMobile = useIsMobile();
   // Filtrer pour n'afficher que les modèles avec des templates PDF fonctionnels
   const availableTemplates = templateInfoBase.filter(template => 
     ['professional', 'creative', 'minimal', 'modern', 'elegant', 'bold', 'gradient'].includes(template.id)
@@ -763,7 +726,15 @@ const TemplateStep = ({ value, onChange }: { value: string; onChange: (value: st
         {availableTemplates.map((template) => (
           <button
             key={template.id}
-            onClick={() => onChange(template.id)}
+            onClick={() => {
+              if (value === template.id && onNext) {
+                // Si déjà sélectionné, avancer à l'étape suivante
+                onNext();
+              } else {
+                // Sinon, sélectionner le template
+                onChange(template.id);
+              }
+            }}
             className={cn(
               "relative p-4 rounded-xl border-2 transition-all text-left",
               value === template.id ? "border-primary bg-primary/5 shadow-lg" : "border-border hover:border-primary/50"
@@ -797,6 +768,7 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, previewRef, pdfTr
   const TemplateComponent = templateComponents[data.template as keyof typeof templateComponents] || templateComponents.professional;
 
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   
   return (
     <div className="space-y-6">
@@ -806,6 +778,16 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, previewRef, pdfTr
       </div>
 
       <div className="max-w-4xl mx-auto">
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg md:hidden flex items-center gap-3 text-sm">
+          <div className="flex-shrink-0">
+            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+          <div className="flex-1 text-blue-700 dark:text-blue-300">
+            <span className="font-medium">Astuce :</span> Glissez vers le bas pour fermer l'aperçu
+          </div>
+        </div>
         <PDFPreview data={data} translations={pdfTranslations} />
       </div>
 
@@ -1092,7 +1074,7 @@ const BuilderPage = () => {
       case 3: return <ExperiencesStep data={cvData.experiences} onChange={(data) => setCVData({ ...cvData, experiences: data })} />;
       case 4: return <EducationStep data={cvData.education} onChange={(data) => setCVData({ ...cvData, education: data })} />;
       case 5: return <SkillsStep data={cvData.skills} onChange={(data) => setCVData({ ...cvData, skills: data })} />;
-      case 6: return <TemplateStep value={cvData.template} onChange={(value) => setCVData({ ...cvData, template: value })} />;
+      case 6: return <TemplateStep value={cvData.template} onChange={(value) => setCVData({ ...cvData, template: value })} onNext={handleNext} />;
       case 7: return <FinalPreviewStep data={cvData} onStartAnalysis={() => setAnalysisModalOpen(true)} onDownload={handleDownload} previewRef={cvPreviewRef} pdfTranslations={pdfTranslations} />;
       default: return null;
     }

@@ -240,7 +240,15 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       handleUploadSuccess(data);
     } catch (err) {
       console.error("Upload and analysis error:", err);
-      const userMessage = err instanceof Error ? err.message : t('upload.genericError');
+      let userMessage = t('upload.genericError');
+      
+      // Check if it's a network error
+      if (err instanceof TypeError && (err.message.includes('fetch') || err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+        userMessage = t('upload.networkError');
+      } else if (err instanceof Error) {
+        userMessage = err.message;
+      }
+      
       setError(userMessage);
       toast({
         title: t('upload.analysisErrorTitle'),

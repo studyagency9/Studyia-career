@@ -10,6 +10,7 @@ interface DateSelectorProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  minDate?: string;
 }
 
 export const DateSelector = ({
@@ -18,6 +19,7 @@ export const DateSelector = ({
   placeholder = "Sélectionner",
   className,
   disabled = false,
+  minDate,
 }: DateSelectorProps) => {
   const { t, language } = useTranslation();
   const months = getMonths(language);
@@ -37,6 +39,21 @@ export const DateSelector = ({
   };
 
   const { month, year } = parseValue(value);
+  const minDateParsed = minDate ? parseValue(minDate) : null;
+  
+  // Filter years based on minDate
+  const filteredYears = minDateParsed?.year 
+    ? years.filter(y => parseInt(y.value) >= parseInt(minDateParsed.year))
+    : years;
+  
+  // Filter months based on minDate (only if same year)
+  const filteredMonths = minDateParsed?.year && year === minDateParsed.year && minDateParsed.month
+    ? months.filter(m => {
+        const monthIndex = months.findIndex(mo => mo.value === m.value);
+        const minMonthIndex = months.findIndex(mo => mo.value === minDateParsed.month);
+        return monthIndex >= minMonthIndex;
+      })
+    : months;
 
   const handleMonthChange = (newMonth: string) => {
     const monthLabel = months.find(m => m.value === newMonth)?.label || "";
@@ -57,7 +74,7 @@ export const DateSelector = ({
           <SelectValue placeholder={t('builder.common.month')} />
         </SelectTrigger>
         <SelectContent className="bg-background border border-border max-h-60">
-          {months.map((m) => (
+          {filteredMonths.map((m) => (
             <SelectItem key={m.value} value={m.value}>
               {m.label}
             </SelectItem>
@@ -70,7 +87,7 @@ export const DateSelector = ({
           <SelectValue placeholder={t('builder.common.year')} />
         </SelectTrigger>
         <SelectContent className="bg-background border border-border max-h-60">
-          {years.map((y) => (
+          {filteredYears.map((y) => (
             <SelectItem key={y.value} value={y.value}>
               {y.label}
             </SelectItem>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { AnalysisAnimation } from './AnalysisAnimation';
 import { CheckCircle, Zap, TrendingUp, Sparkles, Lightbulb, AlertTriangle, Eye } from "lucide-react";
+import { useTranslation } from '@/i18n/i18nContext';
 
 interface Recommendation {
   section: 'Titre du CV' | 'Résumé' | 'Expériences' | 'Compétences';
@@ -88,6 +89,7 @@ interface CVAnalysisProps {
 }
 
 export const CVAnalysis = ({ cvData, onApplySuggestion, onPreviewAllSuggestions, isOptimizing = false }: CVAnalysisProps) => {
+  const { t, language } = useTranslation();
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,13 +102,174 @@ export const CVAnalysis = ({ cvData, onApplySuggestion, onPreviewAllSuggestions,
       const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
       
       if (!apiKey) {
-        setError("Clé API manquante. Veuillez ajouter VITE_OPENROUTER_API_KEY dans votre fichier .env.local");
+        setError(t('analysis.apiKeyMissing'));
         setIsLoading(false);
         return;
       }
 
       try {
-        const systemPrompt = `Tu es un coach carrière expert spécialisé dans le marché de l'emploi francophone africain, particulièrement au Cameroun. Tu connais les attentes des recruteurs locaux et internationaux opérant en Afrique centrale. Ta mission : analyser le CV fourni et générer des CORRECTIONS RÉALISTES, CRÉDIBLES et ADAPTÉES au contexte camerounais.
+        const languageInstruction = language === 'en' 
+          ? 'You MUST respond in ENGLISH. All sections, explanations, suggestions, and strong points must be in English.'
+          : 'Tu DOIS répondre en FRANÇAIS. Toutes les sections, explications, suggestions et points forts doivent être en français.';
+
+        const systemPrompt = language === 'en'
+          ? `You are an expert career coach specialized in the African francophone job market, particularly in Cameroon. You know the expectations of local and international recruiters operating in Central Africa. Your mission: analyze the provided CV and generate REALISTIC, CREDIBLE, and ADAPTED corrections to the Cameroonian context.
+
+${languageInstruction}
+
+## YOUR MAIN OBJECTIVE
+Generate CONCRETE and AUTHENTIC corrections that improve the CV without exaggeration, remaining consistent with the Cameroonian job market.
+
+## MANDATORY response format
+You must ONLY respond with a valid JSON object, without any text before or after.
+
+Expected JSON structure:
+{
+  "score": number between 0 and 100,
+  "status": "Ready" or "Improvable" or "Needs Work",
+  "strongPoints": [
+    "Specific strong point 1 from CV",
+    "Specific strong point 2 from CV",
+    "Specific strong point 3 from CV"
+  ],
+  "recommendations": [
+    {
+      "section": "CV Title" or "Summary" or "Experiences" or "Skills",
+      "explanation": "Why this modification will improve the CV",
+      "suggestion": "Description of what will change",
+      "action": {
+        "type": "REPLACE" or "ADD",
+        "payload": {
+          "field": "targetJob" or "summary" or "experiences" or "skills",
+          "value": "IMPROVED CONTENT, REALISTIC, READY TO USE"
+        }
+      }
+    }
+  ]
+}
+
+## ABSOLUTE RULES FOR GENERATING CORRECTIONS
+
+### RULE #1: CAMEROONIAN CONTEXTUALIZATION
+Before generating ANYTHING, you MUST:
+1. Read ALL the provided CV (targetJob, summary, experiences, skills)
+2. Identify the exact sector of activity
+3. Understand the level of experience (beginner, intermediate, confirmed)
+4. Adapt to local context: Cameroonian companies, local sectors, market realities
+
+### RULE #2: STAY REALISTIC AND CREDIBLE
+AVOID:
+- Too precise numbers like "67.3% reduction"
+- Budgets in millions
+- Teams of 50 people
+- Formulas like "Generated 2M€ revenue", "Managed 500K€ budget"
+
+PREFER:
+- Authentic formulations
+- Round and credible numbers
+- Local context
+- Formulas like "Contributed to sales increase", "Managed team marketing budget"
+
+### RULE #3: OPTIMIZATION WITHOUT EXAGGERATION
+Each correction MUST:
+- Be truly applicable to Cameroonian context
+- Use action verbs (Developed, Managed, Created, Participated, Contributed)
+- Include qualitative results rather than impossible-to-verify metrics
+- Remain humble but professional
+
+---
+
+## "CV TITLE" SECTION - GENERATION RULES
+
+### Recommended format:
+Job Title | Main specialty • Experience level if relevant
+
+### TRANSFORMATION Examples:
+
+Example 1 - Developer
+Current CV: targetJob = "Developer"
+Experiences: 3 years, work on websites and mobile apps
+Skills: PHP, JavaScript, MySQL
+
+CORRECTION TO GENERATE:
+"Web & Mobile Developer | PHP • JavaScript • MySQL"
+
+---
+
+## "SUMMARY" SECTION - GENERATION RULES
+
+### Recommended structure:
+Position with X years/months experience in field. Main skills. Notable achievement or contribution. Personal quality and motivation/search.
+
+### Length: 60-100 words | 3-5 sentences
+
+---
+
+## "EXPERIENCES" SECTION - GENERATION RULES
+
+### Format for each bullet point:
+- Action verb + what was done + context/detail if relevant
+
+### Action verbs to use:
+Developed, Created, Managed, Participated in, Contributed to, Ensured, Performed, Implemented, Supported, Organized, Monitored
+
+### IMPORTANT: Stay realistic
+- No too precise or impressive numbers
+- No results in millions or percentages with 2 decimals
+- Focus on concrete tasks and authentic contributions
+
+---
+
+## "SKILLS" SECTION - GENERATION RULES
+
+### Selection rules:
+- Skills truly relevant to target position
+- Mix of technical skills and professional qualities
+- Adapted to local context (tools used in Cameroon)
+
+---
+
+## SCORING AND STATUS
+
+Score (0-100):
+- 80-100: Very well structured, complete and professional CV → status: "Ready"
+- 60-79: Correct CV with possible improvements → status: "Improvable"
+- 0-59: Incomplete CV or lacking clarity → status: "Needs Work"
+
+Evaluation criteria:
+- Clear and precise title? (+20 points)
+- Well-written and complete summary? (+25 points)
+- Detailed and concrete experiences? (+30 points)
+- Relevant and varied skills? (+25 points)
+
+---
+
+## ESSENTIAL PRINCIPLES
+
+REALISTIC: No exaggeration, stay credible
+CONTEXTUALIZED: Adapt to Cameroonian market
+CONCRETE: Describe real tasks and missions
+PROFESSIONAL: Appropriate but accessible vocabulary
+APPLICABLE: Candidate must be able to defend what's written in interview
+
+AVOID:
+- Revenue numbers in millions
+- Hyper-precise percentages (67.34%)
+- Teams of 50+ people
+- Unrealistic budgets
+- Technologies never used locally
+- Impossible-to-verify results
+
+---
+
+CRITICAL REMINDER:
+1. Respond ONLY with valid JSON, without text before or after
+2. Use \\n for line breaks in strings
+3. Properly escape all quotes in values
+4. Generate CREDIBLE and AUTHENTIC corrections adapted to Cameroonian context
+5. Candidate must be able to defend each line of their CV in interview without embarrassment
+6. ALL TEXT MUST BE IN ENGLISH`
+          : `Tu es un coach carrière expert spécialisé dans le marché de l'emploi francophone africain, particulièrement au Cameroun. Tu connais les attentes des recruteurs locaux et internationaux opérant en Afrique centrale. Ta mission : analyser le CV fourni et générer des CORRECTIONS RÉALISTES, CRÉDIBLES et ADAPTÉES au contexte camerounais.
 
 ## TON OBJECTIF PRINCIPAL
 Générer des corrections CONCRÈTES et AUTHENTIQUES qui améliorent le CV sans exagération, en restant cohérent avec le marché de l'emploi camerounais.
@@ -507,7 +670,13 @@ ${JSON.stringify(cvData, null, 2)}`;
         setAnalysis(analysisData);
       } catch (err: any) {
         console.error("Analysis error:", err);
-        setError("Une erreur est survenue lors de l'analyse de votre CV. Veuillez réessayer.");
+        
+        // Check if it's a network error
+        if (err instanceof TypeError && (err.message.includes('fetch') || err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
+          setError(t('analysis.networkError'));
+        } else {
+          setError(t('analysis.apiError'));
+        }
       } finally {
         setIsLoading(false);
       }
@@ -517,24 +686,23 @@ ${JSON.stringify(cvData, null, 2)}`;
   }, [cvData]);
 
   const getStatusInfo = (analysis: AnalysisResult) => {
-    switch (analysis.status) {
-      case 'Prêt':
-        return { color: 'text-green-500', text: 'CV prêt à l’envoi' };
-      case 'Améliorable':
-        return { color: 'text-yellow-500', text: 'Bon CV, quelques améliorations possibles' };
-      case 'À renforcer':
-        return { color: 'text-red-500', text: 'CV à renforcer avant envoi' };
-      default:
-        return { color: 'text-gray-500', text: 'Analyse en cours...' };
-    }
+    const statusMap: Record<string, { color: string; text: string }> = {
+      'Prêt': { color: 'text-green-500', text: t('analysis.statusReady') },
+      'Ready': { color: 'text-green-500', text: t('analysis.statusReady') },
+      'Améliorable': { color: 'text-yellow-500', text: t('analysis.statusGood') },
+      'Improvable': { color: 'text-yellow-500', text: t('analysis.statusGood') },
+      'À renforcer': { color: 'text-red-500', text: t('analysis.statusNeedsWork') },
+      'Needs Work': { color: 'text-red-500', text: t('analysis.statusNeedsWork') },
+    };
+    return statusMap[analysis.status] || { color: 'text-gray-500', text: t('analysis.analyzing') };
   };
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 p-8">
         <AnalysisAnimation />
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white -mt-8">Analyse en cours...</h2>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">Notre IA peaufine votre CV. Cela peut prendre un instant.</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white -mt-8">{t('analysis.analyzing')}</h2>
+        <p className="text-gray-600 dark:text-gray-300 mt-2">{t('analysis.analyzingDesc')}</p>
       </div>
     );
   }
@@ -543,9 +711,9 @@ ${JSON.stringify(cvData, null, 2)}`;
     return (
       <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 p-8 text-center">
         <AlertTriangle className="w-12 h-12 text-red-500 mb-6" />
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Une erreur est survenue</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('analysis.errorTitle')}</h2>
         <p className="text-red-500 dark:text-red-400 mt-2 bg-red-50 dark:bg-red-900/30 p-4 rounded-lg">{error}</p>
-        <p className="text-gray-500 dark:text-gray-400 mt-4 text-sm">Si le problème persiste, veuillez réessayer plus tard.</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-4 text-sm">{t('analysis.errorRetry')}</p>
       </div>
     );
   }
@@ -560,13 +728,13 @@ ${JSON.stringify(cvData, null, 2)}`;
     <div className="bg-gray-50 dark:bg-gray-900 p-6 sm:p-8 h-full overflow-y-auto">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">Coach CV Studyia</p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">Résultat de votre analyse</h2>
+          <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">{t('analysis.coachTitle')}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">{t('analysis.title')}</h2>
         </div>
 
         {/* Global Evaluation */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 mb-8">
-          <h3 className="font-bold text-lg text-gray-900 dark:text-white">Évaluation globale</h3>
+          <h3 className="font-bold text-lg text-gray-900 dark:text-white">{t('analysis.globalEval')}</h3>
           <div className="flex items-center gap-4 mt-4">
             <div className={`text-5xl font-bold ${statusInfo.color}`}>{analysis.score}<span className="text-2xl">/100</span></div>
             <div className="flex-1">
@@ -583,7 +751,7 @@ ${JSON.stringify(cvData, null, 2)}`;
           {/* Strong Points */}
           {analysis.strongPoints && analysis.strongPoints.length > 0 && (
             <div>
-              <h3 className="flex items-center font-semibold text-lg text-gray-900 dark:text-white mb-4"><CheckCircle className="w-6 h-6 mr-3 text-green-500" />Points forts</h3>
+              <h3 className="flex items-center font-semibold text-lg text-gray-900 dark:text-white mb-4"><CheckCircle className="w-6 h-6 mr-3 text-green-500" />{t('analysis.strongPoints')}</h3>
               <div className="space-y-3">
                 {analysis.strongPoints.map((point, index) => (
                   <div key={index} className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg text-green-800 dark:text-green-300 text-sm">{point}</div>
@@ -595,14 +763,14 @@ ${JSON.stringify(cvData, null, 2)}`;
           {/* Recommendations */}
           {analysis.recommendations && analysis.recommendations.length > 0 && (
             <div>
-              <h3 className="flex items-center font-semibold text-lg text-gray-900 dark:text-white mb-4"><Zap className="w-6 h-6 mr-3 text-blue-500" />Améliorations recommandées</h3>
+              <h3 className="flex items-center font-semibold text-lg text-gray-900 dark:text-white mb-4"><Zap className="w-6 h-6 mr-3 text-blue-500" />{t('analysis.recommendations')}</h3>
               <div className="space-y-4">
                 {analysis.recommendations.map((rec, index) => (
                   <div key={index} className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
                     <p className="font-semibold text-blue-600 dark:text-blue-400 text-sm">{rec.section}</p>
                     <p className="text-gray-700 dark:text-gray-300 mt-1">{rec.explanation}</p>
                     <div className="bg-gray-100 dark:bg-gray-700/50 p-3 rounded-md mt-3">
-                      <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">Suggestion :</p>
+                      <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">{t('analysis.suggestion')}</p>
                       <p className="text-sm text-gray-600 dark:text-gray-400 italic">“{rec.suggestion}”</p>
                     </div>
                   </div>
@@ -620,24 +788,24 @@ ${JSON.stringify(cvData, null, 2)}`;
               >
                 {isOptimizing ? (
                   <>
-                    <span className="animate-spin mr-2">⏳</span> Optimisation en cours...
+                    <span className="animate-spin mr-2">⏳</span> {t('analysis.optimizing')}
                   </>
                 ) : (
-                  <>
-                    <Eye className="w-5 h-5 mr-3" /> Prévisualiser les améliorations
+                  <>  
+                    <Eye className="w-5 h-5 mr-3" /> {t('analysis.previewButton')}
                   </>
                 )}
               </Button>
-              <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-2">Comparez la version IA avec la vôtre avant de valider.</p>
+              <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-2">{t('analysis.compare')}</p>
             </div>
           )}
 
           {/* Recruiter Impact */}
           <div>
-            <h3 className="flex items-center font-semibold text-lg text-gray-900 dark:text-white mb-4"><Sparkles className="w-6 h-6 mr-3 text-yellow-500" />Impact recruteur</h3>
+            <h3 className="flex items-center font-semibold text-lg text-gray-900 dark:text-white mb-4"><Sparkles className="w-6 h-6 mr-3 text-yellow-500" />{t('analysis.recruiterImpact')}</h3>
             <div className="bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg text-yellow-800 dark:text-yellow-300 text-sm space-y-2">
-              <p><Lightbulb className="inline w-4 h-4 mr-1" /> Avec ces améliorations, votre CV est plus clair et percutant.</p>
-              <p><Lightbulb className="inline w-4 h-4 mr-1" /> Un CV bien optimisé a 40% de chances en plus d'être lu par un recruteur.</p>
+              <p><Lightbulb className="inline w-4 h-4 mr-1" /> {t('analysis.recruiterTip1')}</p>
+              <p><Lightbulb className="inline w-4 h-4 mr-1" /> {t('analysis.recruiterTip2')}</p>
             </div>
           </div>
         </div>
