@@ -996,7 +996,11 @@ const BuilderPage = () => {
       try {
         // Extraire le JSON du contenu brut, qui peut être entouré de ```json ... ```
         const jsonMatch = rawContent.match(/```json\n([\s\S]*?)\n```/);
-        const optimizedCVString = jsonMatch ? jsonMatch[1] : rawContent;
+        let optimizedCVString = jsonMatch ? jsonMatch[1] : rawContent;
+        
+        // Remove control characters that cause JSON parsing errors
+        optimizedCVString = optimizedCVString.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+        
         const optimizedCV = JSON.parse(optimizedCVString);
         
         // Assurer que le template original est conservé

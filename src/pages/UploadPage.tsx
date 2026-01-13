@@ -235,7 +235,11 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
         throw new Error(t('upload.noJsonFound'));
       }
 
-      const jsonString = rawContent.substring(jsonStart, jsonEnd);
+      let jsonString = rawContent.substring(jsonStart, jsonEnd);
+      
+      // Remove control characters that cause JSON parsing errors
+      jsonString = jsonString.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+      
       const data = JSON.parse(jsonString);
 
       toast({

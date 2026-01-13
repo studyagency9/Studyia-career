@@ -672,6 +672,9 @@ ${JSON.stringify(cvData, null, 2)}`;
         // Clean up markdown code blocks if present
         content = content.replace(/```json\n?|\n?```/g, '');
         
+        // Remove control characters that cause JSON parsing errors
+        content = content.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+        
         const analysisData = JSON.parse(content);
         setAnalysis(analysisData);
       } catch (err: any) {
