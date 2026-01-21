@@ -51,8 +51,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useScrollPosition } from "@/hooks/use-scroll-position";
 import { useToast } from "@/hooks/use-toast";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AutocompleteInput } from "@/components/AutocompleteInput";
 import { DateSelector, YearSelector } from "@/components/DateSelector";
 import { getJobTitles, getDegrees, getSummarySuggestions, getAllSkills } from "@/data/suggestions";
@@ -64,6 +65,7 @@ import PDFPreview from '@/components/PDFPreview';
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/i18nContext";
 import { LanguageSwitcherDemo } from "@/components/LanguageSwitcherDemo";
+import { PaymentDialog } from "@/components/PaymentDialog";
 
 // Types
 interface PersonalInfo {
@@ -227,7 +229,7 @@ const SuggestionUI = ({ onSelect, isMobile }: { onSelect: (content: string) => v
 };
 
 // Step 1: Personal Info
-const PersonalInfoStep = ({ data, onChange, errors }: { data: PersonalInfo; onChange: (data: PersonalInfo) => void; errors: { [key: string]: string } }) => {
+const PersonalInfoStep = ({ data, onChange, errors, setErrors }: { data: PersonalInfo; onChange: (data: PersonalInfo) => void; errors: { [key: string]: string }; setErrors: React.Dispatch<React.SetStateAction<{ [key: string]: string }>> }) => {
   const [isOpen, setIsOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -843,22 +845,49 @@ const BuilderPage = () => {
   const [isComparing, setIsComparing] = useState(false);
   const { toast } = useToast();
   const [isAnalysisModalOpen, setAnalysisModalOpen] = useState(false);
+  const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [isAIPayment, setIsAIPayment] = useState(false);
   const cvPreviewRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const location = useLocation();
+  
+  // Utiliser le hook pour sauvegarder et restaurer la position de défilement
+  const { clearSavedPosition } = useScrollPosition('builder-page', [currentStep, cvData]);
 
   const handleDownload = async () => {
+    // Afficher le dialogue de paiement
+    setIsAIPayment(false); // Paiement pour CV standard
+    setPaymentModalOpen(true);
+  };
+  
+  // Fonction pour gérer l'annulation du paiement (sans téléchargement)
+  const handlePaymentCancel = () => {
+    setPaymentModalOpen(false);
+  };
+  
+  const navigate = useNavigate();
+
+  // Fonction pour gérer la fermeture du dialogue de paiement avec téléchargement
+  const handlePaymentClose = () => {
+    setPaymentModalOpen(false);
+    
+    // Générer le PDF après la fermeture du dialogue
     toast({ 
       title: t('common.loading'), 
       description: t('builder.preview.generating')
     });
 
     try {
-      await generatePDF(cvData, pdfTranslations);
+      generatePDF(cvData, pdfTranslations);
       toast({ 
         title: t('builder.preview.downloadSuccess'), 
         description: t('builder.preview.downloadSuccessDesc')
       });
+      
+      // Rediriger vers la page d'accueil après un court délai
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
     } catch (error) {
       console.error("Erreur lors de la génération du PDF:", error);
       toast({
@@ -1032,6 +1061,15 @@ const BuilderPage = () => {
   };
 
   const handleAcceptSuggestion = () => {
+    // Afficher le dialogue de paiement pour CV IA
+    setIsAIPayment(true);
+    setPaymentModalOpen(true);
+  };
+  
+  // Fonction pour gérer la fermeture du dialogue de paiement pour CV IA
+  const handleAIPaymentClose = () => {
+    setPaymentModalOpen(false);
+    
     if (suggestedCvData) {
       setCVData(suggestedCvData);
       toast({
@@ -1039,7 +1077,26 @@ const BuilderPage = () => {
         description: t('builder.ai.changesAppliedDesc'),
         className: "bg-green-100 border-green-300 text-green-800",
       });
+      
+      // Générer le PDF après la fermeture du dialogue
+      setTimeout(() => {
+        try {
+          generatePDF(suggestedCvData, pdfTranslations);
+          toast({ 
+            title: t('builder.preview.downloadSuccess'), 
+            description: t('builder.preview.downloadSuccessDesc')
+          });
+        } catch (error) {
+          console.error("Erreur lors de la génération du PDF:", error);
+          toast({
+            title: t('errors.pdfError'),
+            description: t('builder.preview.downloadError'),
+            variant: "destructive",
+          });
+        }
+      }, 1000);
     }
+    
     setIsComparing(false);
     setSuggestedCvData(null);
   };
@@ -1066,20 +1123,38 @@ const BuilderPage = () => {
       setErrors(newErrors);
 
       if (Object.keys(newErrors).length > 0) {
-        toast({
-          title: t('errors.missingFields'),
-          description: t('errors.fillRequired'),
-          variant: "destructive",
-        });
         return;
       }
     }
-    setCurrentStep(currentStep + 1);
+    
+    handleNextStep();
   };
-
-  const renderStep = () => {
+  
+  const handleNextStep = () => {
+    window.scrollTo(0, 0);
+    setCurrentStep(currentStep + 1);
+    // Effacer la position sauvegardée lors du changement d'étape
+    clearSavedPosition();
+  };
+  
+  const handlePreviousStep = () => {
+    window.scrollTo(0, 0);
+    setCurrentStep(currentStep - 1);
+    // Effacer la position sauvegardée lors du changement d'étape
+    clearSavedPosition();
+  };
+  
+  // Fonction pour gérer le changement direct d'étape
+  const handleStepChange = (stepId: number) => {
+    window.scrollTo(0, 0);
+    setCurrentStep(stepId);
+    // Effacer la position sauvegardée lors du changement d'étape
+    clearSavedPosition();
+  };
+  
+  const renderCurrentStep = () => {
     switch (currentStep) {
-      case 1: return <PersonalInfoStep data={cvData.personalInfo} onChange={(data) => setCVData({ ...cvData, personalInfo: data })} errors={errors} />;
+      case 1: return <PersonalInfoStep data={cvData.personalInfo} onChange={(data) => setCVData({ ...cvData, personalInfo: data })} errors={errors} setErrors={setErrors} />;
       case 2: return <TargetJobStep value={cvData.targetJob} onChange={(value) => setCVData({ ...cvData, targetJob: value })} />;
       case 3: return <ExperiencesStep data={cvData.experiences} onChange={(data) => setCVData({ ...cvData, experiences: data })} />;
       case 4: return <EducationStep data={cvData.education} onChange={(data) => setCVData({ ...cvData, education: data })} />;
@@ -1120,6 +1195,14 @@ const BuilderPage = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       {renderAnalysisView()}
+      
+      <PaymentDialog 
+        open={isPaymentModalOpen} 
+        onOpenChange={setPaymentModalOpen} 
+        onClose={isAIPayment ? handleAIPaymentClose : handlePaymentClose}
+        onCancel={handlePaymentCancel}
+        isAIGenerated={isAIPayment}
+      />
 
       <div className="lg:hidden fixed bottom-4 right-4 z-50">
         <Drawer>
@@ -1170,7 +1253,7 @@ const BuilderPage = () => {
         <div className="container py-4">
           <div className="flex items-center justify-between min-w-max gap-2">
             {steps.map((step) => (
-              <button key={step.id} onClick={() => setCurrentStep(step.id)} className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${currentStep === step.id ? "bg-primary text-primary-foreground" : currentStep > step.id ? "bg-success/10 text-success" : "text-muted-foreground hover:bg-muted"}`}>
+              <button key={step.id} onClick={() => handleStepChange(step.id)} className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${currentStep === step.id ? "bg-primary text-primary-foreground" : currentStep > step.id ? "bg-success/10 text-success" : "text-muted-foreground hover:bg-muted"}`}>
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${currentStep === step.id ? "bg-primary-foreground/20" : currentStep > step.id ? "bg-success/20" : "bg-muted"}`}>
                   {currentStep > step.id ? <Check className="w-3 h-3" /> : step.id}
                 </div>
@@ -1297,10 +1380,10 @@ const BuilderPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="order-2 lg:order-1">
               <motion.div key={currentStep} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }} className="bg-card rounded-2xl border border-border p-6 md:p-8 pb-24 lg:pb-8">
-                {renderStep()}
+                {renderCurrentStep()}
                 {currentStep < 7 && (
                   <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-                    <Button variant="outline" onClick={() => setCurrentStep(Math.max(1, currentStep - 1))} disabled={currentStep === 1}>
+                    <Button variant="outline" onClick={handlePreviousStep} disabled={currentStep === 1}>
                       <ChevronLeft className="w-4 h-4 mr-2" />{t('common.previous')}
                     </Button>
                     <Button onClick={handleNext}>

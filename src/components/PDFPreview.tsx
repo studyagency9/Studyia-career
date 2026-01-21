@@ -60,7 +60,7 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ data, className, transla
 
   const fileName = `CV_${data.personalInfo.firstName}_${data.personalInfo.lastName}.pdf`.replace(/\s+/g, '_');
 
-  // Sur mobile, afficher un message et un bouton de téléchargement au lieu du viewer
+  // Sur mobile, afficher uniquement un message sans bouton de téléchargement
   if (isMobile) {
     return (
       <div className={className}>
@@ -73,20 +73,9 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ data, className, transla
               Aperçu PDF non disponible sur mobile
             </h3>
             <p className="text-sm text-muted-foreground">
-              L'aperçu PDF ne fonctionne pas sur les appareils mobiles. Téléchargez votre CV pour le visualiser.
+              L'aperçu PDF ne fonctionne pas sur les appareils mobiles. Utilisez le bouton de téléchargement principal pour obtenir votre CV.
             </p>
           </div>
-          <PDFDownloadLink
-            document={<PDFTemplate data={dataWithTranslations} />}
-            fileName={fileName}
-          >
-            {({ loading }) => (
-              <Button size="lg" className="w-full sm:w-auto" disabled={loading}>
-                <Download className="w-5 h-5 mr-2" />
-                {loading ? 'Préparation...' : 'Télécharger mon CV'}
-              </Button>
-            )}
-          </PDFDownloadLink>
         </div>
       </div>
     );
