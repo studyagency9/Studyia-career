@@ -714,7 +714,7 @@ const TemplateStep = ({ value, onChange, onNext }: { value: string; onChange: (v
   const isMobile = useIsMobile();
   // Filtrer pour n'afficher que les modèles avec des templates PDF fonctionnels
   const availableTemplates = templateInfoBase.filter(template => 
-    ['professional', 'creative', 'minimal', 'modern', 'elegant', 'bold', 'gradient'].includes(template.id)
+    ['professional', 'creative', 'minimal', 'modern', 'elegant', 'bold', 'gradient', 'stockholm'].includes(template.id)
   );
   
   return (
@@ -832,6 +832,8 @@ const BuilderPage = () => {
     education: t('cvLabels.education'),
     skills: t('cvLabels.skills'),
     contact: t('cvLabels.contact'),
+    languages: t('cvLabels.languages'),
+    interests: t('cvLabels.interests'),
     present: t('cvLabels.present'),
     start: t('cvLabels.start'),
     end: t('cvLabels.end'),

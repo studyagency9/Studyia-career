@@ -23,7 +23,7 @@ export function PaymentOptions({ onClose, onCancel, isAIGenerated = false }: Pay
   const [errorCount, setErrorCount] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'orange' | 'mtn'>('orange');
   
-  const price = isAIGenerated ? 2100 : 1100;
+  const price = isAIGenerated ? 2000 : 1100;
   
   // Codes USSD avec les numéros et montants
   const orangeCode = `#150*1*1*691988958*${price}*2*career#`;

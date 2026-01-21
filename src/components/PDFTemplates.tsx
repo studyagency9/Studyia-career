@@ -1,5 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer';
+import PDFWatermark from './PDFWatermark';
 
 // Fonction utilitaire pour traiter les images base64
 const processImage = (photoUrl: string) => {
@@ -36,6 +37,8 @@ interface PDFTranslations {
   education: string;
   skills: string;
   contact: string;
+  languages: string;
+  interests: string;
   present: string;
   start: string;
   end: string;
@@ -43,6 +46,11 @@ interface PDFTranslations {
   jobTitle: string;
   degree: string;
   company: string;
+}
+
+interface PDFTemplateProps {
+  data: CVData;
+  showWatermark?: boolean;
 }
 
 interface CVData {
@@ -79,6 +87,7 @@ interface CVData {
   skills: string[];
   template: string;
   translations?: PDFTranslations;
+  showWatermark?: boolean; // Nouveau paramètre pour contrôler l'affichage du filigrane
 }
 
 // Styles pour PDF - reproduisant fidèlement les templates web
@@ -1036,14 +1045,245 @@ export const GradientPDFTemplate = ({ data }: { data: CVData }) => {
 
 
 // Export des templates PDF
-type PDFTemplateComponent = React.FC<{ data: CVData }>;
+type PDFTemplateComponent = React.FC<PDFTemplateProps>;
 
+// Template Stockholm (Modern Blue)  
+const StockholmPDFTemplate: PDFTemplateComponent = ({ data, showWatermark = true }) => {
+  const { personalInfo, targetJob, experiences, education, skills } = data;
+  const t = data.translations || {
+    profile: 'Profile',
+    experience: 'Professional Experience',
+    education: 'Education',
+    skills: 'Skills',
+    contact: 'Contact',
+    languages: 'Languages',
+    interests: 'Interests',
+    present: 'Present',
+    start: 'Start',
+    end: 'End',
+    yourName: 'Your Name',
+    jobTitle: 'Job Title',
+    degree: 'Degree',
+    company: 'Company',
+  };
+
+  const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || t.yourName;
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Filigrane */}
+        {showWatermark && <PDFWatermark text="STUDYIA CAREER" />}
+        
+        {/* Header */}
+        <View style={{ backgroundColor: '#EFF6FF', padding: 30, alignItems: 'center', borderBottom: '4 solid #F1F5F9' }}>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#1E293B', textTransform: 'uppercase', letterSpacing: 1 }}>{fullName}</Text>
+          {targetJob && <Text style={{ fontSize: 12, color: '#3B82F6', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 4 }}>{targetJob}</Text>}
+        </View>
+
+        <View style={{ flexDirection: 'row' }}>
+          {/* Colonne Gauche (35%) */}
+          <View style={{ width: '35%', padding: 20, paddingRight: 10, borderRight: '1 solid #F1F5F9' }}>
+            
+            {/* Contact */}
+            {(personalInfo.email || personalInfo.phone || personalInfo.city || personalInfo.country) && (
+              <View style={{ marginBottom: 25 }} wrap={false}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderBottom: '1 solid #BFDBFE', paddingBottom: 2 }}>
+                  <View style={{ width: 4, height: 16, backgroundColor: '#BFDBFE', marginRight: 6, borderRadius: 2 }}></View>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t.contact}</Text>
+                </View>
+                <View style={{ gap: 6 }}>
+                  {personalInfo.phone && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <View style={{ width: 12, height: 12, backgroundColor: '#EFF6FF', borderRadius: 6, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 6, color: '#3B82F6' }}>☎</Text>
+                      </View>
+                      <Text style={{ fontSize: 8, color: '#475569' }}>{personalInfo.phone}</Text>
+                    </View>
+                  )}
+                  {personalInfo.email && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <View style={{ width: 12, height: 12, backgroundColor: '#EFF6FF', borderRadius: 6, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 6, color: '#3B82F6' }}>✉</Text>
+                      </View>
+                      <Text style={{ fontSize: 8, color: '#475569' }}>{personalInfo.email}</Text>
+                    </View>
+                  )}
+                  {(personalInfo.city || personalInfo.country) && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <View style={{ width: 12, height: 12, backgroundColor: '#EFF6FF', borderRadius: 6, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ fontSize: 6, color: '#3B82F6' }}>⌂</Text>
+                      </View>
+                      <Text style={{ fontSize: 8, color: '#475569' }}>{[personalInfo.city, personalInfo.country].filter(Boolean).join(', ')}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Formation */}
+            {education.length > 0 && (
+              <View style={{ marginBottom: 25 }} wrap={false}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderBottom: '1 solid #BFDBFE', paddingBottom: 2 }}>
+                  <View style={{ width: 4, height: 16, backgroundColor: '#BFDBFE', marginRight: 6, borderRadius: 2 }}></View>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t.education}</Text>
+                </View>
+                <View style={{ gap: 12 }}>
+                  {education.map((edu) => (
+                    <View key={edu.id}>
+                      <Text style={{ fontSize: 9, fontWeight: 'bold', color: '#334155' }}>{edu.degree}</Text>
+                      <Text style={{ fontSize: 8, fontStyle: 'italic', color: '#3B82F6', marginBottom: 2 }}>{edu.startDate || t.start} - {edu.endDate || t.end}</Text>
+                      <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#475569', textTransform: 'uppercase' }}>{edu.school}</Text>
+                      <Text style={{ fontSize: 7, color: '#64748B' }}>{edu.location}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Compétences */}
+            {skills.length > 0 && (
+              <View style={{ marginBottom: 25 }} wrap={false}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderBottom: '1 solid #BFDBFE', paddingBottom: 2 }}>
+                  <View style={{ width: 4, height: 16, backgroundColor: '#BFDBFE', marginRight: 6, borderRadius: 2 }}></View>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t.skills}</Text>
+                </View>
+                <View style={{ gap: 4 }}>
+                  {skills.map((skill) => (
+                    <View key={skill} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 4 }}>
+                      <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#60A5FA', marginTop: 3 }}></View>
+                      <Text style={{ fontSize: 8, color: '#475569' }}>{skill}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Langues (Placeholder) */}
+            <View style={{ marginBottom: 25 }} wrap={false}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderBottom: '1 solid #BFDBFE', paddingBottom: 2 }}>
+                <View style={{ width: 4, height: 16, backgroundColor: '#BFDBFE', marginRight: 6, borderRadius: 2 }}></View>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  {data.translations?.languages || (data.translations?.profile === 'Profile' ? 'LANGUAGES' : 'LANGUES')}
+                </Text>
+              </View>
+              <View style={{ gap: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#60A5FA' }}></View>
+                  <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#475569' }}>Français :</Text>
+                  <Text style={{ fontSize: 8, color: '#475569' }}>Très Bien</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#60A5FA' }}></View>
+                  <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#475569' }}>Anglais :</Text>
+                  <Text style={{ fontSize: 8, color: '#475569' }}>Bien</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Colonne Droite (65%) */}
+          <View style={{ width: '65%', padding: 20, paddingLeft: 15 }}>
+            
+            {/* Profil */}
+            {personalInfo.summary && (
+              <View style={{ marginBottom: 25 }} wrap={false}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderBottom: '1 solid #BFDBFE', paddingBottom: 2 }}>
+                  <View style={{ width: 4, height: 16, backgroundColor: '#BFDBFE', marginRight: 6, borderRadius: 2 }}></View>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t.profile}</Text>
+                </View>
+                <Text style={{ fontSize: 8, color: '#475569', textAlign: 'justify', lineHeight: 1.5 }}>
+                  {personalInfo.summary}
+                </Text>
+              </View>
+            )}
+
+            {/* Expérience Professionnelle */}
+            {experiences.length > 0 && (
+              <View style={{ marginBottom: 25 }} wrap={false}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, borderBottom: '1 solid #BFDBFE', paddingBottom: 2 }}>
+                  <View style={{ width: 4, height: 16, backgroundColor: '#BFDBFE', marginRight: 6, borderRadius: 2 }}></View>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t.experience}</Text>
+                </View>
+                <View style={{ gap: 15 }}>
+                  {experiences.map((exp) => (
+                    <View key={exp.id}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
+                        <Text style={{ fontSize: 9, fontWeight: 'bold', color: '#334155', textTransform: 'uppercase', width: '60%' }}>{exp.title}</Text>
+                        <View style={{ backgroundColor: '#EFF6FF', padding: '2 4', borderRadius: 2 }}>
+                          <Text style={{ fontSize: 7, fontWeight: 'bold', color: '#3B82F6', textTransform: 'uppercase' }}>
+                            {exp.startDate || t.start} - {exp.current ? t.present : exp.endDate || t.end}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>
+                        {exp.company} {exp.location && `- ${exp.location}`}
+                      </Text>
+                      
+                      {exp.description && (
+                        <View style={{ borderLeft: '1 solid #EFF6FF', paddingLeft: 6 }}>
+                          {exp.description.split('\n').map((line, i) => (
+                            line.trim() && (
+                              <View key={i} style={{ flexDirection: 'row', marginBottom: 2 }}>
+                                <Text style={{ fontSize: 8, color: '#60A5FA', marginRight: 4 }}>•</Text>
+                                <Text style={{ fontSize: 8, color: '#475569' }}>{line.replace(/^[•-]\s*/, '')}</Text>
+                              </View>
+                            )
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Centres d'intérêt */}
+            <View style={{ marginBottom: 25 }} wrap={false}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderBottom: '1 solid #BFDBFE', paddingBottom: 2 }}>
+                <View style={{ width: 4, height: 16, backgroundColor: '#BFDBFE', marginRight: 6, borderRadius: 2 }}></View>
+                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#334155', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  {data.translations?.interests || (data.translations?.profile === 'Profile' ? 'INTERESTS' : 'CENTRE D\'INTÉRÊT')}
+                </Text>
+              </View>
+              <View style={{ gap: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#94A3B8' }}></View>
+                  <Text style={{ fontSize: 8, color: '#475569' }}>Lecture</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#94A3B8' }}></View>
+                  <Text style={{ fontSize: 8, color: '#475569' }}>Musique</Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#94A3B8' }}></View>
+                  <Text style={{ fontSize: 8, color: '#475569' }}>Voyage</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
+// Wrapper pour chaque template qui accepte le paramètre showWatermark
+const createTemplateWithWatermark = (Template: React.FC<{ data: CVData }>) => {
+  const WrappedTemplate: PDFTemplateComponent = ({ data, showWatermark = true }) => {
+    return <Template data={data} />;
+  };
+  return WrappedTemplate;
+};
+
+// Enregistrement des templates avec support du filigrane
 export const pdfTemplateComponents: Record<string, PDFTemplateComponent> = {
-  professional: ProfessionalPDFTemplate,
-  creative: CreativePDFTemplate,
-  minimal: MinimalPDFTemplate,
-  modern: ModernPDFTemplate,
-  elegant: ElegantPDFTemplate,
-  bold: BoldPDFTemplate,
-  gradient: GradientPDFTemplate,
+  professional: createTemplateWithWatermark(ProfessionalPDFTemplate),
+  creative: createTemplateWithWatermark(CreativePDFTemplate),
+  minimal: createTemplateWithWatermark(MinimalPDFTemplate),
+  modern: createTemplateWithWatermark(ModernPDFTemplate),
+  elegant: createTemplateWithWatermark(ElegantPDFTemplate),
+  bold: createTemplateWithWatermark(BoldPDFTemplate),
+  gradient: createTemplateWithWatermark(GradientPDFTemplate),
+  stockholm: StockholmPDFTemplate, // Ce template supporte déjà le filigrane
 };

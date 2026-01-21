@@ -989,84 +989,182 @@ export const MilanTemplate = ({ data, className }: CVTemplateProps) => {
   );
 };
 
-// Template 11: Stockholm (Scandinavian Clean)
+// Template 11: Stockholm (Modern Blue)
 export const StockholmTemplate = ({ data, className }: CVTemplateProps) => {
   const { t } = useTranslation();
   const { personalInfo, targetJob, experiences, education, skills } = data;
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || t('cvLabels.yourName');
 
   return (
-    <div className={cn("bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden p-10 font-sans text-gray-800", className)}>
-      <header className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">{fullName}</h1>
-          {targetJob && <h2 className="text-md text-blue-600 font-semibold mt-1">{targetJob}</h2>}
-        </div>
-        {personalInfo.photo && (
-            <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-gray-100">
-              <img src={personalInfo.photo} alt={fullName} className="w-full h-full object-cover" />
-            </div>
-        )}
-      </header>
+    <div className={cn("bg-white min-h-[1000px] w-full font-sans text-slate-800", className)}>
+      {/* Header */}
+      <div className="bg-blue-50/80 py-10 px-8 text-center border-b-4 border-slate-800/10">
+        <h1 className="text-4xl font-extrabold text-slate-800 tracking-wide uppercase mb-2">{fullName}</h1>
+        {targetJob && <p className="text-xl text-blue-600 font-semibold tracking-widest uppercase">{targetJob}</p>}
+      </div>
 
-      <div className="grid grid-cols-12 gap-10">
-        <main className="col-span-8 space-y-8">
-          {personalInfo.summary && (
-            <section>
-              <p className="text-sm text-gray-600 leading-relaxed">{personalInfo.summary}</p>
-            </section>
-          )}
-          {experiences.length > 0 && (
-            <section>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-4">{t('cvLabels.experience')}</h3>
-              <div className="space-y-5 text-sm">
-                {experiences.map(exp => (
-                  <div key={exp.id} className="grid grid-cols-4 gap-2">
-                    <p className="col-span-1 text-xs text-gray-500">{exp.startDate || t('cvLabels.start')} - {exp.current ? t('cvLabels.present') : exp.endDate || t('cvLabels.end')}</p>
-                    <div className="col-span-3">
-                      <h4 className="font-semibold text-gray-800">{exp.title}</h4>
-                      <p className="text-sm text-gray-600">{exp.company}</p>
-                      <ul className="text-xs text-gray-500 list-disc list-inside space-y-1 mt-1">{exp.description.split('\n').map((line, i) => line.trim() && <li key={i}>{line}</li>)}</ul>
+      <div className="flex">
+        {/* Colonne Gauche (35%) */}
+        <div className="w-[35%] p-8 pr-4 border-r-2 border-slate-100">
+          
+          {/* Contact */}
+          {(personalInfo.email || personalInfo.phone || personalInfo.city || personalInfo.country) && (
+            <div className="mb-10">
+              <h3 className="text-sm font-black text-slate-700 tracking-widest uppercase mb-4 border-b-2 border-blue-200 pb-1 flex items-center">
+                <span className="w-2 h-8 bg-blue-100 mr-2 rounded-full block -ml-2"></span>
+                {t('cvLabels.contact') || 'CONTACT'}
+              </h3>
+              <div className="space-y-3 text-xs font-medium text-slate-600">
+                {personalInfo.phone && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                      <Phone className="w-3 h-3" />
                     </div>
+                    <span>{personalInfo.phone}</span>
                   </div>
-                ))}
+                )}
+                {personalInfo.email && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                      <Mail className="w-3 h-3" />
+                    </div>
+                    <span className="break-all">{personalInfo.email}</span>
+                  </div>
+                )}
+                {(personalInfo.city || personalInfo.country) && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                      <MapPin className="w-3 h-3" />
+                    </div>
+                    <span>{[personalInfo.city, personalInfo.country].filter(Boolean).join(", ")}</span>
+                  </div>
+                )}
               </div>
-            </section>
-          )}
-        </main>
-
-        <aside className="col-span-4 space-y-8">
-          <section>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">{t('cvLabels.contact')}</h3>
-            <div className="text-sm space-y-1 text-gray-600">
-              {personalInfo.email && <p>{personalInfo.email}</p>}
-              {personalInfo.phone && <p>{personalInfo.phone}</p>}
-              {(personalInfo.city || personalInfo.country) && <p>{[personalInfo.city, personalInfo.country].filter(Boolean).join(", ")}</p>}
             </div>
-          </section>
+          )}
+
+          {/* Formation */}
           {education.length > 0 && (
-            <section>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">{t('cvLabels.education')}</h3>
-              <div className="text-sm space-y-3">
-                {education.map(edu => (
+            <div className="mb-10">
+              <h3 className="text-sm font-black text-slate-700 tracking-widest uppercase mb-4 border-b-2 border-blue-200 pb-1 flex items-center">
+                <span className="w-2 h-8 bg-blue-100 mr-2 rounded-full block -ml-2"></span>
+                {t('cvLabels.education') || 'FORMATION'}
+              </h3>
+              <div className="space-y-5">
+                {education.map((edu) => (
                   <div key={edu.id}>
-                    <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
-                    <p className="text-gray-600">{edu.school}</p>
-                    <p className="text-xs text-gray-500">{edu.endDate}</p>
+                    <p className="font-bold text-slate-800 text-sm">{edu.degree}</p>
+                    <p className="text-xs text-blue-500 italic mb-1">{edu.startDate || t('cvLabels.start')} - {edu.endDate || t('cvLabels.end')}</p>
+                    <p className="text-xs font-bold text-slate-600 uppercase">{edu.school}</p>
+                    <p className="text-xs text-slate-500">{edu.location}</p>
                   </div>
                 ))}
               </div>
-            </section>
+            </div>
           )}
+
+          {/* Compétences */}
           {skills.length > 0 && (
-            <section>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">{t('cvLabels.skills')}</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.map(skill => <span key={skill} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md">{skill}</span>)}
-              </div>
-            </section>
+            <div className="mb-10">
+              <h3 className="text-sm font-black text-slate-700 tracking-widest uppercase mb-4 border-b-2 border-blue-200 pb-1 flex items-center">
+                <span className="w-2 h-8 bg-blue-100 mr-2 rounded-full block -ml-2"></span>
+                {t('cvLabels.skills') || 'COMPETENCE'}
+              </h3>
+              <ul className="space-y-2">
+                {skills.map((skill) => (
+                  <li key={skill} className="flex items-start text-xs text-slate-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 mr-2 flex-shrink-0"></span>
+                    <span>{skill}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
-        </aside>
+
+          {/* Langues (Placeholder si non dispo dans les données mais demandé par l'image) */}
+          <div className="mb-10">
+            <h3 className="text-sm font-black text-slate-700 tracking-widest uppercase mb-4 border-b-2 border-blue-200 pb-1 flex items-center">
+              <span className="w-2 h-8 bg-blue-100 mr-2 rounded-full block -ml-2"></span>
+              {t('cvLabels.languages') === 'cvLabels.languages' ? (t('language') === 'en' ? 'LANGUAGES' : 'LANGUES') : t('cvLabels.languages')}
+            </h3>
+            <ul className="space-y-2 text-xs text-slate-600">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                <span className="font-semibold">Français :</span> Très Bien
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                <span className="font-semibold">Anglais :</span> Bien
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Colonne Droite (65%) */}
+        <div className="w-[65%] p-8 pl-6">
+          
+          {/* Profil */}
+          {personalInfo.summary && (
+            <div className="mb-10">
+              <h3 className="text-sm font-black text-slate-700 tracking-widest uppercase mb-4 border-b-2 border-blue-200 pb-1 flex items-center">
+                <span className="w-2 h-8 bg-blue-100 mr-2 rounded-full block -ml-2"></span>
+                {t('cvLabels.profile') || 'PROFIL'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed text-justify">
+                {personalInfo.summary}
+              </p>
+            </div>
+          )}
+
+          {/* Expérience Professionnelle */}
+          {experiences.length > 0 && (
+            <div className="mb-10">
+              <h3 className="text-sm font-black text-slate-700 tracking-widest uppercase mb-6 border-b-2 border-blue-200 pb-1 flex items-center">
+                <span className="w-2 h-8 bg-blue-100 mr-2 rounded-full block -ml-2"></span>
+                {t('cvLabels.experience') || 'STAGE PROFESSIONNEL'}
+              </h3>
+              <div className="space-y-8">
+                {experiences.map((exp) => (
+                  <div key={exp.id} className="relative">
+                    <div className="flex justify-between items-start mb-1">
+                      <h4 className="font-bold text-slate-800 text-sm uppercase tracking-wide">{exp.title}</h4>
+                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-sm uppercase tracking-tighter">
+                        {exp.startDate || t('cvLabels.start')} - {exp.current ? t('cvLabels.present') : exp.endDate || t('cvLabels.end')}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-slate-500 mb-2 uppercase">{exp.company} {exp.location && `- ${exp.location}`}</p>
+                    
+                    {exp.description && (
+                      <div className="text-xs text-slate-600 pl-2 border-l-2 border-blue-50">
+                        {exp.description.split('\n').map((line, i) => (
+                          line.trim() && (
+                            <div key={i} className="mb-1 flex items-start">
+                              <span className="mr-1.5 mt-1 text-blue-400">•</span>
+                              <span>{line.replace(/^[•-]\s*/, '')}</span>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Centres d'intérêt (Placeholder pour coller au design) */}
+          <div className="mb-10">
+            <h3 className="text-sm font-black text-slate-700 tracking-widest uppercase mb-4 border-b-2 border-blue-200 pb-1 flex items-center">
+              <span className="w-2 h-8 bg-blue-100 mr-2 rounded-full block -ml-2"></span>
+              {t('cvLabels.interests') === 'cvLabels.interests' ? (t('language') === 'en' ? 'INTERESTS' : 'CENTRE D\'INTÉRÊT') : t('cvLabels.interests')}
+            </h3>
+            <ul className="space-y-1 text-xs text-slate-600">
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Lecture</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Musique</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Voyage</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );

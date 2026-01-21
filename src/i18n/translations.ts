@@ -708,6 +708,8 @@ export const translations = {
       end: 'Fin',
       title: 'Titre',
       contact: 'Contact',
+      languages: 'Langues',
+      interests: 'Centre d\'intérêt',
     },
     associate: {
       common: {
@@ -1598,6 +1600,8 @@ export const translations = {
       end: 'End',
       title: 'Title',
       contact: 'Contact',
+      languages: 'Languages',
+      interests: 'Interests',
     },
     associate: {
       common: {
