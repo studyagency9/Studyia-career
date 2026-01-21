@@ -873,13 +873,17 @@ const BuilderPage = () => {
   const handlePaymentClose = () => {
     setPaymentModalOpen(false);
     
-    // Générer le PDF après la fermeture du dialogue
-    toast({ 
-      title: t('common.loading'), 
-      description: t('builder.preview.generating')
-    });
+    // Étape 2: Envoyer le code de parrainage au backend
+    const referralCode = localStorage.getItem('referralCode');
 
+    // Simuler le succès du paiement et générer le PDF
     try {
+      if (referralCode) {
+        console.log(`[Parrainage] Paiement effectué avec le code de parrainage : ${referralCode}`);
+        // TODO: Envoyer `referralCode` à l'API de paiement avec les autres détails de la transaction.
+        // Exemple: await processPayment({ cvData, referralCode });
+      }
+
       generatePDF(cvData, pdfTranslations);
       toast({ 
         title: t('builder.preview.downloadSuccess'), 

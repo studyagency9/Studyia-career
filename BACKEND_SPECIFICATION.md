@@ -201,7 +201,64 @@ interface Education {
 }
 ```
 
+### **5. Associate (Programme d'affiliation)**
+
+```typescript
+interface Associate {
+  id: string;                    // UUID unique
+  email: string;                 // Email de connexion
+  firstName: string;             // Prénom
+  lastName: string;              // Nom
+  phone: string;                 // Numéro de téléphone
+  country: string;               // Pays
+  city: string;                  // Ville
+  referralCode: string;          // Code de parrainage unique
+  referralLink: string;          // Lien de parrainage
+  totalSales: number;            // Nombre total de ventes
+  totalCommission: number;       // Commission totale gagnée
+  availableBalance: number;      // Solde disponible pour retrait
+  withdrawnAmount: number;       // Montant total retiré
+  status: 'active' | 'suspended' | 'banned'; // Statut du compte
+  isVerified: boolean;           // Compte vérifié
+  createdAt: string;             // Date de création (ISO)
+}
+```
+
+### **6. Payment (Transaction)**
+
+```typescript
+interface Payment {
+  id: string;                    // UUID unique
+  userId: string | null;         // ID de l'utilisateur (CV public)
+  partnerId: string | null;      // ID du partenaire (abonnement)
+  associateId: string | null;    // ID de l'associé (commission/retrait)
+  amount: number;                // Montant de la transaction
+  currency: string;              // Devise (ex: 'FCFA')
+  type: 'cv_purchase' | 'partner_subscription' | 'associate_commission' | 'withdrawal';
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentMethod: 'card' | 'mobile_money' | 'bank_transfer';
+  transactionId: string;         // ID de la transaction du PSP
+  createdAt: string;             // Date de création (ISO)
+}
+```
+
+### **7. Admin (Utilisateur Administrateur)**
+
+```typescript
+interface Admin {
+  id: string;                    // UUID unique
+  email: string;                 // Email de connexion
+  passwordHash: string;          // Hash du mot de passe
+  firstName: string;             // Prénom
+  lastName: string;              // Nom
+  role: 'admin' | 'superadmin';  // Rôle de l'administrateur
+  createdAt: string;             // Date de création (ISO)
+  lastLogin: string;             // Date de dernière connexion (ISO)
+}
+```
+
 ---
+
 
 ## 🎨 FONCTIONNALITÉS PRINCIPALES
 
@@ -481,7 +538,8 @@ Inscription d'un nouveau partenaire
   "password": "SecurePass123!",
   "firstName": "John",
   "lastName": "Doe",
-  "company": "ABC Corp"
+  "company": "ABC Corp",
+  "referralCode": "JANE2024XYZ" // Optionnel
 }
 ```
 
@@ -575,6 +633,40 @@ Déconnexion (invalidation du refresh token)
   "message": "Logged out successfully"
 }
 ```
+
+---
+
+### **Achat de CV (Public)**
+
+#### **POST /api/cv/purchase**
+Achat d'un CV par un utilisateur public.
+
+**Request:**
+```json
+{
+  "paymentToken": "token_from_payment_provider",
+  "cvData": { /* CVData object */ },
+  "referralCode": "JANE2024XYZ" // Optionnel
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "cvId": "uuid",
+    "downloadUrl": "/api/cv/download/uuid",
+    "message": "Payment successful, CV created."
+  }
+}
+```
+
+**Business Logic:**
+- Valider le token de paiement avec la passerelle.
+- Si un `referralCode` est fourni, valider le code et créer une commission en statut `pending` pour l'associé correspondant.
+- Enregistrer le CV dans la base de données.
+- Retourner une URL sécurisée pour le téléchargement.
 
 ---
 
@@ -925,37 +1017,302 @@ Optimiser un CV existant
 
 ---
 
-### **Statistiques (Admin)**
+### **Administration (Dashboard Admin)**
 
-#### **GET /api/admin/stats**
-Statistiques globales de la plateforme
+*Tous les endpoints de cette section requièrent une authentification administrateur (`Authorization: Bearer {admin_token}`).*
 
-**Headers:** `Authorization: Bearer {admin_token}`
+---
+
+#### **POST /api/admin/login**
+Connexion d'un administrateur.
+
+**Request:**
+```json
+{
+  "email": "admin@studyia.net",
+  "password": "AdminPassword123!"
+}
+```
 
 **Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "totalPartners": 150,
-    "totalCVs": 2500,
-    "cvsThisMonth": 450,
-    "planDistribution": {
-      "starter": 50,
-      "pro": 80,
-      "business": 20
-    },
-    "revenue": {
-      "monthly": 3750000,
-      "yearly": 45000000
-    }
+    "admin": { /* Admin object */ },
+    "accessToken": "admin_jwt_token"
   }
 }
 ```
 
 ---
 
-## 🔐 AUTHENTIFICATION ET SÉCURITÉ
+#### **GET /api/admin/stats/dashboard**
+Statistiques clés pour la page d'accueil du dashboard.
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "cvCreated": { "today": 50, "thisWeek": 350, "thisMonth": 1500 },
+    "revenue": { "today": 25000, "thisWeek": 175000, "thisMonth": 750000 },
+    "newPartners": { "today": 2, "thisWeek": 15, "thisMonth": 60 },
+    "newAssociates": { "today": 5, "thisWeek": 40, "thisMonth": 200 },
+    "pendingWithdrawals": 5
+  }
+}
+```
+
+---
+
+#### **GET /api/admin/cvs**
+Liste paginée de tous les CV créés sur la plateforme.
+
+**Query params:**
+- `search` (optional): Recherche par nom, email
+- `page` (optional): Numéro de page (default: 1)
+- `limit` (optional): Résultats par page (default: 20)
+- `source` (optional): `public` | `partner` | `associate`
+- `isPaid` (optional): `true` | `false`
+- `startDate` (optional): ISO Date
+- `endDate` (optional): ISO Date
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "cvs": [
+      {
+        "id": "uuid",
+        "name": "CV John Doe",
+        "source": "partner",
+        "sourceId": "partner_uuid",
+        "isPaid": true,
+        "paymentAmount": 500,
+        "createdAt": "2024-01-10T10:00:00Z"
+      }
+    ],
+    "pagination": { "total": 120, "page": 1, "limit": 20, "totalPages": 6 }
+  }
+}
+```
+
+---
+
+#### **GET /api/admin/partners**
+Liste paginée de tous les partenaires.
+
+**Query params:**
+- `search` (optional): Recherche par nom, email, entreprise
+- `page` (optional): Numéro de page
+- `limit` (optional): Résultats par page
+- `plan` (optional): `starter` | `pro` | `business`
+- `status` (optional): `active` | `suspended`
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "partners": [
+      {
+        "id": "uuid",
+        "company": "ABC Corp",
+        "email": "john@example.com",
+        "plan": "pro",
+        "cvUsedThisMonth": 15,
+        "status": "active",
+        "createdAt": "2024-01-01T00:00:00Z"
+      }
+    ],
+    "pagination": { /* ... */ }
+  }
+}
+```
+
+---
+
+#### **PUT /api/admin/partners/:id/status**
+Modifier le statut d'un partenaire (activer, suspendre).
+
+**Request:**
+```json
+{
+  "status": "suspended"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": { /* Updated Partner object */ }
+}
+```
+
+---
+
+#### **GET /api/admin/associates**
+Liste paginée de tous les associés.
+
+**Query params:**
+- `search` (optional): Recherche par nom, email, code
+- `page` (optional): Numéro de page
+- `limit` (optional): Résultats par page
+- `status` (optional): `active` | `suspended` | `banned`
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "associates": [
+      {
+        "id": "uuid",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "email": "jane@example.com",
+        "referralCode": "JANE2024XYZ",
+        "totalSales": 50,
+        "totalCommission": 25000,
+        "status": "active"
+      }
+    ],
+    "pagination": { /* ... */ }
+  }
+}
+```
+
+---
+
+#### **PUT /api/admin/associates/:id/status**
+Modifier le statut d'un associé (activer, suspendre, bannir).
+
+**Request:**
+```json
+{
+  "status": "banned"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": { /* Updated Associate object */ }
+}
+```
+
+---
+
+#### **GET /api/admin/finance/stats**
+Statistiques financières globales.
+
+**Query params:**
+- `period` (optional): `daily` | `weekly` | `monthly` | `yearly` (default: `monthly`)
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "totalRevenue": 1500000,
+    "revenueBySource": {
+      "cv_purchase": 500000,
+      "partner_subscription": 1000000
+    },
+    "commissionsPaid": 150000,
+    "pendingWithdrawals": 25000,
+    "netProfit": 1350000
+  }
+}
+```
+
+---
+
+## � FONCTIONNALITÉS DU DASHBOARD ADMINISTRATEUR
+
+### **1. Vue d'ensemble (Dashboard Principal)**
+
+- **Indicateurs Clés (KPIs)**: Affichage en temps réel des métriques vitales.
+  - Revenus du jour / semaine / mois.
+  - Nombre de CV créés (jour/semaine/mois).
+  - Nouveaux partenaires et associés inscrits.
+  - Nombre de demandes de retrait en attente.
+
+- **Graphiques de Tendances**:
+  - **Évolution des revenus**: Graphique linéaire montrant les revenus sur une période sélectionnable (7j, 30j, 12m).
+  - **Création de CV**: Graphique en barres montrant le nombre de CV créés par jour ou par semaine.
+  - **Répartition des revenus**: Diagramme circulaire montrant la part des revenus provenant des CV publics vs abonnements partenaires.
+
+- **Activités Récentes**:
+  - Flux en direct des dernières inscriptions (partenaires, associés) et des derniers achats de CV.
+
+### **2. Gestion des CV**
+
+- **Tableau de bord des CV**:
+  - Liste paginée de tous les CV.
+  - **Filtres**: Par date, source (public, partenaire, associé), statut de paiement, template, langue.
+  - **Recherche**: Par nom du client, email, ou ID du partenaire/associé.
+  - **Actions rapides**: Voir les détails, télécharger le PDF, supprimer.
+
+- **Page de Détails d'un CV**:
+  - Affichage des informations complètes du CV.
+  - Lien vers le partenaire ou l'associé qui a généré le CV.
+  - Détails de la transaction de paiement associée.
+
+### **3. Gestion des Partenaires**
+
+- **Tableau de bord des Partenaires**:
+  - Liste paginée de tous les partenaires.
+  - **Filtres**: Par plan d'abonnement, statut (actif, suspendu), date d'inscription.
+  - **Recherche**: Par nom, email, ou nom d'entreprise.
+  - **Actions rapides**: Voir le profil, suspendre/activer le compte, modifier le plan.
+
+- **Page de Profil d'un Partenaire**:
+  - Informations détaillées du partenaire.
+  - Statistiques d'utilisation: quota actuel, nombre de CV créés, date de renouvellement.
+  - Historique des CV créés par le partenaire.
+  - Historique des paiements d'abonnement.
+
+### **4. Gestion des Associés**
+
+- **Tableau de bord des Associés**:
+  - Liste paginée de tous les associés.
+  - **Filtres**: Par statut (actif, suspendu, banni), pays, performance (nombre de ventes).
+  - **Recherche**: Par nom, email, ou code de parrainage.
+  - **Actions rapides**: Voir le profil, suspendre/bannir le compte, voir les ventes.
+
+- **Page de Profil d'un Associé**:
+  - Informations détaillées de l'associé.
+  - Statistiques de performance: nombre total de ventes, commissions totales, taux de conversion.
+  - Historique des ventes et commissions générées.
+  - Historique des demandes de retrait.
+
+- **Gestion des Retraits**:
+  - Page dédiée pour voir toutes les demandes de retrait en attente.
+  - **Actions**: Approuver ou rejeter une demande, marquer comme payée.
+
+### **5. Gestion Financière**
+
+- **Tableau de bord Financier**:
+  - Vue d'ensemble des revenus, commissions payées, et bénéfices nets.
+  - Filtrage par période (jour, semaine, mois, année).
+
+- **Historique des Transactions**:
+  - Liste de toutes les transactions (achats de CV, abonnements, commissions, retraits).
+  - **Filtres**: Par type de transaction, statut, méthode de paiement.
+  - **Recherche**: Par ID de transaction, email du client.
+
+- **Rapports Financiers**:
+  - Génération de rapports de revenus mensuels/annuels.
+  - Export des données en format CSV.
+
+---
+
+## �� AUTHENTIFICATION ET SÉCURITÉ
 
 ### **JWT Structure**
 

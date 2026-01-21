@@ -74,48 +74,67 @@ const SignupPage = () => {
 
       // Créer le corps de l'email avec toutes les informations
       const emailSubject = `🆕 Nouvelle demande d'accès partenaire - ${formData.company}`;
-      const emailBody = `
-Nouvelle demande d'accès à l'espace partenaire Studyia Career
+      let emailBody = `
+    Nouvelle demande d'accès à l'espace partenaire Studyia Career
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                     INFORMATIONS DU DEMANDEUR
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👤 IDENTITÉ
-   Prénom          : ${formData.firstName}
-   Nom             : ${formData.lastName}
+    👤 IDENTITÉ
+       Prénom          : ${formData.firstName}
+       Nom             : ${formData.lastName}
 
-🏢 ENTREPRISE
-   Nom             : ${formData.company}
+    🏢 ENTREPRISE
+       Nom             : ${formData.company}
 
-📧 CONTACT
-   Email           : ${formData.email}
-   Téléphone       : ${formData.phone}
+    📧 CONTACT
+       Email           : ${formData.email}
+       Téléphone       : ${formData.phone}
 
-📍 LOCALISATION
-   Pays            : ${countryName}
-   Ville           : ${formData.city}
+    📍 LOCALISATION
+       Pays            : ${countryName}
+       Ville           : ${formData.city}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📅 Date de la demande : ${new Date().toLocaleString('fr-FR', {
-  dateStyle: 'full',
-  timeStyle: 'long'
-})}
+    📅 Date de la demande : ${new Date().toLocaleString('fr-FR', {
+      dateStyle: 'full',
+      timeStyle: 'long'
+    })}
+      `.trim();
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // Étape 2: Ajouter le code de parrainage s'il existe
+      const referralCode = localStorage.getItem('referralCode');
+      if (referralCode) {
+        const referralSection = `
 
-📋 ACTIONS À EFFECTUER :
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                        PARRAINAGE ASSOCIÉ
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Vérifier la légitimité de l'entreprise
-2. Créer le compte partenaire dans le système
-3. Générer un mot de passe sécurisé
-4. Envoyer les identifiants par email à : ${formData.email}
+    🔗 Code de parrainage : ${referralCode}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ACTION : Associer cette inscription à l'associé correspondant lors de la création du compte.
+        `.trim();
+        emailBody += `\n${referralSection}`;
+      }
 
-Email automatique - Studyia Career Partner System
-https://studyia-career.vercel.app
+      emailBody += `
+
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    📋 ACTIONS À EFFECTUER :
+
+    1. Vérifier la légitimité de l'entreprise
+    2. Créer le compte partenaire dans le système
+    3. Générer un mot de passe sécurisé
+    4. Envoyer les identifiants par email à : ${formData.email}
+
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    Email automatique - Studyia Career Partner System
+    https://studyia-career.vercel.app
       `.trim();
 
       // Créer le lien mailto
