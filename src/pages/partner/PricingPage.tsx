@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Check, Sparkles, TrendingUp, Zap, Crown, ArrowRight } from 'lucide-react';
-import { useAuth, PLANS, PlanType } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { PLANS, PlanType } from '@/data/plans';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import PartnerLayout from '@/components/partner/PartnerLayout';

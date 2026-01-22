@@ -9,6 +9,16 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api': {
+        target: 'https://studyia-career-backend.onrender.com',
+        changeOrigin: true,
+        secure: false,
+        headers: {
+          'Origin': 'http://localhost:5173'
+        }
+      }
+    },
   },
   plugins: [react(), vercel(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

@@ -1,53 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-
-export interface Associate {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  country: string;
-  city: string;
-  referralCode: string;
-  referralLink: string;
-  totalSales: number;
-  totalCommission: number;
-  availableBalance: number;
-  withdrawnAmount: number;
-  status: 'active' | 'suspended' | 'banned';
-  isVerified: boolean;
-  createdAt: string;
-}
-
-export interface Sale {
-  id: string;
-  customerName?: string;
-  customerEmail?: string;
-  cvType: 'public' | 'partner';
-  commissionAmount: number;
-  status: 'pending' | 'validated' | 'cancelled';
-  createdAt: string;
-  validatedAt?: string;
-}
-
-export interface AssociateStats {
-  today: {
-    sales: number;
-    commission: number;
-  };
-  thisWeek: {
-    sales: number;
-    commission: number;
-  };
-  thisMonth: {
-    sales: number;
-    commission: number;
-  };
-  allTime: {
-    sales: number;
-    commission: number;
-  };
-}
+import api from '@/services/api';
+import { Associate, Sale, AssociateStats } from '@/data/associate';
 
 interface AssociateAuthContextType {
   associate: Associate | null;
@@ -83,16 +36,26 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [sales, setSales] = useState<Sale[]>([]);
 
   useEffect(() => {
-    const storedAssociate = localStorage.getItem('studyia_associate');
-    if (storedAssociate) {
-      setAssociate(JSON.parse(storedAssociate));
-      
-      const allSales = localStorage.getItem('studyia_associate_sales');
-      if (allSales) {
-        const parsedSales = JSON.parse(allSales);
-        setSales(parsedSales.filter((sale: Sale) => sale.id === JSON.parse(storedAssociate).id));
+    const verifyAssociateToken = async () => {
+      const token = localStorage.getItem('associate_accessToken');
+      const localAssociate = localStorage.getItem('associate');
+      if (token && localAssociate) {
+        try {
+          const associateData = JSON.parse(localAssociate);
+          setAssociate(associateData);
+          // Valider le token en récupérant les données à jour
+          const response = await api.get('/associates/dashboard');
+          console.log('Dashboard API response:', response.data);
+          if (response.data.success) {
+            // Mettre à jour les stats si nécessaire
+          }
+        } catch (error) {
+          console.error("Session associé invalide, déconnexion.", error);
+          logout();
+        }
       }
-    }
+    };
+    verifyAssociateToken();
   }, []);
 
   const generateReferralCode = (firstName: string): string => {
@@ -103,130 +66,163 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const signup = useCallback(async (data: SignupData): Promise<boolean> => {
-    const associates = JSON.parse(localStorage.getItem('studyia_associates') || '[]');
-    
-    if (associates.some((a: any) => a.email === data.email)) {
-      return false;
-    }
+    try {
+      const response = await api.post('/associates/signup', data);
+      console.log('Signup API response:', response.data);
+      if (response.data.success) {
+        const { associate, token } = response.data.data;
+        
+        localStorage.setItem('associate_accessToken', token);
+        localStorage.setItem('associate', JSON.stringify(associate));
+        
+        setAssociate(associate);
+        setSales([]); // Pas de ventes pour un nouvel associé
 
-    const referralCode = generateReferralCode(data.firstName);
-    const referralLink = `${window.location.origin}?ref=${referralCode}`;
-
-    const newAssociate: Associate & { password: string } = {
-      id: Date.now().toString(),
-      email: data.email,
-      password: data.password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      phone: data.phone,
-      country: data.country,
-      city: data.city,
-      referralCode,
-      referralLink,
-      totalSales: 0,
-      totalCommission: 0,
-      availableBalance: 0,
-      withdrawnAmount: 0,
-      status: 'active',
-      isVerified: true,
-      createdAt: new Date().toISOString(),
-    };
-
-    associates.push(newAssociate);
-    localStorage.setItem('studyia_associates', JSON.stringify(associates));
-
-    const { password: _, ...associateWithoutPassword } = newAssociate;
-    setAssociate(associateWithoutPassword);
-    localStorage.setItem('studyia_associate', JSON.stringify(associateWithoutPassword));
-    setSales([]);
-
-    return true;
-  }, []);
-
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    const associates = JSON.parse(localStorage.getItem('studyia_associates') || '[]');
-    const foundAssociate = associates.find((a: any) => a.email === email && a.password === password);
-    
-    if (foundAssociate) {
-      const { password: _, ...associateWithoutPassword } = foundAssociate;
-      setAssociate(associateWithoutPassword);
-      localStorage.setItem('studyia_associate', JSON.stringify(associateWithoutPassword));
-      
-      const allSales = localStorage.getItem('studyia_associate_sales');
-      if (allSales) {
-        const parsedSales = JSON.parse(allSales);
-        setSales(parsedSales.filter((sale: Sale) => sale.id === foundAssociate.id));
+        return true;
+      } else {
+        // Gérer les erreurs renvoyées par l'API avec succès mais avec une erreur métier
+        console.error('Erreur d\'inscription:', response.data.error || 'Erreur inconnue');
       }
-      
-      return true;
+    } catch (error: any) {
+      // Gérer les erreurs réseau ou CORS
+      if (error.response) {
+        // La requête a été faite et le serveur a répondu avec un code d'état
+        console.error('Erreur d\'inscription:', error.response.data?.error || 'Erreur serveur');
+      } else if (error.request) {
+        // La requête a été faite mais aucune réponse n'a été reçue (problème CORS)
+        console.error('Erreur réseau:', 'Aucune réponse du serveur. Vérifiez votre connexion ou les paramètres CORS.');
+      } else {
+        // Une erreur s'est produite lors de la configuration de la requête
+        console.error('Erreur de configuration:', error.message);
+      }
     }
     return false;
   }, []);
 
-  const logout = useCallback(() => {
-    setAssociate(null);
-    setSales([]);
-    localStorage.removeItem('studyia_associate');
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    try {
+      const response = await api.post('/associates/login', { email, password });
+      console.log('Login API response:', response.data);
+      if (response.data.success) {
+        const { associate, token } = response.data.data;
+
+        // Store token as associate_accessToken for compatibility with existing code
+        localStorage.setItem('associate_accessToken', token);
+        localStorage.setItem('associate', JSON.stringify(associate));
+
+        setAssociate(associate);
+        return true;
+      } else {
+        // Gérer les erreurs renvoyées par l'API avec succès mais avec une erreur métier
+        console.error('Erreur de connexion:', response.data.error || 'Erreur inconnue');
+      }
+    } catch (error: any) {
+      // Gérer les erreurs réseau ou CORS
+      if (error.response) {
+        // La requête a été faite et le serveur a répondu avec un code d'état
+        console.error('Erreur de connexion:', error.response.data?.error || 'Erreur serveur');
+      } else if (error.request) {
+        // La requête a été faite mais aucune réponse n'a été reçue (problème CORS)
+        console.error('Erreur réseau:', 'Aucune réponse du serveur. Vérifiez votre connexion ou les paramètres CORS.');
+      } else {
+        // Une erreur s'est produite lors de la configuration de la requête
+        console.error('Erreur de configuration:', error.message);
+      }
+    }
+    return false;
   }, []);
 
-  const calculateStats = useCallback((): AssociateStats => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const logout = useCallback(async () => {
+    // La documentation ne spécifie pas de endpoint /logout pour les associés, nous nettoyons juste le client
+    setAssociate(null);
+    setSales([]);
+    localStorage.removeItem('associate_accessToken');
+    localStorage.removeItem('associate');
+  }, []);
 
-    const stats: AssociateStats = {
-      today: { sales: 0, commission: 0 },
-      thisWeek: { sales: 0, commission: 0 },
-      thisMonth: { sales: 0, commission: 0 },
-      allTime: { sales: 0, commission: 0 },
-    };
+  const [dashboardData, setDashboardData] = useState<any>(null);
 
-    sales.forEach(sale => {
-      if (sale.status !== 'validated') return;
-      
-      const saleDate = new Date(sale.createdAt);
-      
-      stats.allTime.sales++;
-      stats.allTime.commission += sale.commissionAmount;
-      
-      if (saleDate >= today) {
-        stats.today.sales++;
-        stats.today.commission += sale.commissionAmount;
+  const fetchDashboardData = useCallback(async () => {
+    if (!associate) return;
+    try {
+      const response = await api.get('/associates/dashboard');
+      if (response.data.success) {
+        const dashboardData = response.data.data;
+        setDashboardData(dashboardData);
+        
+        // Récupérer les ventes récentes selon la structure de l'API
+        // La documentation mentionne recentTransactions, mais vérifions les deux possibilités
+        const recentSales = dashboardData.recentTransactions || dashboardData.recentActivity || [];
+        
+        // Adapter les données des ventes au format attendu par l'interface Sale
+        const formattedSales = recentSales.map((sale: any) => ({
+          id: sale.id,
+          cvId: sale.cvId,
+          clientName: sale.clientName,
+          clientEmail: sale.clientEmail,
+          amount: sale.amount,
+          commission: sale.commission,
+          date: sale.date || sale.createdAt,
+          status: sale.status,
+          // Champs pour compatibilité
+          customerName: sale.clientName,
+          customerEmail: sale.clientEmail,
+          commissionAmount: sale.commission,
+          createdAt: sale.date || sale.createdAt
+        }));
+        
+        setSales(formattedSales);
+        
+        // Mettre à jour l'objet associé avec les données du dashboard
+        setAssociate(prev => prev ? ({
+          ...prev,
+          totalSales: dashboardData.totalSales || prev.totalSales,
+          totalCommission: dashboardData.totalCommission || prev.totalCommission,
+          availableBalance: dashboardData.availableBalance || prev.availableBalance,
+          withdrawnAmount: dashboardData.withdrawnAmount || prev.withdrawnAmount
+        }) : null);
       }
-      
-      if (saleDate >= weekAgo) {
-        stats.thisWeek.sales++;
-        stats.thisWeek.commission += sale.commissionAmount;
-      }
-      
-      if (saleDate >= monthStart) {
-        stats.thisMonth.sales++;
-        stats.thisMonth.commission += sale.commissionAmount;
-      }
-    });
+    } catch (error) {
+      console.error("Erreur lors de la récupération des données du dashboard:", error);
+    }
+  }, [associate]);
 
-    return stats;
-  }, [sales]);
+  useEffect(() => {
+    if (associate) {
+      fetchDashboardData();
+    }
+  }, [associate, fetchDashboardData]);
+
+  // Les stats sont dérivées du dashboardData selon la structure de l'API
+  const stats: AssociateStats = {
+    today: { 
+      sales: dashboardData?.dailyStats?.sales || 0, 
+      commission: dashboardData?.dailyStats?.commissions || 0 
+    },
+    thisWeek: { 
+      sales: dashboardData?.weeklyStats?.sales || 0, 
+      commission: dashboardData?.weeklyStats?.commissions || 0 
+    },
+    thisMonth: { 
+      sales: dashboardData?.monthlyStats?.sales || 0, 
+      commission: dashboardData?.monthlyStats?.commissions || 0 
+    },
+    allTime: { 
+      sales: dashboardData?.totalSales || associate?.totalSales || 0, 
+      commission: dashboardData?.totalCommission || associate?.totalCommission || 0 
+    }
+  };
 
   const balance = {
     available: associate?.availableBalance || 0,
-    pending: sales.filter(s => s.status === 'pending').reduce((sum, s) => sum + s.commissionAmount, 0),
+    pending: dashboardData?.pendingCommission || 0, // Supposant que l'API renvoie ce champ
     withdrawn: associate?.withdrawnAmount || 0,
     total: associate?.totalCommission || 0,
   };
 
-  const stats = calculateStats();
-
   const refreshStats = useCallback(() => {
-    if (!associate) return;
-    
-    const allSales = localStorage.getItem('studyia_associate_sales');
-    if (allSales) {
-      const parsedSales = JSON.parse(allSales);
-      setSales(parsedSales.filter((sale: Sale) => sale.id === associate.id));
-    }
-  }, [associate]);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   return (
     <AssociateAuthContext.Provider
