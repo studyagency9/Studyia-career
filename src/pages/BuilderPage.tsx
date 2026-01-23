@@ -46,7 +46,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTrigger, DrawerClose, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -375,8 +375,8 @@ const PersonalInfoStep = ({ data, onChange, errors, setErrors }: { data: Persona
               </DrawerTrigger>
               <DrawerContent>
                 <div className="p-4 border-b">
-                  <h4 className="font-medium text-foreground">{t('builder.common.library')}</h4>
-                  <p className="text-sm text-muted-foreground">{t('builder.common.inspireYourself')}</p>
+                  <DrawerTitle className="font-medium text-foreground">{t('builder.common.library')}</DrawerTitle>
+                  <DrawerDescription className="text-sm text-muted-foreground">{t('builder.common.inspireYourself')}</DrawerDescription>
                 </div>
                 <div className="p-4 h-[70vh] overflow-y-auto">
                   <SuggestionUI onSelect={handleSelect} isMobile={true} />
@@ -770,6 +770,7 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, previewRef, pdfTr
   const TemplateComponent = templateComponents[data.template as keyof typeof templateComponents] || templateComponents.professional;
 
   const { t } = useTranslation();
+  // Déplacer useIsMobile en dehors du rendu conditionnel pour éviter les erreurs de hooks
   const isMobile = useIsMobile();
   
   return (
@@ -780,16 +781,18 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, previewRef, pdfTr
       </div>
 
       <div className="max-w-4xl mx-auto">
-        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg md:hidden flex items-center gap-3 text-sm">
-          <div className="flex-shrink-0">
-            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-            </svg>
+        {isMobile && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg md:hidden flex items-center gap-3 text-sm">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+            <div className="flex-1 text-blue-700 dark:text-blue-300">
+              <span className="font-medium">Astuce :</span> Glissez vers le bas pour fermer l'aperçu
+            </div>
           </div>
-          <div className="flex-1 text-blue-700 dark:text-blue-300">
-            <span className="font-medium">Astuce :</span> Glissez vers le bas pour fermer l'aperçu
-          </div>
-        </div>
+        )}
         <PDFPreview data={data} translations={pdfTranslations} />
       </div>
 
@@ -1225,6 +1228,8 @@ const BuilderPage = () => {
       return (
         <Drawer open={isAnalysisModalOpen} onOpenChange={setAnalysisModalOpen}>
           <DrawerContent className="h-[95vh] bg-gray-50 dark:bg-gray-900">
+            <DrawerTitle className="sr-only">{t('analysis.title')}</DrawerTitle>
+            <DrawerDescription className="sr-only">{t('analysis.analyzingDesc')}</DrawerDescription>
             <CVAnalysis cvData={cvData} onApplySuggestion={handleApplySuggestion} onPreviewAllSuggestions={handlePreviewAllSuggestions} isOptimizing={isOptimizing} />
           </DrawerContent>
         </Drawer>
@@ -1233,6 +1238,8 @@ const BuilderPage = () => {
     return (
       <Sheet open={isAnalysisModalOpen} onOpenChange={setAnalysisModalOpen}>
         <SheetContent className="w-full sm:max-w-2xl p-0">
+          <SheetTitle className="sr-only">{t('analysis.title')}</SheetTitle>
+          <SheetDescription className="sr-only">{t('analysis.analyzingDesc')}</SheetDescription>
           <CVAnalysis cvData={cvData} onApplySuggestion={handleApplySuggestion} onPreviewAllSuggestions={handlePreviewAllSuggestions} isOptimizing={isOptimizing} />
         </SheetContent>
       </Sheet>
@@ -1260,6 +1267,8 @@ const BuilderPage = () => {
             </Button>
           </DrawerTrigger>
           <DrawerContent className="h-[90vh]">
+            <DrawerTitle className="sr-only">{t('builder.preview.title')}</DrawerTitle>
+            <DrawerDescription className="sr-only">{t('builder.preview.subtitle')}</DrawerDescription>
             <div className="p-4 overflow-y-auto">
               <div className="transform scale-[0.8] origin-top mx-auto">
                 <TemplateComponent data={cvData} />

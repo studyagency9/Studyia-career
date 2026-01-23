@@ -349,12 +349,9 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
         const errorData = await response.json();
         console.error('OpenRouter API Error:', errorData);
         
-        // Handle 401 Unauthorized errors with user-friendly message
-        if (response.status === 401) {
-          throw new Error(t('upload.apiKeyError'));
-        }
-        
-        throw new Error(errorData.error?.message || `API Error: ${response.status} - ${response.statusText}`);
+        // Toutes les erreurs API sont converties en message générique pour l'utilisateur
+        console.error(`API Error: ${response.status} - ${response.statusText}`, errorData);
+        throw new Error(t('upload.serviceUnavailable'));
       }
 
       const result = await response.json();
@@ -362,7 +359,7 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       // Vérifier que result.choices existe et contient au moins un élément
       if (!result.choices || !result.choices[0] || !result.choices[0].message) {
         console.error('Unexpected API response format:', result);
-        throw new Error(t('upload.invalidApiResponse'));
+        throw new Error(t('upload.serviceUnavailable'));
       }
       
       const rawContent = result.choices[0].message.content;
@@ -372,7 +369,8 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       const jsonEnd = rawContent.lastIndexOf('}') + 1;
 
       if (jsonStart === -1 || jsonEnd === 0) {
-        throw new Error(t('upload.noJsonFound'));
+        console.error('No valid JSON found in API response');
+        throw new Error(t('upload.serviceUnavailable'));
       }
 
       let jsonString = rawContent.substring(jsonStart, jsonEnd);
@@ -380,7 +378,13 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       // Remove control characters that cause JSON parsing errors
       jsonString = jsonString.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
       
-      const data = JSON.parse(jsonString);
+      let data;
+      try {
+        data = JSON.parse(jsonString);
+      } catch (jsonError) {
+        console.error('JSON parsing error:', jsonError);
+        throw new Error(t('upload.serviceUnavailable'));
+      }
 
       toast({
         title: t('upload.analysisSuccess'),
@@ -394,8 +398,9 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       // Check if it's a network error
       if (err instanceof TypeError && (err.message.includes('fetch') || err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
         userMessage = t('upload.networkError');
-      } else if (err instanceof Error) {
-        userMessage = err.message;
+      } else {
+        // Pour toutes les autres erreurs, utiliser un message générique convivial
+        userMessage = t('upload.serviceUnavailable');
       }
       
       setError(userMessage);

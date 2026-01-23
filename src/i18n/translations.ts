@@ -422,6 +422,7 @@ export const translations = {
       apiKeyMissing: 'La clé API OpenRouter n\'est pas configurée.',
       noJsonFound: 'Aucun objet JSON valide trouvé dans la réponse de l\'IA.',
       invalidApiResponse: 'Format de réponse API inattendu. Veuillez réessayer.',
+      serviceUnavailable: 'Le service d\'analyse est temporairement indisponible. Veuillez réessayer plus tard ou contacter notre équipe d\'assistance.',
       backHome: 'Retour à l\'accueil',
     },
     templates: {
@@ -662,6 +663,12 @@ export const translations = {
       countryRequired: 'Le pays est requis.',
       missingFields: 'Champs manquants',
       fillRequired: 'Veuillez remplir tous les champs obligatoires.',
+      pageNotFound: 'Page non trouvée',
+      pageNotFoundDesc: 'La page que vous recherchez n\'existe pas ou a été déplacée.',
+      backToHome: 'Retour à l\'accueil',
+      goBack: 'Page précédente',
+      refresh: 'Actualiser',
+      searchPlaceholder: 'Essayez de rechercher...',
     },
     payment: {
       title: 'Paiement du CV',

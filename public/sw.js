@@ -13,7 +13,16 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        // Utiliser addAll avec gestion d'erreur pour éviter l'échec complet si une URL est inaccessible
+        return Promise.allSettled(
+          urlsToCache.map(url => 
+            cache.add(url).catch(err => {
+              console.warn(`Impossible de mettre en cache l'URL: ${url}`, err);
+              // Ne pas faire échouer l'installation complète
+              return Promise.resolve();
+            })
+          )
+        );
       })
   );
   self.skipWaiting();
