@@ -11,13 +11,14 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const WithdrawPage = () => {
-  const { balance } = useAssociateAuth();
+  const { balance, requestWithdrawal } = useAssociateAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<'mobile_money'>('mobile_money');
   const [mobileNumber, setMobileNumber] = useState('');
   const [provider, setProvider] = useState<'MTN' | 'Orange'>('MTN');
+  const [isLoading, setIsLoading] = useState(false);
 
   const minWithdrawal = 5000;
   const fees = {
@@ -26,8 +27,9 @@ const WithdrawPage = () => {
 
   const netAmount = (parseInt(amount) || 0) - fees[method];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     const withdrawAmount = parseInt(amount);
 
@@ -37,6 +39,7 @@ const WithdrawPage = () => {
         description: `${t('associate.withdraw.errorMinDesc')} ${minWithdrawal.toLocaleString()} FCFA`,
         variant: 'destructive',
       });
+      setIsLoading(false);
       return;
     }
 
@@ -46,15 +49,46 @@ const WithdrawPage = () => {
         description: t('associate.withdraw.errorBalanceDesc'),
         variant: 'destructive',
       });
+      setIsLoading(false);
       return;
     }
 
-    toast({
-      title: t('associate.withdraw.successTitle'),
-      description: t('associate.withdraw.successDesc'),
-    });
+    try {
+      const withdrawalData = {
+        amount: withdrawAmount,
+        paymentMethod: method,
+        paymentDetails: {
+          phoneNumber: mobileNumber,
+          provider: provider
+        }
+      };
 
-    setAmount('');
+      const result = await requestWithdrawal(withdrawalData);
+      
+      if (result) {
+        toast({
+          title: t('associate.withdraw.successTitle'),
+          description: t('associate.withdraw.successDesc'),
+        });
+        setAmount('');
+        setMobileNumber('');
+      } else {
+        toast({
+          title: t('associate.withdraw.errorTitle'),
+          description: t('associate.withdraw.errorGeneric'),
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la demande de retrait:', error);
+      toast({
+        title: t('associate.withdraw.errorTitle'),
+        description: t('associate.withdraw.errorGeneric'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -328,10 +362,19 @@ const WithdrawPage = () => {
                   type="submit"
                   size="lg"
                   className="w-full h-14 text-lg bg-gradient-to-r from-primary via-blue-600 to-green-600 hover:shadow-xl hover:scale-[1.02] transition-all"
-                  disabled={!amount || parseInt(amount) < minWithdrawal || parseInt(amount) > balance.available}
+                  disabled={isLoading || !amount || parseInt(amount) < minWithdrawal || parseInt(amount) > balance.available || !mobileNumber}
                 >
-                  <Zap className="w-5 h-5 mr-2" />
-                  {t('associate.withdraw.submitButton')}
+                  {isLoading ? (
+                    <>
+                      <div className="w-5 h-5 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      {t('associate.withdraw.processing')}
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-5 h-5 mr-2" />
+                      {t('associate.withdraw.submitButton')}
+                    </>
+                  )}
                 </Button>
               </form>
             </Card>

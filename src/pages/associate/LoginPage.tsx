@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSEO } from '@/hooks/useSEO';
 import { getWebPageSchema } from '@/utils/seo';
 import { motion } from 'framer-motion';
-import { LogIn, Mail, Lock, TrendingUp, Sparkles, ArrowRight, Eye, EyeOff, Zap, Target } from 'lucide-react';
+import { LogIn, Mail, Lock, TrendingUp, Sparkles, ArrowRight, Eye, EyeOff, Zap, Target, Clock } from 'lucide-react';
+import { checkCooldown } from '@/utils/cooldown';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,8 +35,49 @@ const AssociateLoginPage = () => {
     })
   });
 
+  // Vérifier s'il y a un délai d'attente actif
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+  
+  useEffect(() => {
+    const checkLoginCooldown = () => {
+      const { active, remainingSeconds } = checkCooldown('login');
+      if (active) {
+        setCooldownRemaining(remainingSeconds);
+        return true;
+      }
+      return false;
+    };
+    
+    // Vérifier au chargement
+    checkLoginCooldown();
+    
+    // Mettre à jour le compte à rebours toutes les secondes
+    const interval = setInterval(() => {
+      if (checkLoginCooldown()) {
+        // La fonction checkCooldown met déjà à jour le temps restant
+      } else {
+        setCooldownRemaining(0);
+        clearInterval(interval);
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Vérifier s'il y a un délai d'attente actif
+    const { active, remainingSeconds } = checkCooldown('login');
+    if (active) {
+      toast({
+        title: 'Trop de tentatives',
+        description: `Veuillez patienter ${remainingSeconds} secondes avant de réessayer.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     const success = await login(email, password);
@@ -43,16 +85,26 @@ const AssociateLoginPage = () => {
 
     if (success) {
       toast({
-        title: t('associate.login.success'),
-        description: t('associate.login.successDesc'),
+        title: 'Connexion réussie',
+        description: 'Vous êtes maintenant connecté à votre compte associé.',
       });
       navigate('/associate/dashboard');
     } else {
-      toast({
-        title: t('associate.login.error'),
-        description: t('associate.login.errorDesc'),
-        variant: 'destructive',
-      });
+      // Vérifier à nouveau s'il y a un délai d'attente après la tentative
+      const { active, remainingSeconds } = checkCooldown('login');
+      if (active) {
+        toast({
+          title: 'Trop de tentatives',
+          description: `Veuillez patienter ${remainingSeconds} secondes avant de réessayer.`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Erreur de connexion',
+          description: 'Email ou mot de passe incorrect.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -171,28 +223,42 @@ const AssociateLoginPage = () => {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-primary via-blue-600 to-green-600 hover:shadow-lg hover:scale-[1.02] transition-all"
-              size="lg"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
-                  />
-                  {t('associate.login.connecting')}
-                </>
-              ) : (
-                <>
-                  {t('associate.login.connect')}
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </>
-              )}
-            </Button>
+            {cooldownRemaining > 0 ? (
+              <div className="w-full">
+                <div className="mb-2 text-center text-sm text-muted-foreground">
+                  Trop de tentatives. Veuillez patienter:
+                </div>
+                <div className="w-full bg-muted rounded-md h-14 flex items-center justify-center relative overflow-hidden">
+                  <div 
+                    className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/50 to-blue-600/50 transition-all duration-1000"
+                    style={{ width: `${(cooldownRemaining / 30) * 100}%` }}
+                  ></div>
+                  <div className="relative z-10 flex items-center justify-center text-lg font-medium">
+                    <Clock className="w-5 h-5 mr-2" />
+                    {cooldownRemaining} secondes
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full h-14 text-lg bg-gradient-to-r from-primary via-blue-600 to-green-600 hover:shadow-xl hover:scale-[1.02] transition-all"
+                disabled={isLoading || !email || !password}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Connexion en cours...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Se connecter
+                  </>
+                )}
+              </Button>
+            )}
           </form>
 
           <div className="relative mt-6">

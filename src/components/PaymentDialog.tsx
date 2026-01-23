@@ -8,7 +8,7 @@ import { CreditCard } from 'lucide-react';
 interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onClose: () => void;
+  onClose: (transactionId?: string) => void;
   onCancel?: () => void;
   isAIGenerated?: boolean;
 }

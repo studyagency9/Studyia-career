@@ -7,7 +7,7 @@ import { useTranslation } from '@/i18n/i18nContext';
 import { Input } from '@/components/ui/input';
 
 interface PaymentOptionsProps {
-  onClose: () => void;
+  onClose: (transactionId?: string) => void;
   onCancel?: () => void;
   isAIGenerated?: boolean;
 }
@@ -88,7 +88,8 @@ export function PaymentOptions({ onClose, onCancel, isAIGenerated = false }: Pay
       
       // Fermer le modal et télécharger après un court délai
       setTimeout(() => {
-        onClose();
+        // Passer l'ID de transaction à la fonction onClose
+        onClose(transactionId);
       }, 1500);
     }, 2000);
   };

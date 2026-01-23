@@ -1,28 +1,103 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, Download, ArrowLeft, Sparkles, TrendingUp, DollarSign, Target, Check, X, Clock } from 'lucide-react';
+import { Search, Filter, Download, ArrowLeft, Sparkles, TrendingUp, DollarSign, Target, Check, X, Clock, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAssociateAuth } from '@/contexts/AssociateAuthContext';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useToast } from '@/hooks/use-toast';
 
 const SalesPage = () => {
-  const { sales, stats } = useAssociateAuth();
+  const { sales, stats, fetchSales } = useAssociateAuth();
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'validated' | 'pending' | 'cancelled'>('all');
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalSales, setTotalSales] = useState(0);
+  const [displayedSales, setDisplayedSales] = useState<any[]>([]);
+  const limit = 10; // Nombre d'éléments par page
 
-  const filteredSales = sales.filter(sale => {
-    const matchesSearch = !searchTerm || 
-      sale.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase());
+  // Fonction pour charger les ventes avec filtrage et pagination
+  const loadSales = useCallback(async (page = 1) => {
+    // Éviter les appels multiples pendant le chargement
+    if (isLoading) return;
     
-    const matchesStatus = statusFilter === 'all' || sale.status === statusFilter;
+    setIsLoading(true);
+    try {
+      const params: any = {
+        page,
+        limit
+      };
+      
+      // Ajouter les filtres si nécessaires
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+      
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+      
+      const result = await fetchSales(params);
+      
+      if (result && result.success !== false) {
+        // Vérifier que result.data existe avant d'accéder à ses propriétés
+        const salesData = result.data || result;
+        setDisplayedSales(salesData.sales || []);
+        setTotalPages(salesData.pagination?.pages || 1);
+        setTotalSales(salesData.pagination?.total || 0);
+      } else {
+        setDisplayedSales([]);
+        toast({
+          title: t('associate.sales.errorTitle'),
+          description: t('associate.sales.errorLoading'),
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des ventes:', error);
+      toast({
+        title: t('associate.sales.errorTitle'),
+        description: t('associate.sales.errorLoading'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchSales, statusFilter, searchTerm, t, toast, limit, isLoading]);
+  
+  // Charger les ventes au chargement initial et lors des changements de filtres
+  useEffect(() => {
+    // Utiliser une référence pour éviter les appels multiples
+    const controller = new AbortController();
     
-    return matchesSearch && matchesStatus;
-  });
+    loadSales(1);
+    setCurrentPage(1);
+    
+    // Nettoyer les requêtes précédentes lors du démontage ou changement de dépendances
+    return () => {
+      controller.abort();
+    };
+  }, [statusFilter]); // Retirer loadSales des dépendances pour éviter les appels en boucle
+  
+  // Fonction pour gérer la recherche
+  const handleSearch = () => {
+    loadSales(1);
+    setCurrentPage(1);
+  };
+  
+  // Fonction pour changer de page
+  const changePage = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      loadSales(newPage);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const config = {
@@ -177,8 +252,17 @@ const SalesPage = () => {
                 placeholder={t('associate.sales.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-11 h-12 text-base"
               />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="absolute right-2 top-1/2 -translate-y-1/2"
+                onClick={handleSearch}
+              >
+                <Search className="w-4 h-4" />
+              </Button>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -229,7 +313,16 @@ const SalesPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredSales.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-16">
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                        <p className="font-medium text-muted-foreground">{t('associate.sales.loading')}</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : displayedSales.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-16">
                       <div className="flex flex-col items-center gap-3">
@@ -242,7 +335,7 @@ const SalesPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredSales.map((sale, index) => (
+                  displayedSales.map((sale, index) => (
                     <motion.tr
                       key={sale.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -292,6 +385,66 @@ const SalesPage = () => {
           </div>
         </Card>
         </motion.div>
+        
+        {/* Pagination */}
+        {!isLoading && displayedSales.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="flex justify-between items-center mt-6 px-4"
+          >
+            <div className="text-sm text-muted-foreground">
+              {t('associate.sales.showing')} <span className="font-semibold">{(currentPage - 1) * limit + 1}</span> - <span className="font-semibold">{Math.min(currentPage * limit, totalSales)}</span> {t('associate.sales.of')} <span className="font-semibold">{totalSales}</span> {t('associate.sales.entries')}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => changePage(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              
+              {/* Afficher les numéros de page */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // Logique pour afficher les pages autour de la page courante
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="icon"
+                    onClick={() => changePage(pageNum)}
+                    className={currentPage === pageNum ? "bg-primary text-primary-foreground" : ""}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+              
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => changePage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

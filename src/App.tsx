@@ -35,6 +35,8 @@ const AssociateLoginPage = lazy(() => import("./pages/associate/LoginPage"));
 const AssociateDashboardPage = lazy(() => import("./pages/associate/DashboardPage"));
 const AssociateSalesPage = lazy(() => import("./pages/associate/SalesPage"));
 const AssociateWithdrawPage = lazy(() => import("./pages/associate/WithdrawPage"));
+// Import direct du ProfilePage
+const AssociateProfilePage = lazy(() => import("./pages/associate/ProfilePage"));
 
 // Composant de chargement avec i18n
 const PageLoader = () => {
@@ -105,6 +107,7 @@ const AppRoutes = () => (
             <Route path="/associate/dashboard" element={<ProtectedAssociateRoute><AssociateDashboardPage /></ProtectedAssociateRoute>} />
             <Route path="/associate/sales" element={<ProtectedAssociateRoute><AssociateSalesPage /></ProtectedAssociateRoute>} />
             <Route path="/associate/withdraw" element={<ProtectedAssociateRoute><AssociateWithdrawPage /></ProtectedAssociateRoute>} />
+            <Route path="/associate/profile" element={<ProtectedAssociateRoute><AssociateProfilePage /></ProtectedAssociateRoute>} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

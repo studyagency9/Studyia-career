@@ -22,7 +22,7 @@ const DashboardPage = () => {
   if (!associate) return null;
 
   const copyToClipboard = (text: string, type: 'code' | 'link') => {
-    navigator.clipboard.writeText(text);
+    // Feedback visuel immédiat
     if (type === 'code') {
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
@@ -32,22 +32,65 @@ const DashboardPage = () => {
       
       // Déclencher le prompt PWA lors de la première copie du lien
       const hasTriggeredPWA = localStorage.getItem('studyia_associate_pwa_triggered');
-      console.log('🔍 Copie du lien - hasTriggeredPWA:', hasTriggeredPWA);
       if (!hasTriggeredPWA) {
-        console.log('✅ Déclenchement du prompt PWA dans 1 seconde...');
         localStorage.setItem('studyia_associate_pwa_triggered', 'true');
         setTimeout(() => {
-          console.log('🚀 Affichage du prompt PWA maintenant');
           setShowPWAPrompt(true);
         }, 1000);
-      } else {
-        console.log('⚠️ Prompt PWA déjà déclenché auparavant');
       }
     }
-    toast({
-      title: t('associate.dashboard.copied'),
-      description: type === 'code' ? t('associate.dashboard.codeCopied') : t('associate.dashboard.linkCopied'),
-    });
+    
+    // Essayer d'utiliser un élément input temporaire pour la copie
+    const tempInput = document.createElement('input');
+    tempInput.style.position = 'absolute';
+    tempInput.style.left = '-9999px';
+    tempInput.value = text;
+    document.body.appendChild(tempInput);
+    
+    try {
+      // Sélectionner le texte et essayer de copier
+      tempInput.select();
+      tempInput.setSelectionRange(0, 99999); // Pour les appareils mobiles
+      
+      // Essayer de copier avec document.execCommand
+      const successful = document.execCommand('copy');
+      
+      if (successful) {
+        toast({
+          title: t('associate.dashboard.copied'),
+          description: type === 'code' ? t('associate.dashboard.codeCopied') : t('associate.dashboard.linkCopied'),
+        });
+      } else {
+        // Si execCommand échoue, essayer l'API Clipboard moderne
+        if (navigator && navigator.clipboard) {
+          navigator.clipboard.writeText(text)
+            .then(() => {
+              toast({
+                title: t('associate.dashboard.copied'),
+                description: type === 'code' ? t('associate.dashboard.codeCopied') : t('associate.dashboard.linkCopied'),
+              });
+            })
+            .catch(err => {
+              console.error('Erreur API Clipboard:', err);
+              toast({
+                title: t('associate.dashboard.copyFailed'),
+                description: t('associate.dashboard.tryAgain'),
+                variant: 'destructive',
+              });
+            });
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la copie:', error);
+      toast({
+        title: t('associate.dashboard.copyFailed'),
+        description: t('associate.dashboard.tryAgain'),
+        variant: 'destructive',
+      });
+    } finally {
+      // Nettoyer l'élément temporaire
+      document.body.removeChild(tempInput);
+    }
   };
 
   const shareOnWhatsApp = () => {
@@ -110,15 +153,17 @@ const DashboardPage = () => {
               </Link>
               <div className="h-8 w-px bg-border" />
               <div>
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                    {associate.firstName.charAt(0)}
+                <Link to="/associate/profile" className="no-underline">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                      {associate.firstName.charAt(0)}
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-lg leading-tight">{associate.firstName} {associate.lastName}</h2>
+                      <p className="text-xs text-muted-foreground">{associate.email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="font-bold text-lg leading-tight">{associate.firstName} {associate.lastName}</h2>
-                    <p className="text-xs text-muted-foreground">{associate.email}</p>
-                  </div>
-                </div>
+                </Link>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -447,15 +492,15 @@ const DashboardPage = () => {
                           {sale.customerName || t('associate.dashboard.anonymousClient')}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {sale.cvType === 'public' ? t('associate.dashboard.publicCV') : t('associate.dashboard.partnerSaaS')}
+                          {(sale.cvType === 'public') ? t('associate.dashboard.publicCV') : t('associate.dashboard.partnerSaaS')}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-green-600">
-                          +{sale.commissionAmount.toLocaleString()} FCFA
+                          +{(sale.commissionAmount || sale.commission || 0).toLocaleString()} FCFA
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(sale.createdAt).toLocaleDateString('fr-FR')}
+                          {new Date(sale.createdAt || sale.date || new Date()).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
                     </motion.div>

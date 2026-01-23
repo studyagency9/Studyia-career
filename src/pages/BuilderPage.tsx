@@ -870,18 +870,59 @@ const BuilderPage = () => {
   const navigate = useNavigate();
 
   // Fonction pour gérer la fermeture du dialogue de paiement avec téléchargement
-  const handlePaymentClose = () => {
+  const handlePaymentClose = async (transactionId?: string) => {
     setPaymentModalOpen(false);
     
     // Étape 2: Envoyer le code de parrainage au backend
+    // Récupérer le code de parrainage depuis localStorage
+    // Le code est stocké lorsqu'un utilisateur arrive via un lien de parrainage (ex: https://studyia-career.com/?ref=A665E5)
     const referralCode = localStorage.getItem('referralCode');
 
-    // Simuler le succès du paiement et générer le PDF
+    // Envoyer les données au backend et générer le PDF
     try {
-      if (referralCode) {
-        console.log(`[Parrainage] Paiement effectué avec le code de parrainage : ${referralCode}`);
-        // TODO: Envoyer `referralCode` à l'API de paiement avec les autres détails de la transaction.
-        // Exemple: await processPayment({ cvData, referralCode });
+      // Préparer les données à envoyer au backend
+      const paymentData = {
+        cvData: {
+          personalInfo: {
+            firstName: cvData.personalInfo.firstName,
+            lastName: cvData.personalInfo.lastName,
+            email: cvData.personalInfo.email,
+            phone: cvData.personalInfo.phone,
+            city: cvData.personalInfo.city,
+            country: cvData.personalInfo.country
+          },
+          targetJob: cvData.targetJob,
+          template: cvData.template
+        },
+        referralCode: referralCode || null,
+        paymentToken: transactionId || 'direct-payment', // ID de transaction ou valeur par défaut
+        pdfUrl: null // Sera généré côté client
+      };
+      
+      // Envoyer les données au backend
+      try {
+        const response = await fetch('https://studyia-career-backend.onrender.com/api/cv/purchase', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(paymentData)
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[Achat CV] Succès:', result);
+          
+          if (referralCode) {
+            console.log(`[Parrainage] Commission attribuée pour le code: ${referralCode}`);
+          }
+        } else {
+          console.error('[Achat CV] Erreur:', await response.text());
+          // Continuer quand même pour permettre à l'utilisateur de télécharger son CV
+        }
+      } catch (apiError) {
+        console.error('[Achat CV] Erreur réseau:', apiError);
+        // Continuer quand même pour permettre à l'utilisateur de télécharger son CV
       }
 
       generatePDF(cvData, pdfTranslations);
