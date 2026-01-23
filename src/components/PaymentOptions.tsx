@@ -48,9 +48,63 @@ export function PaymentOptions({ onClose, onCancel, isAIGenerated = false }: Pay
     if (!id || id.trim().length < 5) return false;
     
     if (type === 'orange') {
-      // Format Orange: "PP260120.2039.A72802"
-      // Format: PP + 6 chiffres + . + 4 chiffres + . + A + 5 chiffres
-      return /^PP\d{6}\.\d{4}\.A\d{5}$/.test(id.trim());
+      // Format Orange: "PP260122.1311.C31445" ou "MP260122.1542.B58643"
+      // Format: [MP|PP] + 6 chiffres (date) + . + 4 chiffres (heure) + . + [A-Z] + 5-6 chiffres
+      const formatValid = /^[A-Z]{2}\d{6}\.\d{4}\.[A-Z]\d{5,6}$/.test(id.trim());
+      
+      if (!formatValid) return false;
+      
+      // Vérification de la date et l'heure avec une marge de temps
+      try {
+        const currentDate = new Date();
+        
+        // Extraire la date et l'heure de l'ID
+        const idTrimmed = id.trim();
+        const yearStr = idTrimmed.substring(2, 4);
+        const monthStr = idTrimmed.substring(4, 6);
+        const dayStr = idTrimmed.substring(6, 8);
+        const hourStr = idTrimmed.substring(9, 11);
+        const minuteStr = idTrimmed.substring(11, 13);
+        
+        // Convertir en nombres
+        const year = 2000 + parseInt(yearStr, 10); // Supposer 20xx
+        const month = parseInt(monthStr, 10) - 1; // Les mois commencent à 0 en JS
+        const day = parseInt(dayStr, 10);
+        const hour = parseInt(hourStr, 10);
+        const minute = parseInt(minuteStr, 10);
+        
+        // Créer la date de la transaction
+        const transactionDate = new Date(year, month, day, hour, minute);
+        
+        // Vérifier si la date est valide
+        if (isNaN(transactionDate.getTime())) return false;
+        
+        // Vérifier si la date est aujourd'hui
+        const isToday = (
+          currentDate.getFullYear() === transactionDate.getFullYear() &&
+          currentDate.getMonth() === transactionDate.getMonth() &&
+          currentDate.getDate() === transactionDate.getDate()
+        );
+        
+        if (!isToday) return false;
+        
+        // Calculer la différence en minutes
+        const diffMs = Math.abs(currentDate.getTime() - transactionDate.getTime());
+        const diffMinutes = Math.floor(diffMs / 60000);
+        
+        // Accepter les transactions des 60 dernières minutes (marge d'une heure)
+        // ou des 5 prochaines minutes (pour les horloges légèrement décalées)
+        const isWithinTimeWindow = (
+          (transactionDate <= currentDate && diffMinutes <= 60) || // Transaction dans le passé (jusqu'à 60 min)
+          (transactionDate > currentDate && diffMinutes <= 5)      // Transaction dans le futur (jusqu'à 5 min - décalage d'horloge)
+        );
+        
+        return isWithinTimeWindow;
+      } catch (error) {
+        console.error('Erreur lors de la validation de la date/heure:', error);
+        // En cas d'erreur dans le parsing, accepter si le format est valide
+        return true;
+      }
     } else {
       // Format MTN: 15405748542 (numérique, exactement 11 chiffres)
       return /^\d{11}$/.test(id.trim());

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { PaymentOptions } from './PaymentOptions';
 import { useTranslation } from '@/i18n/i18nContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -32,6 +32,13 @@ export function PaymentDialog({
           e.preventDefault();
         }}
       >
+        <DialogTitle className="sr-only">{t('payment.title')}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {isAIGenerated 
+            ? t('payment.descriptionAI').replace('{price}', '2100') 
+            : t('payment.description').replace('{price}', '1100')}
+        </DialogDescription>
+        
         <div className="flex items-center p-3 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-transparent">
           <div className="bg-primary/10 p-1.5 rounded-full mr-2">
             <CreditCard className="h-3.5 w-3.5 text-primary" />

@@ -66,31 +66,11 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ data, className, transla
 
   const fileName = `CV_${data.personalInfo.firstName}_${data.personalInfo.lastName}.pdf`.replace(/\s+/g, '_');
 
-  // Sur mobile, afficher uniquement un message sans bouton de téléchargement
-  if (isMobile) {
-    return (
-      <div className={className}>
-        <div className="bg-muted/30 border-2 border-dashed border-border rounded-xl p-8 text-center space-y-4">
-          <div className="flex justify-center">
-            <FileText className="w-16 h-16 text-muted-foreground" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Aperçu PDF non disponible sur mobile
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              L'aperçu PDF ne fonctionne pas sur les appareils mobiles. Utilisez le bouton de téléchargement principal pour obtenir votre CV.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Aucun effet de blocage des raccourcis clavier pour permettre une meilleure expérience utilisateur
-
   // Effet pour désactiver les raccourcis clavier et les boutons de téléchargement/impression
   React.useEffect(() => {
+    // Ne pas exécuter cet effet sur mobile
+    if (isMobile) return;
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       // Désactiver Ctrl+S, Ctrl+P, etc.
       if ((e.ctrlKey || e.metaKey) && 
@@ -143,7 +123,7 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ data, className, transla
                   button.style.visibility = 'hidden';
                   button.style.opacity = '0';
                   button.style.pointerEvents = 'none';
-                  button.disabled = true;
+                  // La propriété disabled n'existe pas sur tous les HTMLElement
                   button.setAttribute('disabled', 'true');
                   button.onclick = (e) => {
                     e.preventDefault();
@@ -175,7 +155,30 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ data, className, transla
       document.removeEventListener('keydown', handleKeyDown);
       clearInterval(interval);
     };
-  }, []);
+  }, [isMobile]);
+
+  // Sur mobile, afficher uniquement un message sans bouton de téléchargement
+  if (isMobile) {
+    return (
+      <div className={className}>
+        <div className="bg-muted/30 border-2 border-dashed border-border rounded-xl p-8 text-center space-y-4">
+          <div className="flex justify-center">
+            <FileText className="w-16 h-16 text-muted-foreground" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Aperçu PDF non disponible sur mobile
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              L'aperçu PDF ne fonctionne pas sur les appareils mobiles. Utilisez le bouton de téléchargement principal pour obtenir votre CV.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Aucun effet de blocage des raccourcis clavier pour permettre une meilleure expérience utilisateur
 
   // Sur desktop, afficher le viewer normal avec le filigrane visuel (pas dans le PDF)
   return (
