@@ -358,6 +358,13 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
       }
 
       const result = await response.json();
+      
+      // Vérifier que result.choices existe et contient au moins un élément
+      if (!result.choices || !result.choices[0] || !result.choices[0].message) {
+        console.error('Unexpected API response format:', result);
+        throw new Error(t('upload.invalidApiResponse'));
+      }
+      
       const rawContent = result.choices[0].message.content;
       
       // Find the start and end of the JSON object

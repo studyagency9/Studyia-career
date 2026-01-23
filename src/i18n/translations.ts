@@ -421,6 +421,7 @@ export const translations = {
       docxNotSupported: 'Les fichiers DOCX ne sont pas supportés dans cette version. Veuillez télécharger un PDF.',
       apiKeyMissing: 'La clé API OpenRouter n\'est pas configurée.',
       noJsonFound: 'Aucun objet JSON valide trouvé dans la réponse de l\'IA.',
+      invalidApiResponse: 'Format de réponse API inattendu. Veuillez réessayer.',
       backHome: 'Retour à l\'accueil',
     },
     templates: {
