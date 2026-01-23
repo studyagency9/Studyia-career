@@ -157,71 +157,73 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ data, className, transla
     };
   }, [isMobile]);
 
-  // Sur mobile, afficher uniquement un message sans bouton de téléchargement
-  if (isMobile) {
+  // Préparer le contenu à afficher en fonction du type d'appareil
+  const renderContent = () => {
+    // Sur mobile, afficher uniquement un message sans bouton de téléchargement
+    if (isMobile) {
+      return (
+        <div className={className}>
+          <div className="bg-muted/30 border-2 border-dashed border-border rounded-xl p-8 text-center space-y-4">
+            <div className="flex justify-center">
+              <FileText className="w-16 h-16 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Aperçu PDF non disponible sur mobile
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                L'aperçu PDF ne fonctionne pas sur les appareils mobiles. Utilisez le bouton de téléchargement principal pour obtenir votre CV.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    // Sur desktop, afficher le viewer normal avec le filigrane visuel (pas dans le PDF)
     return (
-      <div className={className}>
-        <div className="bg-muted/30 border-2 border-dashed border-border rounded-xl p-8 text-center space-y-4">
-          <div className="flex justify-center">
-            <FileText className="w-16 h-16 text-muted-foreground" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Aperçu PDF non disponible sur mobile
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              L'aperçu PDF ne fonctionne pas sur les appareils mobiles. Utilisez le bouton de téléchargement principal pour obtenir votre CV.
-            </p>
-          </div>
+      <div className={className} style={{ width: '100%', height: '600px', position: 'relative' }}>
+        {/* Wrapper pour empêcher le téléchargement direct */}
+        <div className="pdf-container" style={{ width: '100%', height: '100%', position: 'relative' }}>
+          <CustomPDFViewer width="100%" height="100%" className="pdf-viewer">
+            <PDFTemplate data={dataWithTranslations} />
+          </CustomPDFViewer>
+          
+          {/* Overlay spécifique pour bloquer les boutons de téléchargement et d'impression */}
+          <div className="pdf-overlay" style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '100px', /* Largeur pour couvrir les boutons */
+            height: '40px', /* Hauteur pour couvrir les boutons */
+            zIndex: 9999,
+            pointerEvents: 'auto', /* Capture les clics */
+            cursor: 'default',
+          }} onClick={(e) => e.stopPropagation()} />
+          
+          {/* Couche invisible pour bloquer uniquement certaines interactions avec le PDF */}
+          <div 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 10,
+              pointerEvents: 'none', // Permet le défilement
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault(); // Bloque le menu contextuel
+              e.stopPropagation();
+            }}
+          />
         </div>
       </div>
     );
-  }
+  };
 
-  // Aucun effet de blocage des raccourcis clavier pour permettre une meilleure expérience utilisateur
-
-  // Sur desktop, afficher le viewer normal avec le filigrane visuel (pas dans le PDF)
-  return (
-    <div className={className} style={{ width: '100%', height: '600px', position: 'relative' }}>
-      {/* Wrapper pour empêcher le téléchargement direct */}
-      <div className="pdf-container" style={{ width: '100%', height: '100%', position: 'relative' }}>
-        <CustomPDFViewer width="100%" height="100%" className="pdf-viewer">
-          <PDFTemplate data={dataWithTranslations} />
-        </CustomPDFViewer>
-        
-        {/* Overlay spécifique pour bloquer les boutons de téléchargement et d'impression */}
-        <div className="pdf-overlay" style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: '100px', /* Largeur pour couvrir les boutons */
-          height: '40px', /* Hauteur pour couvrir les boutons */
-          zIndex: 9999,
-          pointerEvents: 'auto', /* Capture les clics */
-          cursor: 'default',
-        }} onClick={(e) => e.stopPropagation()} />
-        
-        {/* Couche invisible pour bloquer uniquement certaines interactions avec le PDF */}
-        <div 
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 10,
-            pointerEvents: 'none', // Permet le défilement
-          }}
-          onContextMenu={(e) => {
-            e.preventDefault(); // Bloque le menu contextuel
-            e.stopPropagation();
-          }}
-        />
-      </div>
-      
-      {/* Le filigrane visuel a été supprimé pour éviter le double filigrane */}
-    </div>
-  );
+  // Rendre le contenu en fonction du type d'appareil
+  return renderContent();
 };
 
 export default PDFPreview;

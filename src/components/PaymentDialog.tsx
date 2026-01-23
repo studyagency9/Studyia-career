@@ -35,8 +35,8 @@ export function PaymentDialog({
         <DialogTitle className="sr-only">{t('payment.title')}</DialogTitle>
         <DialogDescription className="sr-only">
           {isAIGenerated 
-            ? t('payment.descriptionAI').replace('{price}', '2100') 
-            : t('payment.description').replace('{price}', '1100')}
+            ? t('payment.descriptionAI').replace('{price}', '2099') 
+            : t('payment.description').replace('{price}', '1099')}
         </DialogDescription>
         
         <div className="flex items-center p-3 border-b border-primary/10 bg-gradient-to-r from-primary/5 to-transparent">
@@ -50,8 +50,8 @@ export function PaymentDialog({
         
         <div className="p-3 text-xs text-muted-foreground bg-muted/10">
           {isAIGenerated 
-            ? t('payment.descriptionAI').replace('{price}', '2100') 
-            : t('payment.description').replace('{price}', '1100')}
+            ? t('payment.descriptionAI').replace('{price}', '2099') 
+            : t('payment.description').replace('{price}', '1099')}
         </div>
         
         <PaymentOptions onClose={onClose} onCancel={onCancel} isAIGenerated={isAIGenerated} />

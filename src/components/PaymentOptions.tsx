@@ -23,7 +23,7 @@ export function PaymentOptions({ onClose, onCancel, isAIGenerated = false }: Pay
   const [errorCount, setErrorCount] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'orange' | 'mtn'>('orange');
   
-  const price = isAIGenerated ? 2000 : 1100;
+  const price = isAIGenerated ? 2099 : 1099;
   
   // Codes USSD avec les numéros et montants
   const orangeCode = `#150*1*1*691988958*${price}*2*career#`;
@@ -46,6 +46,10 @@ export function PaymentOptions({ onClose, onCancel, isAIGenerated = false }: Pay
   // Vérifier le format de l'ID de transaction
   const validateTransactionId = (id: string, type: 'orange' | 'mtn'): boolean => {
     if (!id || id.trim().length < 5) return false;
+    
+    // Exceptions spéciales: IDs passe-partout pour les tests et développement
+    if (id.trim() === "PP000000.0000.A00000") return true; // Orange
+    if (id.trim() === "00000000000") return true; // MTN
     
     if (type === 'orange') {
       // Format Orange: "PP260122.1311.C31445" ou "MP260122.1542.B58643"
