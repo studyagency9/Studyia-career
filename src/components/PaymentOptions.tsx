@@ -149,7 +149,7 @@ export function PaymentOptions({ onClose, onCancel, isAIGenerated = false }: Pay
         // Passer l'ID de transaction à la fonction onClose
         onClose(transactionId);
       }, 1500);
-    }, 2000);
+    }, 10000);
   };
 
   // Nous ne sauvegardons plus l'ID de transaction automatiquement

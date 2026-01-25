@@ -928,16 +928,27 @@ const BuilderPage = () => {
         // Continuer quand même pour permettre à l'utilisateur de télécharger son CV
       }
 
-      generatePDF(cvData, pdfTranslations);
-      toast({ 
-        title: t('builder.preview.downloadSuccess'), 
-        description: t('builder.preview.downloadSuccessDesc')
-      });
-      
-      // Rediriger vers la page d'accueil après un court délai
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
+      // Générer le PDF et attendre que le téléchargement soit initialisé
+      try {
+        await generatePDF(cvData, pdfTranslations);
+        
+        toast({ 
+          title: t('builder.preview.downloadSuccess'), 
+          description: t('builder.preview.downloadSuccessDesc')
+        });
+        
+        // Rediriger vers la page d'accueil après un délai plus long pour s'assurer que le téléchargement a commencé
+        setTimeout(() => {
+          navigate('/');
+        }, 5000);
+      } catch (pdfError) {
+        console.error("Erreur spécifique lors de la génération du PDF:", pdfError);
+        toast({
+          title: t('errors.pdfError'),
+          description: String(pdfError) || t('builder.preview.downloadError'),
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("Erreur lors de la génération du PDF:", error);
       toast({
