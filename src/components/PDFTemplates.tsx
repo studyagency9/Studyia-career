@@ -322,11 +322,11 @@ export const ProfessionalPDFTemplate = ({ data }: { data: CVData }) => {
                     {exp.description && (
                       <View>
                         {exp.description.split('\n').map((line, i) => 
-                          line.trim() && (
+                          line.trim() ? (
                             <Text key={i} style={styles.professionalExperienceDescription}>
                               • {line}
                             </Text>
-                          )
+                          ) : <Text key={i}></Text>
                         )}
                       </View>
                     )}
@@ -420,7 +420,7 @@ export const MinimalPDFTemplate = ({ data }: { data: CVData }) => {
                   {exp.description && (
                     <View>
                       {exp.description.split('\n').map((line, i) => 
-                        line.trim() && <Text key={i} style={{ fontSize: 9, marginLeft: 10 }}>• {line}</Text>
+                        line.trim() ? <Text key={i} style={{ fontSize: 9, marginLeft: 10 }}>• {line}</Text> : <Text key={i}></Text>
                       )}
                     </View>
                   )}
@@ -539,11 +539,11 @@ export const CreativePDFTemplate = ({ data }: { data: CVData }) => {
                   {exp.description && (
                     <View>
                       {exp.description.split('\n').map((line, i) => 
-                        line.trim() && (
+                        line.trim() ? (
                           <Text key={i} style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>
                             • {line}
                           </Text>
-                        )
+                        ) : <Text key={i}></Text>
                       )}
                     </View>
                   )}
@@ -641,7 +641,7 @@ export const ModernPDFTemplate = ({ data }: { data: CVData }) => {
                       {exp.description && (
                         <View>
                           {exp.description.split('\n').map((line, i) => 
-                            line.trim() && <Text key={i} style={{ fontSize: 11, color: '#475569', marginBottom: 3 }}>• {line}</Text>
+                            line.trim() ? <Text key={i} style={{ fontSize: 11, color: '#475569', marginBottom: 3 }}>• {line}</Text> : <Text key={i}></Text>
                           )}
                         </View>
                       )}
@@ -760,7 +760,7 @@ export const ElegantPDFTemplate = ({ data }: { data: CVData }) => {
                       {exp.description && (
                         <View>
                           {exp.description.split('\n').map((line, i) => 
-                            line.trim() && <Text key={i} style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>• {line}</Text>
+                            line.trim() ? <Text key={i} style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>• {line}</Text> : <Text key={i}></Text>
                           )}
                         </View>
                       )}

@@ -1258,7 +1258,7 @@ const BuilderPage = () => {
         isAIGenerated={isAIPayment}
       />
 
-      <div className="lg:hidden fixed bottom-4 right-4 z-50">
+      <div className="lg:hidden fixed bottom-4 right-4 z-50" data-inert={isPaymentModalOpen ? "true" : undefined}>
         <Drawer>
           <DrawerTrigger asChild>
             <Button size="lg" className="rounded-full shadow-lg">
@@ -1289,7 +1289,7 @@ const BuilderPage = () => {
               </div>
               <span className="font-bold text-foreground">Studyia Career</span>
             </div>
-                      </div>
+          </div>
         </div>
       </header>
 
