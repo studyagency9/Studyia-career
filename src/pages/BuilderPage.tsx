@@ -77,6 +77,8 @@ interface PersonalInfo {
   country: string;
   summary: string;
   photo: string; // Base64 URL of the photo
+  dateOfBirth?: string; // Optionnel
+  gender?: string; // Optionnel ('M' ou 'F')
 }
 
 interface Experience {
@@ -812,7 +814,7 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, previewRef, pdfTr
 
 // Main Builder Page
 const BuilderPage = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   
   useSEO({
     title: 'Créer mon CV professionnel - Studyia Career | Générateur de CV gratuit',
@@ -883,7 +885,25 @@ const BuilderPage = () => {
 
     // Envoyer les données au backend et générer le PDF
     try {
-      // Préparer les données à envoyer au backend
+      // Récupérer le prix selon le type de CV (standard ou optimisé par l'IA)
+      // Les prix sont définis dans le composant PaymentOptions
+      const price = isAIPayment ? 2099 : 1099; // Utiliser les mêmes valeurs que dans PaymentOptions.tsx
+      
+      // Créer des tableaux vides explicites pour éviter les problèmes de sérialisation
+      // Utiliser JSON.parse pour garantir que ce sont des tableaux standards JavaScript
+      const emptyEducation = JSON.parse('[]');
+      const emptyExperiences = JSON.parse('[]');
+      const emptySkills = JSON.parse('[]');
+      
+      // Log pour inspecter cvData avant la construction de paymentData
+      console.log('========== INSPECTION cvData AVANT ENVOI ==========');
+      console.log('cvData complet:', cvData);
+      console.log('cvData.education:', cvData.education);
+      console.log('cvData.experiences:', cvData.experiences);
+      console.log('cvData.skills:', cvData.skills);
+      console.log('===================================================');
+      
+      // Préparer les données à envoyer au backend conformément à la documentation
       const paymentData = {
         cvData: {
           personalInfo: {
@@ -891,41 +911,134 @@ const BuilderPage = () => {
             lastName: cvData.personalInfo.lastName,
             email: cvData.personalInfo.email,
             phone: cvData.personalInfo.phone,
+            // Séparer city et country pour la table personnel
             city: cvData.personalInfo.city,
-            country: cvData.personalInfo.country
+            country: cvData.personalInfo.country,
+            // Garder aussi l'adresse combinée pour la compatibilité avec l'API
+            address: cvData.personalInfo.city + (cvData.personalInfo.country ? ', ' + cvData.personalInfo.country : ''),
+            position: cvData.targetJob || '',
+            // Ajout des champs optionnels s'ils existent
+            ...(cvData.personalInfo.dateOfBirth && { dateOfBirth: cvData.personalInfo.dateOfBirth }),
+            ...(cvData.personalInfo.gender && { gender: cvData.personalInfo.gender })
           },
-          targetJob: cvData.targetJob,
+          // Utiliser Array.from() pour garantir une copie propre des tableaux
+          education: Array.isArray(cvData.education) && cvData.education.length > 0 
+            ? Array.from(cvData.education).map(edu => ({
+                institution: edu.school,
+                degree: edu.degree,
+                field: '',
+                startDate: edu.startDate,
+                endDate: edu.endDate,
+                description: edu.description
+              })) 
+            : emptyEducation,
+          experiences: Array.isArray(cvData.experiences) && cvData.experiences.length > 0 
+            ? Array.from(cvData.experiences).map(exp => ({
+                company: exp.company,
+                position: exp.title,
+                startDate: exp.startDate,
+                endDate: exp.endDate,
+                description: exp.description
+              })) 
+            : emptyExperiences,
+          skills: Array.isArray(cvData.skills) && cvData.skills.length > 0 
+            ? Array.from(cvData.skills).map(skill => ({
+                name: skill,
+                level: 80 // Niveau par défaut
+              })) 
+            : emptySkills,
+          language: 'fr', // Langue par défaut
           template: cvData.template
         },
+        price: price, // Prix du CV selon le type (standard ou optimisé par l'IA)
         referralCode: referralCode || null,
-        paymentToken: transactionId || 'direct-payment', // ID de transaction ou valeur par défaut
+        paymentToken: transactionId || 'direct-payment',
         pdfUrl: null // Sera généré côté client
       };
       
+      // Logs détaillés des données envoyées au serveur
+      console.log('========== DÉBUT LOGS DONNÉES ENVOYÉES AU SERVEUR ==========');
+      console.log('URL:', 'https://studyia-career-backend.onrender.com/api/cv/purchase');
+      console.log('Méthode:', 'POST');
+      console.log('Headers:', { 'Content-Type': 'application/json' });
+      console.log('Données complètes:', paymentData);
+      console.log('personalInfo:', paymentData.cvData.personalInfo);
+      
+      // Logs détaillés des tableaux
+      console.log('education (type):', typeof paymentData.cvData.education);
+      console.log('education (isArray):', Array.isArray(paymentData.cvData.education));
+      console.log('education (length):', paymentData.cvData.education.length);
+      console.log('education (contenu):', paymentData.cvData.education);
+      
+      console.log('experiences (type):', typeof paymentData.cvData.experiences);
+      console.log('experiences (isArray):', Array.isArray(paymentData.cvData.experiences));
+      console.log('experiences (length):', paymentData.cvData.experiences.length);
+      console.log('experiences (contenu):', paymentData.cvData.experiences);
+      
+      console.log('skills (type):', typeof paymentData.cvData.skills);
+      console.log('skills (isArray):', Array.isArray(paymentData.cvData.skills));
+      console.log('skills (length):', paymentData.cvData.skills.length);
+      console.log('skills (contenu):', paymentData.cvData.skills);
+      
+      console.log('price:', paymentData.price);
+      console.log('referralCode:', paymentData.referralCode);
+      console.log('paymentToken:', paymentData.paymentToken);
+      console.log('========== FIN LOGS DONNÉES ENVOYÉES AU SERVEUR ==========');
+      
       // Envoyer les données au backend
       try {
+        // Sérialiser et désérialiser les données pour s'assurer que les tableaux sont correctement formatés
+        const serializedData = JSON.stringify(paymentData);
+        console.log('Données sérialisées (CV standard):', serializedData);
+        
+        // Utiliser l'instance axios configurée pour une meilleure gestion des erreurs
         const response = await fetch('https://studyia-career-backend.onrender.com/api/cv/purchase', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(paymentData)
+          body: serializedData
         });
         
         if (response.ok) {
           const result = await response.json();
+          console.log('========== DÉBUT LOGS RÉPONSE SERVEUR ==========');
           console.log('[Achat CV] Succès:', result);
+          console.log('Status:', response.status);
+          console.log('Réponse complète:', result);
+          console.log('========== FIN LOGS RÉPONSE SERVEUR ==========');
           
           if (referralCode) {
             console.log(`[Parrainage] Commission attribuée pour le code: ${referralCode}`);
           }
+          
+          // Ne pas afficher de toast de succès pour l'enregistrement
         } else {
-          console.error('[Achat CV] Erreur:', await response.text());
-          // Continuer quand même pour permettre à l'utilisateur de télécharger son CV
+          // Continuer silencieusement pour permettre le téléchargement
+          const errorText = await response.text();
+          console.log('========== DÉBUT LOGS ERREUR SERVEUR ==========');
+          console.error('[Achat CV] Erreur:', errorText);
+          console.log('Status:', response.status);
+          console.log('Message d’erreur:', errorText);
+          console.log('========== FIN LOGS ERREUR SERVEUR ==========');
+          
+          // Ne pas afficher de toast d'erreur à l'utilisateur
         }
       } catch (apiError) {
+        // Juste logger l'erreur en console sans afficher de message à l'utilisateur
         console.error('[Achat CV] Erreur réseau:', apiError);
-        // Continuer quand même pour permettre à l'utilisateur de télécharger son CV
+        
+        // Enregistrer silencieusement l'achat en local
+        try {
+          const pendingPurchases = JSON.parse(localStorage.getItem('pendingPurchases') || '[]');
+          pendingPurchases.push({
+            ...paymentData,
+            timestamp: new Date().toISOString()
+          });
+          localStorage.setItem('pendingPurchases', JSON.stringify(pendingPurchases));
+        } catch (storageError) {
+          console.error('[Achat CV] Erreur de stockage local:', storageError);
+        }
       }
 
       // Générer le PDF et attendre que le téléchargement soit initialisé
@@ -1128,10 +1241,161 @@ const BuilderPage = () => {
   };
   
   // Fonction pour gérer la fermeture du dialogue de paiement pour CV IA
-  const handleAIPaymentClose = () => {
+  const handleAIPaymentClose = async (transactionId?: string) => {
     setPaymentModalOpen(false);
     
+    // Récupérer le code de parrainage depuis localStorage
+    const referralCode = localStorage.getItem('referralCode');
+    
     if (suggestedCvData) {
+      // Récupérer le prix pour le CV optimisé par l'IA
+      const price = 2099; // Même valeur que dans PaymentOptions.tsx
+      
+      // Créer des tableaux vides explicites pour éviter les problèmes de sérialisation
+      // Utiliser JSON.parse pour garantir que ce sont des tableaux standards JavaScript
+      const emptyEducation = JSON.parse('[]');
+      const emptyExperiences = JSON.parse('[]');
+      const emptySkills = JSON.parse('[]');
+      
+      // Log pour inspecter cvData avant la construction de paymentData
+      console.log('========== INSPECTION cvData (IA) AVANT ENVOI ==========');
+      console.log('suggestedCvData complet:', suggestedCvData);
+      console.log('suggestedCvData.education:', suggestedCvData.education);
+      console.log('suggestedCvData.experiences:', suggestedCvData.experiences);
+      console.log('suggestedCvData.skills:', suggestedCvData.skills);
+      console.log('========================================================');
+      
+      // Préparer les données à envoyer au backend conformément à la documentation
+      const paymentData = {
+        cvData: {
+          personalInfo: {
+            firstName: suggestedCvData.personalInfo.firstName,
+            lastName: suggestedCvData.personalInfo.lastName,
+            email: suggestedCvData.personalInfo.email,
+            phone: suggestedCvData.personalInfo.phone,
+            // Séparer city et country pour la table personnel
+            city: suggestedCvData.personalInfo.city,
+            country: suggestedCvData.personalInfo.country,
+            // Garder aussi l'adresse combinée pour la compatibilité avec l'API
+            address: suggestedCvData.personalInfo.city + (suggestedCvData.personalInfo.country ? ', ' + suggestedCvData.personalInfo.country : ''),
+            position: suggestedCvData.targetJob || '',
+            // Ajout des champs optionnels s'ils existent
+            ...(suggestedCvData.personalInfo.dateOfBirth && { dateOfBirth: suggestedCvData.personalInfo.dateOfBirth }),
+            ...(suggestedCvData.personalInfo.gender && { gender: suggestedCvData.personalInfo.gender })
+          },
+          // Utiliser Array.from() pour garantir une copie propre des tableaux
+          education: Array.isArray(suggestedCvData.education) && suggestedCvData.education.length > 0 
+            ? Array.from(suggestedCvData.education).map(edu => ({
+                institution: edu.school,
+                degree: edu.degree,
+                field: '',
+                startDate: edu.startDate,
+                endDate: edu.endDate,
+                description: edu.description
+              })) 
+            : emptyEducation,
+          experiences: Array.isArray(suggestedCvData.experiences) && suggestedCvData.experiences.length > 0 
+            ? Array.from(suggestedCvData.experiences).map(exp => ({
+                company: exp.company,
+                position: exp.title,
+                startDate: exp.startDate,
+                endDate: exp.endDate,
+                description: exp.description
+              })) 
+            : emptyExperiences,
+          skills: Array.isArray(suggestedCvData.skills) && suggestedCvData.skills.length > 0 
+            ? Array.from(suggestedCvData.skills).map(skill => ({
+                name: skill,
+                level: 80 // Niveau par défaut
+              })) 
+            : emptySkills,
+          language: 'fr', // Langue par défaut
+          template: suggestedCvData.template
+        },
+        price: price, // Prix du CV optimisé par l'IA
+        referralCode: referralCode || null,
+        paymentToken: transactionId || 'direct-payment',
+        pdfUrl: null // Sera généré côté client
+      };
+      
+      // Logs détaillés des données envoyées au serveur
+      console.log('========== DÉBUT LOGS DONNÉES ENVOYÉES AU SERVEUR (CV IA) ==========');
+      console.log('URL:', 'https://studyia-career-backend.onrender.com/api/cv/purchase');
+      console.log('Méthode:', 'POST');
+      console.log('Headers:', { 'Content-Type': 'application/json' });
+      console.log('Données complètes:', paymentData);
+      console.log('personalInfo:', paymentData.cvData.personalInfo);
+      
+      // Logs détaillés des tableaux
+      console.log('education (type):', typeof paymentData.cvData.education);
+      console.log('education (isArray):', Array.isArray(paymentData.cvData.education));
+      console.log('education (length):', paymentData.cvData.education.length);
+      console.log('education (contenu):', paymentData.cvData.education);
+      
+      console.log('experiences (type):', typeof paymentData.cvData.experiences);
+      console.log('experiences (isArray):', Array.isArray(paymentData.cvData.experiences));
+      console.log('experiences (length):', paymentData.cvData.experiences.length);
+      console.log('experiences (contenu):', paymentData.cvData.experiences);
+      
+      console.log('skills (type):', typeof paymentData.cvData.skills);
+      console.log('skills (isArray):', Array.isArray(paymentData.cvData.skills));
+      console.log('skills (length):', paymentData.cvData.skills.length);
+      console.log('skills (contenu):', paymentData.cvData.skills);
+      
+      console.log('price:', paymentData.price);
+      console.log('referralCode:', paymentData.referralCode);
+      console.log('paymentToken:', paymentData.paymentToken);
+      console.log('========== FIN LOGS DONNÉES ENVOYÉES AU SERVEUR (CV IA) ==========');
+      
+      // Envoyer les données au backend
+      try {
+        // Sérialiser et désérialiser les données pour s'assurer que les tableaux sont correctement formatés
+        const serializedData = JSON.stringify(paymentData);
+        console.log('Données sérialisées (CV IA):', serializedData);
+        
+        const response = await fetch('https://studyia-career-backend.onrender.com/api/cv/purchase', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: serializedData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('========== DÉBUT LOGS RÉPONSE SERVEUR (CV IA) ==========');
+          console.log('[Achat CV IA] Succès:', result);
+          console.log('Status:', response.status);
+          console.log('Réponse complète:', result);
+          console.log('========== FIN LOGS RÉPONSE SERVEUR (CV IA) ==========');
+          
+          if (referralCode) {
+            console.log(`[Parrainage] Commission attribuée pour le code: ${referralCode}`);
+          }
+        } else {
+          const errorText = await response.text();
+          console.log('========== DÉBUT LOGS ERREUR SERVEUR (CV IA) ==========');
+          console.error('[Achat CV IA] Erreur:', errorText);
+          console.log('Status:', response.status);
+          console.log('Message d’erreur:', errorText);
+          console.log('========== FIN LOGS ERREUR SERVEUR (CV IA) ==========');
+        }
+      } catch (apiError) {
+        console.error('[Achat CV IA] Erreur réseau:', apiError);
+        
+        // Enregistrer silencieusement l'achat en local
+        try {
+          const pendingPurchases = JSON.parse(localStorage.getItem('pendingPurchases') || '[]');
+          pendingPurchases.push({
+            ...paymentData,
+            timestamp: new Date().toISOString()
+          });
+          localStorage.setItem('pendingPurchases', JSON.stringify(pendingPurchases));
+        } catch (storageError) {
+          console.error('[Achat CV IA] Erreur de stockage local:', storageError);
+        }
+      }
+      
       setCVData(suggestedCvData);
       toast({
         title: t('builder.ai.changesApplied'),
@@ -1140,22 +1404,20 @@ const BuilderPage = () => {
       });
       
       // Générer le PDF après la fermeture du dialogue
-      setTimeout(() => {
-        try {
-          generatePDF(suggestedCvData, pdfTranslations);
-          toast({ 
-            title: t('builder.preview.downloadSuccess'), 
-            description: t('builder.preview.downloadSuccessDesc')
-          });
-        } catch (error) {
-          console.error("Erreur lors de la génération du PDF:", error);
-          toast({
-            title: t('errors.pdfError'),
-            description: t('builder.preview.downloadError'),
-            variant: "destructive",
-          });
-        }
-      }, 1000);
+      try {
+        await generatePDF(suggestedCvData, pdfTranslations);
+        toast({ 
+          title: t('builder.preview.downloadSuccess'), 
+          description: t('builder.preview.downloadSuccessDesc')
+        });
+      } catch (error) {
+        console.error("Erreur lors de la génération du PDF:", error);
+        toast({
+          title: t('errors.pdfError'),
+          description: t('builder.preview.downloadError'),
+          variant: "destructive",
+        });
+      }
     }
     
     setIsComparing(false);
@@ -1168,6 +1430,16 @@ const BuilderPage = () => {
     toast({
       title: t('builder.ai.changesCanceled'),
       description: t('builder.ai.changesCanceledDesc'),
+    });
+  };
+
+  // Fonction pour mettre à jour les données du CV
+  const updateCVData = (field: keyof CVData, value: any) => {
+    console.log(`Mise à jour de ${field}:`, value);
+    setCVData(prev => {
+      const newData = { ...prev, [field]: value };
+      console.log('Nouvel état cvData:', newData);
+      return newData;
     });
   };
 
@@ -1214,13 +1486,14 @@ const BuilderPage = () => {
   };
   
   const renderCurrentStep = () => {
+    console.log('Rendu de l\'étape:', currentStep, 'cvData:', cvData);
     switch (currentStep) {
-      case 1: return <PersonalInfoStep data={cvData.personalInfo} onChange={(data) => setCVData({ ...cvData, personalInfo: data })} errors={errors} setErrors={setErrors} />;
-      case 2: return <TargetJobStep value={cvData.targetJob} onChange={(value) => setCVData({ ...cvData, targetJob: value })} />;
-      case 3: return <ExperiencesStep data={cvData.experiences} onChange={(data) => setCVData({ ...cvData, experiences: data })} />;
-      case 4: return <EducationStep data={cvData.education} onChange={(data) => setCVData({ ...cvData, education: data })} />;
-      case 5: return <SkillsStep data={cvData.skills} onChange={(data) => setCVData({ ...cvData, skills: data })} />;
-      case 6: return <TemplateStep value={cvData.template} onChange={(value) => setCVData({ ...cvData, template: value })} onNext={handleNext} />;
+      case 1: return <PersonalInfoStep data={cvData.personalInfo} onChange={(data) => updateCVData('personalInfo', data)} errors={errors} setErrors={setErrors} />;
+      case 2: return <TargetJobStep value={cvData.targetJob} onChange={(value) => updateCVData('targetJob', value)} />;
+      case 3: return <ExperiencesStep data={cvData.experiences} onChange={(data) => updateCVData('experiences', data)} />;
+      case 4: return <EducationStep data={cvData.education} onChange={(data) => updateCVData('education', data)} />;
+      case 5: return <SkillsStep data={cvData.skills} onChange={(data) => updateCVData('skills', data)} />;
+      case 6: return <TemplateStep value={cvData.template} onChange={(value) => updateCVData('template', value)} onNext={handleNext} />;
       case 7: return <FinalPreviewStep data={cvData} onStartAnalysis={() => setAnalysisModalOpen(true)} onDownload={handleDownload} previewRef={cvPreviewRef} pdfTranslations={pdfTranslations} />;
       default: return null;
     }
