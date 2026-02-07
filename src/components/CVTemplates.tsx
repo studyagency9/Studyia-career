@@ -1484,6 +1484,325 @@ export const GradientTemplate = ({ data, className }: CVTemplateProps) => {
   );
 };
 
+// Template 14: S.H.I - Structure Innovante
+export const SHITemplate = ({ data, className }: CVTemplateProps) => {
+  const { t } = useTranslation();
+  const { personalInfo, targetJob, experiences, education, skills } = data;
+  const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || t('cvLabels.yourName');
+  const initials = `${personalInfo.firstName[0] || "S"}${personalInfo.lastName[0] || "H"}`;
+
+  return (
+    <div className={cn("bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl shadow-xl overflow-hidden relative", className)}>
+      {/* Sidebar with personal info */}
+      <div className="absolute left-0 top-0 bottom-0 w-1/3 bg-gradient-to-b from-indigo-600 to-purple-700 p-8 text-white">
+        {/* Profile section */}
+        <div className="text-center mb-8">
+          <div className="w-24 h-24 mx-auto rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl font-bold text-white border-3 border-white/30 overflow-hidden shadow-2xl mb-4">
+            {personalInfo.photo ? (
+              <img src={personalInfo.photo} alt={fullName} className="w-full h-full object-cover" />
+            ) : (
+              <span>{initials}</span>
+            )}
+          </div>
+          <h2 className="text-2xl font-bold mb-2">{fullName}</h2>
+          {targetJob && <p className="text-indigo-200 text-sm font-medium tracking-wide">{targetJob}</p>}
+        </div>
+
+        {/* Contact info */}
+        {(personalInfo.email || personalInfo.phone || personalInfo.city || personalInfo.country) && (
+          <div className="space-y-3 mb-8">
+            {personalInfo.email && (
+              <div className="flex items-center gap-3 text-white/90 text-sm">
+                <Mail className="w-4 h-4 text-indigo-200" />
+                <span>{personalInfo.email}</span>
+              </div>
+            )}
+            {personalInfo.phone && (
+              <div className="flex items-center gap-3 text-white/90 text-sm">
+                <Phone className="w-4 h-4 text-indigo-200" />
+                <span>{personalInfo.phone}</span>
+              </div>
+            )}
+            {(personalInfo.city || personalInfo.country) && (
+              <div className="flex items-center gap-3 text-white/90 text-sm">
+                <MapPin className="w-4 h-4 text-indigo-200" />
+                <span>{[personalInfo.city, personalInfo.country].filter(Boolean).join(", ")}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Skills in sidebar */}
+        {skills.length > 0 && (
+          <div>
+            <h3 className="font-bold text-white mb-4 text-sm uppercase tracking-wider flex items-center gap-2">
+              <Wrench className="w-4 h-4" />
+              {t('cvLabels.skills')}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, index) => (
+                <span 
+                  key={index} 
+                  className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-full text-xs font-medium border border-white/30"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main content area */}
+      <div className="ml-1/3 p-8 pl-96">
+        {/* Summary section */}
+        {personalInfo.summary && (
+          <div className="mb-8">
+            <h3 className="font-bold text-gray-900 text-xl mb-4 pb-2 border-b-2 border-indigo-600 inline-block">
+              {t('cvLabels.profile')}
+            </h3>
+            <p className="text-gray-700 leading-relaxed bg-white/50 backdrop-blur-sm p-6 rounded-lg border border-gray-200">
+              {personalInfo.summary}
+            </p>
+          </div>
+        )}
+
+        {/* Experience section with timeline */}
+        {experiences.length > 0 && (
+          <div className="mb-8">
+            <h3 className="font-bold text-gray-900 text-xl mb-6 pb-2 border-b-2 border-indigo-600 inline-block">
+              {t('cvLabels.experience')}
+            </h3>
+            <div className="space-y-6">
+              {experiences.map((exp, index) => (
+                <div key={exp.id} className="relative">
+                  {/* Timeline line */}
+                  {index < experiences.length - 1 && (
+                    <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-gradient-to-b from-indigo-300 to-transparent" />
+                  )}
+                  
+                  <div className="flex gap-4">
+                    {/* Timeline dot */}
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    
+                    {/* Experience card */}
+                    <div className="flex-1 bg-white rounded-lg p-6 shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h4 className="font-bold text-gray-900 text-lg">{exp.title || t('cvLabels.jobTitle')}</h4>
+                          <p className="text-indigo-600 font-semibold">{exp.company}</p>
+                          {exp.location && (
+                            <p className="text-gray-500 text-sm mt-1">{exp.location}</p>
+                          )}
+                        </div>
+                        <div className="bg-indigo-50 px-3 py-1 rounded-full">
+                          <p className="text-xs text-indigo-700 font-medium">
+                            {exp.startDate || t('cvLabels.start')} – {exp.current ? t('cvLabels.present') : exp.endDate || t('cvLabels.end')}
+                          </p>
+                        </div>
+                      </div>
+                      {exp.description && (
+                        <ul className="text-gray-600 text-sm space-y-2">
+                          {exp.description.split('\n').map((line, i) => line.trim() && (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-indigo-500 mt-1">▸</span>
+                              <span>{line}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Education section with cards */}
+        {education.length > 0 && (
+          <div>
+            <h3 className="font-bold text-gray-900 text-xl mb-6 pb-2 border-b-2 border-indigo-600 inline-block">
+              {t('cvLabels.education')}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {education.map((edu) => (
+                <div key={edu.id} className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-6 border border-indigo-200">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900">{edu.degree || t('cvLabels.degree')}</h4>
+                      <p className="text-indigo-600 font-medium">{edu.school}</p>
+                      {edu.location && (
+                        <p className="text-gray-500 text-sm">{edu.location}</p>
+                      )}
+                      <p className="text-gray-600 text-sm mt-1">
+                        {edu.startDate || t('cvLabels.start')} – {edu.endDate || t('cvLabels.end')}
+                      </p>
+                      {edu.description && (
+                        <p className="text-gray-600 text-sm mt-2">{edu.description}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Template 15: TNMD - Design Moderne
+export const TNMDTemplate = ({ data, className }: CVTemplateProps) => {
+  const { t } = useTranslation();
+  const { personalInfo, targetJob, experiences, education, skills } = data;
+  const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || t('cvLabels.yourName');
+  const initials = `${personalInfo.firstName[0] || "T"}${personalInfo.lastName[0] || "N"}`;
+
+  return (
+    <div className={cn("bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-50 rounded-xl shadow-2xl border border-cyan-300 overflow-hidden", className)}>
+      {/* Header with modern gradient */}
+      <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 p-8 text-white relative overflow-hidden">
+        {/* Modern decorative elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-300/30 to-transparent rounded-full blur-2xl" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-300/40 to-transparent rounded-full blur-xl" />
+        <div className="absolute top-1/4 right-1/4 w-20 h-20 bg-gradient-to-r from-indigo-300/20 to-transparent rounded-full blur-lg" />
+        
+        <div className="relative z-10 flex items-center gap-6">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-200 to-blue-200 flex items-center justify-center text-3xl font-bold text-blue-900 shadow-xl border-2 border-cyan-300/50 overflow-hidden">
+            {personalInfo.photo ? (
+              <img src={personalInfo.photo} alt={fullName} className="w-full h-full object-cover" />
+            ) : (
+              <span>{initials}</span>
+            )}
+          </div>
+          <div className="flex-1">
+            <h2 className="text-3xl font-bold mb-2">{fullName}</h2>
+            {targetJob && <p className="text-cyan-100 text-lg font-medium">{targetJob}</p>}
+            {(personalInfo.city || personalInfo.country) && (
+              <p className="text-blue-200 text-sm mt-1 flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                {[personalInfo.city, personalInfo.country].filter(Boolean).join(", ")}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="p-8 space-y-6">
+        {/* Contact */}
+        {(personalInfo.email || personalInfo.phone) && (
+          <div className="flex flex-wrap gap-4">
+            {personalInfo.email && (
+              <span className="flex items-center gap-2 bg-cyan-100 px-3 py-1 rounded-full text-cyan-700 font-medium border border-cyan-200">
+                <Mail className="w-4 h-4" /> {personalInfo.email}
+              </span>
+            )}
+            {personalInfo.phone && (
+              <span className="flex items-center gap-2 bg-blue-100 px-3 py-1 rounded-full text-blue-700 font-medium border border-blue-200">
+                <Phone className="w-4 h-4" /> {personalInfo.phone}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Summary */}
+        {personalInfo.summary && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-cyan-200 shadow-sm">
+            <h3 className="font-bold text-cyan-800 text-lg mb-3 flex items-center gap-2">
+              <User className="w-5 h-5 text-blue-500" /> {t('cvLabels.profile')}
+            </h3>
+            <p className="text-gray-700 leading-relaxed">{personalInfo.summary}</p>
+          </div>
+        )}
+
+        {/* Experience */}
+        {experiences.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-cyan-200 shadow-sm">
+            <h3 className="font-bold text-cyan-800 text-lg mb-4 flex items-center gap-2">
+              <Briefcase className="w-5 h-5 text-blue-500" /> {t('cvLabels.experience')}
+            </h3>
+            <div className="space-y-4">
+              {experiences.map((exp) => (
+                <div key={exp.id} className="border-l-4 border-cyan-400 pl-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-semibold text-cyan-800 text-lg">{exp.title || t('cvLabels.jobTitle')}</h4>
+                      <p className="text-blue-600 font-medium">{exp.company}{exp.location && `, ${exp.location}`}</p>
+                    </div>
+                    <span className="text-sm text-blue-600 bg-cyan-100 px-2 py-1 rounded-full whitespace-nowrap">
+                      {exp.startDate || t('cvLabels.start')} – {exp.current ? t('cvLabels.present') : exp.endDate || t('cvLabels.end')}
+                    </span>
+                  </div>
+                  {exp.description && (
+                    <ul className="text-gray-700 text-sm space-y-1">
+                      {exp.description.split('\n').map((line, i) => line.trim() && (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-cyan-500 mt-1">◉</span>
+                          <span>{line}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Education */}
+        {education.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-cyan-200 shadow-sm">
+            <h3 className="font-bold text-cyan-800 text-lg mb-4 flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-blue-500" /> {t('cvLabels.education')}
+            </h3>
+            <div className="space-y-3">
+              {education.map((edu) => (
+                <div key={edu.id} className="border-l-4 border-blue-400 pl-4">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="font-semibold text-cyan-800">{edu.degree || t('cvLabels.degree')}</h4>
+                    <span className="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded-full whitespace-nowrap">
+                      {edu.startDate || t('cvLabels.start')} – {edu.endDate || t('cvLabels.end')}
+                    </span>
+                  </div>
+                  <p className="text-blue-600">{edu.school}{edu.location && `, ${edu.location}`}</p>
+                  {edu.description && <p className="text-gray-600 text-sm mt-1">{edu.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Skills */}
+        {skills.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border border-cyan-200 shadow-sm">
+            <h3 className="font-bold text-cyan-800 text-lg mb-4 flex items-center gap-2">
+              <Wrench className="w-5 h-5 text-blue-500" /> {t('cvLabels.skills')}
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, index) => (
+                <span 
+                  key={index} 
+                  className="px-3 py-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full text-sm font-medium"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Template map for easy access
 export const templateComponents = {
   professional: ProfessionalTemplate,
@@ -1500,6 +1819,8 @@ export const templateComponents = {
   elegant: ElegantTemplate,
   bold: BoldTemplate,
   gradient: GradientTemplate,
+  shi: SHITemplate,
+  tnmd: TNMDTemplate,
 };
 
 // Base template info without translations (will be enriched with translations in components)
@@ -1545,6 +1866,20 @@ export const templateInfoBase = [
     descKey: "templates.gradientDesc",
     color: "from-indigo-500 to-purple-500",
     recommended: ["Tech", "Startup", "Design"],
+  },
+  {
+    id: "shi",
+    nameKey: "templates.shi",
+    descKey: "templates.shiDesc",
+    color: "from-purple-600 via-pink-600 to-purple-700",
+    recommended: ["Luxe", "Créatif", "Marketing", "Tech"],
+  },
+  {
+    id: "tnmd",
+    nameKey: "templates.tnmd",
+    descKey: "templates.tnmdDesc",
+    color: "from-cyan-500 via-blue-500 to-indigo-600",
+    recommended: ["Tech", "Design", "Moderne", "Startup"],
   },
   {
     id: "executive",

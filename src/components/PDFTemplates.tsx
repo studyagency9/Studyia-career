@@ -1268,6 +1268,573 @@ const StockholmPDFTemplate: PDFTemplateComponent = ({ data, showWatermark = true
   );
 };
 
+// Template PDF S.H.I - Structure Innovante
+export const SHIPDFTemplate = ({ data }: { data: CVData }) => {
+  const { personalInfo, targetJob, experiences, education, skills, translations } = data;
+  const t = translations || { profile: 'PROFIL', experience: 'EXPERIENCE', education: 'FORMATION', skills: 'COMPETENCES', contact: 'Contact', present: 'Présent', start: 'Début', end: 'Fin', yourName: 'Votre Nom', jobTitle: 'Titre du poste', degree: 'Diplôme', company: 'Entreprise' };
+  const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || t.yourName;
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={{ flexDirection: 'row', height: '100%' }}>
+          {/* Sidebar */}
+          <View style={{
+            width: '33%',
+            backgroundColor: '#4F46E5',
+            padding: 30,
+            color: 'white',
+          }}>
+            {/* Profile section */}
+            <View style={{ textAlign: 'center', marginBottom: 30 }}>
+              <View style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 16,
+                alignSelf: 'center',
+              }}>
+                <Text style={{
+                  fontSize: 32,
+                  fontWeight: 'bold',
+                  color: 'white',
+                }}>
+                  {personalInfo.firstName?.[0] || 'S'}{personalInfo.lastName?.[0] || 'H'}
+                </Text>
+              </View>
+              <Text style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                marginBottom: 4,
+              }}>
+                {fullName}
+              </Text>
+              {targetJob && (
+                <Text style={{
+                  fontSize: 12,
+                  color: '#E0E7FF',
+                  fontWeight: 'medium',
+                }}>
+                  {targetJob}
+                </Text>
+              )}
+            </View>
+
+            {/* Contact info */}
+            {(personalInfo.email || personalInfo.phone || personalInfo.city || personalInfo.country) && (
+              <View style={{ marginBottom: 30 }}>
+                {personalInfo.email && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 10, color: '#C7D2FE', marginRight: 8 }}>📧</Text>
+                    <Text style={{ fontSize: 10, color: 'white' }}>{personalInfo.email}</Text>
+                  </View>
+                )}
+                {personalInfo.phone && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 10, color: '#C7D2FE', marginRight: 8 }}>📱</Text>
+                    <Text style={{ fontSize: 10, color: 'white' }}>{personalInfo.phone}</Text>
+                  </View>
+                )}
+                {(personalInfo.city || personalInfo.country) && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 10, color: '#C7D2FE', marginRight: 8 }}>📍</Text>
+                    <Text style={{ fontSize: 10, color: 'white' }}>
+                      {[personalInfo.city, personalInfo.country].filter(Boolean).join(", ")}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Skills in sidebar */}
+            {skills.length > 0 && (
+              <View>
+                <Text style={{
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                  marginBottom: 12,
+                  textTransform: 'uppercase',
+                  letterSpacing: 1,
+                }}>
+                  {t.skills}
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                  {skills.map((skill, index) => (
+                    <View key={index} style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                      borderRadius: 10,
+                    }}>
+                      <Text style={{
+                        fontSize: 8,
+                        color: 'white',
+                        fontWeight: 'medium',
+                      }}>
+                        {skill}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Main content area */}
+          <View style={{
+            flex: 1,
+            padding: 30,
+            backgroundColor: '#F8FAFC',
+          }}>
+            {/* Summary section */}
+            {personalInfo.summary && (
+              <View style={{ marginBottom: 30 }}>
+                <Text style={{
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  color: '#1F2937',
+                  marginBottom: 12,
+                  borderBottomWidth: 2,
+                  borderBottomColor: '#4F46E5',
+                  borderBottomStyle: 'solid',
+                  paddingBottom: 8,
+                  display: 'inline-block',
+                }}>
+                  {t.profile}
+                </Text>
+                <View style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  padding: 16,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: '#E5E7EB',
+                }}>
+                  <Text style={{
+                    fontSize: 10,
+                    color: '#374151',
+                    lineHeight: 1.5,
+                  }}>
+                    {personalInfo.summary}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Experience section with timeline */}
+            {experiences.length > 0 && (
+              <View style={{ marginBottom: 30 }}>
+                <Text style={{
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  color: '#1F2937',
+                  marginBottom: 16,
+                  borderBottomWidth: 2,
+                  borderBottomColor: '#4F46E5',
+                  borderBottomStyle: 'solid',
+                  paddingBottom: 8,
+                  display: 'inline-block',
+                }}>
+                  {t.experience}
+                </Text>
+                {experiences.map((exp, index) => (
+                  <View key={exp.id} style={{ marginBottom: 20, flexDirection: 'row', alignItems: 'flex-start' }}>
+                    {/* Timeline dot */}
+                    <View style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: '#4F46E5',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginRight: 16,
+                      flexShrink: 0,
+                    }}>
+                      <Text style={{
+                        fontSize: 12,
+                        fontWeight: 'bold',
+                        color: 'white',
+                      }}>
+                        {index + 1}
+                      </Text>
+                    </View>
+                    
+                    {/* Experience card */}
+                    <View style={{
+                      flex: 1,
+                      backgroundColor: 'white',
+                      padding: 16,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: '#E5E7EB',
+                      shadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    }}>
+                      <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: 8,
+                      }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{
+                            fontSize: 12,
+                            fontWeight: 'bold',
+                            color: '#1F2937',
+                          }}>
+                            {exp.title || t.jobTitle}
+                          </Text>
+                          <Text style={{
+                            fontSize: 10,
+                            color: '#4F46E5',
+                            fontWeight: '600',
+                          }}>
+                            {exp.company}
+                          </Text>
+                          {exp.location && (
+                            <Text style={{
+                              fontSize: 9,
+                              color: '#6B7280',
+                              marginTop: 2,
+                            }}>
+                              {exp.location}
+                            </Text>
+                          )}
+                        </View>
+                        <View style={{
+                          backgroundColor: '#EEF2FF',
+                          paddingHorizontal: 8,
+                          paddingVertical: 4,
+                          borderRadius: 8,
+                          marginLeft: 8,
+                        }}>
+                          <Text style={{
+                            fontSize: 8,
+                            color: '#4F46E5',
+                            fontWeight: '500',
+                          }}>
+                            {exp.startDate || t.start} – {exp.current ? t.present : exp.endDate || t.end}
+                          </Text>
+                        </View>
+                      </View>
+                      {exp.description && (
+                        <View style={{ marginTop: 8 }}>
+                          {exp.description.split('\n').map((line, i) => line.trim() && (
+                            <Text key={i} style={{
+                              fontSize: 9,
+                              color: '#4B5563',
+                              marginBottom: 4,
+                              marginLeft: 8,
+                            }}>
+                              • {line}
+                            </Text>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Education section with cards */}
+            {education.length > 0 && (
+              <View>
+                <Text style={{
+                  fontSize: 16,
+                  fontWeight: 'bold',
+                  color: '#1F2937',
+                  marginBottom: 16,
+                  borderBottomWidth: 2,
+                  borderBottomColor: '#4F46E5',
+                  borderBottomStyle: 'solid',
+                  paddingBottom: 8,
+                  display: 'inline-block',
+                }}>
+                  {t.education}
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                  {education.map((edu) => (
+                    <View key={edu.id} style={{
+                      width: '48%',
+                      backgroundColor: '#EEF2FF',
+                      padding: 12,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: '#C7D2FE',
+                    }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
+                        <View style={{
+                          width: 32,
+                          height: 32,
+                          backgroundColor: '#4F46E5',
+                          borderRadius: 6,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          marginRight: 8,
+                          flexShrink: 0,
+                        }}>
+                          <Text style={{ fontSize: 16, color: 'white', fontWeight: 'bold' }}>🎓</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{
+                            fontSize: 10,
+                            fontWeight: 'bold',
+                            color: '#1F2937',
+                          }}>
+                            {edu.degree || t.degree}
+                          </Text>
+                          <Text style={{
+                            fontSize: 9,
+                            color: '#4F46E5',
+                            fontWeight: '600',
+                          }}>
+                            {edu.school}
+                          </Text>
+                          {edu.location && (
+                            <Text style={{
+                              fontSize: 8,
+                              color: '#6B7280',
+                            }}>
+                              {edu.location}
+                            </Text>
+                          )}
+                          <Text style={{
+                            fontSize: 8,
+                            color: '#4B5563',
+                            marginTop: 2,
+                          }}>
+                            {edu.startDate || t.start} – {edu.endDate || t.end}
+                          </Text>
+                          {edu.description && (
+                            <Text style={{
+                              fontSize: 8,
+                              color: '#4B5563',
+                              marginTop: 4,
+                            }}>
+                              {edu.description}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
+// Template PDF TNMD - Design Moderne
+export const TNMDPDFTemplate = ({ data }: { data: CVData }) => {
+  const { personalInfo, targetJob, experiences, education, skills, translations } = data;
+  const t = translations || { profile: 'PROFIL', experience: 'EXPERIENCE', education: 'FORMATION', skills: 'COMPETENCES', contact: 'Contact', present: 'Présent', start: 'Début', end: 'Fin', yourName: 'Votre Nom', jobTitle: 'Titre du poste', degree: 'Diplôme', company: 'Entreprise' };
+  const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || t.yourName;
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header with modern gradient */}
+        <View style={{
+          backgroundColor: '#06B6D4',
+          padding: 40,
+          color: 'white',
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 20,
+          }}>
+            {/* Avatar */}
+            <View style={{
+              width: 80,
+              height: 80,
+              borderRadius: 16,
+              backgroundColor: '#E0F2FE',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 2,
+              borderColor: '#BAE6FD',
+            }}>
+              <Text style={{
+                fontSize: 32,
+                fontWeight: 'bold',
+                color: '#1E40AF',
+              }}>
+                {personalInfo.firstName?.[0] || 'T'}{personalInfo.lastName?.[0] || 'N'}
+              </Text>
+            </View>
+            
+            {/* Name and title */}
+            <View style={{ flex: 1 }}>
+              <Text style={{
+                fontSize: 32,
+                fontWeight: 'bold',
+                color: 'white',
+                marginBottom: 4,
+              }}>
+                {fullName}
+              </Text>
+              {targetJob && (
+                <Text style={{
+                  fontSize: 18,
+                  color: '#E0F2FE',
+                  fontWeight: 'medium',
+                }}>
+                  {targetJob}
+                </Text>
+              )}
+              {(personalInfo.email || personalInfo.phone) && (
+                <View style={{ marginTop: 8, flexDirection: 'row', gap: 15 }}>
+                  {personalInfo.email && (
+                    <Text style={{ fontSize: 10, color: '#E0F2FE' }}>{personalInfo.email}</Text>
+                  )}
+                  {personalInfo.phone && (
+                    <Text style={{ fontSize: 10, color: '#E0F2FE' }}>{personalInfo.phone}</Text>
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* Content */}
+        <View style={{ padding: 30, gap: 20 }}>
+          {/* Summary */}
+          {personalInfo.summary && (
+            <View>
+              <Text style={{
+                fontSize: 14,
+                fontWeight: 'bold',
+                color: '#06B6D4',
+                marginBottom: 8,
+              }}>
+                {t.profile}
+              </Text>
+              <Text style={{
+                fontSize: 10,
+                color: '#374151',
+                lineHeight: 1.5,
+              }}>
+                {personalInfo.summary}
+              </Text>
+            </View>
+          )}
+
+          {/* Experience */}
+          {experiences.length > 0 && (
+            <View>
+              <Text style={{
+                fontSize: 14,
+                fontWeight: 'bold',
+                color: '#06B6D4',
+                marginBottom: 12,
+              }}>
+                {t.experience}
+              </Text>
+              {experiences.map((exp) => (
+                <View key={exp.id} style={{ marginBottom: 12 }}>
+                  <Text style={{
+                    fontSize: 12,
+                    fontWeight: 'bold',
+                    color: '#06B6D4',
+                  }}>
+                    {exp.title || t.jobTitle}
+                  </Text>
+                  <Text style={{
+                    fontSize: 10,
+                    color: '#3B82F6',
+                  }}>
+                    {exp.company}{exp.location && `, ${exp.location}`}
+                  </Text>
+                  <Text style={{
+                    fontSize: 9,
+                    color: '#6B7280',
+                  }}>
+                    {exp.startDate || t.start} – {exp.current ? t.present : exp.endDate || t.end}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Education */}
+          {education.length > 0 && (
+            <View>
+              <Text style={{
+                fontSize: 14,
+                fontWeight: 'bold',
+                color: '#06B6D4',
+                marginBottom: 12,
+              }}>
+                {t.education}
+              </Text>
+              {education.map((edu) => (
+                <View key={edu.id} style={{ marginBottom: 8 }}>
+                  <Text style={{
+                    fontSize: 11,
+                    fontWeight: 'bold',
+                    color: '#06B6D4',
+                  }}>
+                    {edu.degree || t.degree}
+                  </Text>
+                  <Text style={{
+                    fontSize: 10,
+                    color: '#3B82F6',
+                  }}>
+                    {edu.school}{edu.location && `, ${edu.location}`}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Skills */}
+          {skills.length > 0 && (
+            <View>
+              <Text style={{
+                fontSize: 14,
+                fontWeight: 'bold',
+                color: '#06B6D4',
+                marginBottom: 12,
+              }}>
+                {t.skills}
+              </Text>
+              <View style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                gap: 8,
+              }}>
+                {skills.map((skill, index) => (
+                  <View key={index} style={{
+                    backgroundColor: '#06B6D4',
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    borderRadius: 12,
+                  }}>
+                    <Text style={{
+                      fontSize: 9,
+                      color: 'white',
+                      fontWeight: 'medium',
+                    }}>
+                      {skill}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
 // Wrapper pour chaque template qui accepte le paramètre showWatermark
 const createTemplateWithWatermark = (Template: React.FC<{ data: CVData }>) => {
   const WrappedTemplate: PDFTemplateComponent = ({ data, showWatermark = true }) => {
@@ -1290,5 +1857,7 @@ export const pdfTemplateComponents: Record<string, PDFTemplateComponent> = {
   elegant: createTemplateWithWatermark(ElegantPDFTemplate),
   bold: createTemplateWithWatermark(BoldPDFTemplate),
   gradient: createTemplateWithWatermark(GradientPDFTemplate),
+  shi: createTemplateWithWatermark(SHIPDFTemplate),
+  tnmd: createTemplateWithWatermark(TNMDPDFTemplate),
   stockholm: StockholmPDFTemplate, // Ce template supporte déjà le filigrane
 };

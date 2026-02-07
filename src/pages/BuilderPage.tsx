@@ -718,7 +718,7 @@ const TemplateStep = ({ value, onChange, onNext }: { value: string; onChange: (v
   const isMobile = useIsMobile();
   // Filtrer pour n'afficher que les modèles avec des templates PDF fonctionnels
   const availableTemplates = templateInfoBase.filter(template => 
-    ['professional', 'creative', 'minimal', 'modern', 'elegant', 'bold', 'gradient', 'stockholm'].includes(template.id)
+    ['professional', 'creative', 'minimal', 'modern', 'elegant', 'bold', 'gradient', 'shi', 'tnmd', 'stockholm'].includes(template.id)
   );
   
   return (
