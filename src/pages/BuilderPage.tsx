@@ -67,6 +67,7 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/i18nContext";
 import { LanguageSwitcherDemo } from "@/components/LanguageSwitcherDemo";
 import { PaymentDialog } from "@/components/PaymentDialog";
+import OptimizeCVPopup from "@/components/OptimizeCVPopup";
 
 // Types
 interface PersonalInfo {
@@ -769,7 +770,7 @@ const TemplateStep = ({ value, onChange, onNext }: { value: string; onChange: (v
 };
 
 // Step 7: Final Preview
-const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, previewRef, pdfTranslations }: { data: CVData; onStartAnalysis: () => void; onDownload: () => void; previewRef: React.RefObject<HTMLDivElement>; pdfTranslations: any }) => {
+const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, onOptimizeClick, previewRef, pdfTranslations }: { data: CVData; onStartAnalysis: () => void; onDownload: () => void; onOptimizeClick: () => void; previewRef: React.RefObject<HTMLDivElement>; pdfTranslations: any }) => {
   const TemplateComponent = templateComponents[data.template as keyof typeof templateComponents] || templateComponents.professional;
 
   const { t } = useTranslation();
@@ -800,7 +801,7 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, previewRef, pdfTr
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button size="lg" onClick={onStartAnalysis} className="shadow-lg bg-gradient-to-r from-blue-bright to-primary text-white animate-pulse-slow">
+        <Button size="lg" onClick={onOptimizeClick} className="shadow-lg bg-gradient-to-r from-blue-bright to-primary text-white animate-pulse-slow">
           <Zap className="w-5 h-5 mr-2" />
           {t('builder.preview.analyze')}
         </Button>
@@ -855,6 +856,7 @@ const BuilderPage = () => {
   const [isAnalysisModalOpen, setAnalysisModalOpen] = useState(false);
   const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
   const [isAIPayment, setIsAIPayment] = useState(false);
+  const [showOptimizePopup, setShowOptimizePopup] = useState(false);
   const cvPreviewRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -1505,7 +1507,7 @@ const BuilderPage = () => {
       case 4: return <EducationStep data={cvData.education} onChange={(data) => updateCVData('education', data)} />;
       case 5: return <SkillsStep data={cvData.skills} onChange={(data) => updateCVData('skills', data)} />;
       case 6: return <TemplateStep value={cvData.template} onChange={(value) => updateCVData('template', value)} onNext={handleNext} />;
-      case 7: return <FinalPreviewStep data={cvData} onStartAnalysis={() => setAnalysisModalOpen(true)} onDownload={handleDownload} previewRef={cvPreviewRef} pdfTranslations={pdfTranslations} />;
+      case 7: return <FinalPreviewStep data={cvData} onStartAnalysis={() => setAnalysisModalOpen(true)} onDownload={handleDownload} onOptimizeClick={() => setShowOptimizePopup(true)} previewRef={cvPreviewRef} pdfTranslations={pdfTranslations} />;
       default: return null;
     }
   };
@@ -1758,6 +1760,9 @@ const BuilderPage = () => {
           </div>
         </div>
       )}
+      
+      {/* Optimize CV Popup */}
+      <OptimizeCVPopup isOpen={showOptimizePopup} onClose={() => setShowOptimizePopup(false)} />
     </div>
   );
 };
