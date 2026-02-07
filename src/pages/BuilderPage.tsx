@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { trackConversion } from "@/hooks/useReferralTracking";
 import { motion } from "framer-motion";
 import { useSEO } from "@/hooks/useSEO";
 import { getWebPageSchema } from "@/utils/seo";
@@ -881,7 +882,7 @@ const BuilderPage = () => {
     // Étape 2: Envoyer le code de parrainage au backend
     // Récupérer le code de parrainage depuis localStorage
     // Le code est stocké lorsqu'un utilisateur arrive via un lien de parrainage (ex: https://studyia-career.com/?ref=A665E5)
-    const referralCode = localStorage.getItem('referralCode');
+    const referralCode = localStorage.getItem('studyia_referral');
 
     // Envoyer les données au backend et générer le PDF
     try {
@@ -1010,6 +1011,11 @@ const BuilderPage = () => {
           
           if (referralCode) {
             console.log(`[Parrainage] Commission attribuée pour le code: ${referralCode}`);
+            // Enregistrer la conversion pour l'associé
+            trackConversion('public', {
+              email: cvData.personalInfo.email,
+              name: `${cvData.personalInfo.firstName} ${cvData.personalInfo.lastName}`
+            });
           }
           
           // Ne pas afficher de toast de succès pour l'enregistrement
@@ -1245,7 +1251,7 @@ const BuilderPage = () => {
     setPaymentModalOpen(false);
     
     // Récupérer le code de parrainage depuis localStorage
-    const referralCode = localStorage.getItem('referralCode');
+    const referralCode = localStorage.getItem('studyia_referral');
     
     if (suggestedCvData) {
       // Récupérer le prix pour le CV optimisé par l'IA
@@ -1371,6 +1377,11 @@ const BuilderPage = () => {
           
           if (referralCode) {
             console.log(`[Parrainage] Commission attribuée pour le code: ${referralCode}`);
+            // Enregistrer la conversion pour l'associé
+            trackConversion('public', {
+              email: suggestedCvData.personalInfo.email,
+              name: `${suggestedCvData.personalInfo.firstName} ${suggestedCvData.personalInfo.lastName}`
+            });
           }
         } else {
           const errorText = await response.text();

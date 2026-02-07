@@ -7,6 +7,7 @@ import { LanguageSwitcherDemo } from "@/components/LanguageSwitcherDemo";
 import { useTranslation } from "@/i18n/i18nContext";
 import { useSEO } from "@/hooks/useSEO";
 import { getOrganizationSchema, getWebSiteSchema, getSoftwareApplicationSchema, getHowToSchema } from "@/utils/seo";
+import UpdateCVPopup from "@/components/UpdateCVPopup";
 
 // Animation variants
 const fadeInUp = {
@@ -23,7 +24,7 @@ const staggerContainer = {
 };
 
 // Hero Section
-const HeroSection = () => {
+const HeroSection = ({ onUpdateClick }: { onUpdateClick: () => void }) => {
   const { t } = useTranslation();
   
   return (
@@ -82,12 +83,10 @@ const HeroSection = () => {
                 <ArrowRight className="w-5 h-5" />
               </Button>
             </Link>
-            <Link to="/upload">
-              <Button variant="heroOutline" size="xl" className="w-full sm:w-auto">
-                {t('home.hero.ctaSecondary')}
-                <Upload className="w-5 h-5" />
-              </Button>
-            </Link>
+            <Button variant="heroOutline" size="xl" className="w-full sm:w-auto" onClick={onUpdateClick}>
+              {t('home.hero.ctaSecondary')}
+              <Upload className="w-5 h-5" />
+            </Button>
           </motion.div>
 
           {/* Trust indicators */}
@@ -766,6 +765,7 @@ const PartnerPromotionSection = () => {
 // Main Index Page
 const Index = () => {
   const { t } = useTranslation();
+  const [showUpdatePopup, setShowUpdatePopup] = useState(false);
   
   useSEO({
     title: 'Studyia Career - Créez un CV professionnel qui ouvre des portes | Cameroun, Gabon, Guinée Équatoriale',
@@ -793,7 +793,7 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <main>
-        <HeroSection />
+        <HeroSection onUpdateClick={() => setShowUpdatePopup(true)} />
         <section id="features">
           <WhyStudyiaCareerSection />
         </section>
@@ -809,6 +809,7 @@ const Index = () => {
         <FinalCTASection />
       </main>
       <Footer />
+      <UpdateCVPopup isOpen={showUpdatePopup} onClose={() => setShowUpdatePopup(false)} />
     </div>
   );
 };
