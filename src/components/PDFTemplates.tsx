@@ -1271,7 +1271,12 @@ const StockholmPDFTemplate: PDFTemplateComponent = ({ data, showWatermark = true
 // Wrapper pour chaque template qui accepte le paramètre showWatermark
 const createTemplateWithWatermark = (Template: React.FC<{ data: CVData }>) => {
   const WrappedTemplate: PDFTemplateComponent = ({ data, showWatermark = true }) => {
-    return <Template data={data} />;
+    return (
+      <>
+        <Template data={data} />
+        {showWatermark && <PDFWatermark text="Créé sur career.studyia.net" />}
+      </>
+    );
   };
   return WrappedTemplate;
 };

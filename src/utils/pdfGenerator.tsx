@@ -93,8 +93,9 @@ export const generatePDF = async (cvData: CVData, translations?: any): Promise<v
     // Sélectionner le template PDF approprié
     const PDFTemplate = pdfTemplateComponents[processedData.template as keyof typeof pdfTemplateComponents] || pdfTemplateComponents.professional;
     
-    // Générer le blob PDF directement sans filigrane (version payante)
-    const asPdf = pdf(<PDFTemplate data={processedData} showWatermark={false} />);
+    // Générer le blob PDF avec ou sans filigrane selon le template
+    const isMinimalTemplate = processedData.template === 'minimal';
+    const asPdf = pdf(<PDFTemplate data={processedData} showWatermark={isMinimalTemplate} />);
     const blob = await asPdf.toBlob();
     
     // Créer le lien de téléchargement
