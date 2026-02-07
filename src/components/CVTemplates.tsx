@@ -299,7 +299,13 @@ export const MinimalTemplate = ({ data, className }: CVTemplateProps) => {
   const fullName = `${personalInfo.firstName} ${personalInfo.lastName}`.trim() || t('cvLabels.yourName');
 
   return (
-    <div className={cn("bg-background rounded-lg shadow-xl border border-border overflow-hidden p-6", className)}>
+    <div className={cn("bg-background rounded-lg shadow-xl border border-border overflow-hidden p-6 relative", className)}>
+      {/* Watermark for free version */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="transform rotate-45 text-center opacity-10">
+          <p className="text-lg text-muted-foreground font-bold tracking-wider">Créé sur career.studyia.net</p>
+        </div>
+      </div>
       {/* Header */}
       <div className="text-center border-b-2 border-foreground pb-4 mb-6">
         <h2 className="text-2xl font-bold text-foreground tracking-wide uppercase">{fullName}</h2>

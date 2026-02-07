@@ -752,6 +752,13 @@ const TemplateStep = ({ value, onChange, onNext }: { value: string; onChange: (v
               </div>
             )}
             
+            {/* Badge GRATUIT pour le template minimaliste */}
+            {template.id === 'minimal' && (
+              <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-md text-xs font-bold">
+                GRATUIT
+              </div>
+            )}
+            
             <div className={`h-32 rounded-lg bg-gradient-to-br ${template.color} mb-3`} />
             
             <h3 className="font-semibold text-foreground mb-1">{t(template.nameKey as any)}</h3>
@@ -805,9 +812,9 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, onOptimizeClick, 
           <Zap className="w-5 h-5 mr-2" />
           {t('builder.preview.analyze')}
         </Button>
-        <Button size="lg" variant="outline" onClick={onDownload}>
+        <Button size="lg" variant={data.template === 'minimal' ? 'default' : 'outline'} onClick={onDownload} className={data.template === 'minimal' ? 'bg-green-500 hover:bg-green-600 text-white' : ''}>
           <Download className="w-5 h-5 mr-2" />
-          {t('builder.preview.download')}
+          {data.template === 'minimal' ? 'Télécharger gratuitement' : t('builder.preview.download')}
         </Button>
       </div>
     </div>
@@ -865,9 +872,27 @@ const BuilderPage = () => {
   const { clearSavedPosition } = useScrollPosition('builder-page', [currentStep, cvData]);
 
   const handleDownload = async () => {
-    // Afficher le dialogue de paiement
-    setIsAIPayment(false); // Paiement pour CV standard
-    setPaymentModalOpen(true);
+    // Vérifier si le template est minimaliste (gratuit)
+    if (cvData.template === 'minimal') {
+      // Téléchargement gratuit pour le template minimaliste
+      try {
+        await generatePDF(cvData);
+        toast({
+          title: "CV téléchargé avec succès !",
+          description: "Votre CV minimaliste a été téléchargé gratuitement.",
+        });
+      } catch (error) {
+        toast({
+          title: "Erreur de téléchargement",
+          description: "Impossible de générer le PDF. Veuillez réessayer.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      // Afficher le dialogue de paiement pour les autres templates
+      setIsAIPayment(false); // Paiement pour CV standard
+      setPaymentModalOpen(true);
+    }
   };
   
   // Fonction pour gérer l'annulation du paiement (sans téléchargement)
