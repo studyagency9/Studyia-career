@@ -9,10 +9,14 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from '@/i18n/i18nContext';
 import { AnalysisAnimation } from '@/components/AnalysisAnimation';
 import { useCVAnalysis } from '@/hooks/useCVAnalysis';
+import { UpdateCVWithLimit } from '@/components/UpdateCVWithLimit';
+import { ClientRateLimiter } from '@/utils/clientRateLimit';
+import { RateLimitStatus } from '@/components/RateLimitStatus';
 
 const UploadPage = () => {
   const navigate = useNavigate();
   const { t, language } = useTranslation();
+  const [showLimitPopup, setShowLimitPopup] = useState(false);
   
   useSEO({
     title: 'Améliorer mon CV existant - Studyia Career | Upload et optimisation de CV',
@@ -30,6 +34,12 @@ const UploadPage = () => {
     navigate('/builder', { state: { uploadedData: data } });
   };
 
+  const handleUpdateFromPopup = async () => {
+    // Cette fonction sera appelée depuis le popup
+    // La logique est déjà gérée dans onDrop
+    setShowLimitPopup(false);
+  };
+
   const { analyzeCV, isLoading, error, clearError } = useCVAnalysis({
     onSuccess: handleUploadSuccess,
   });
@@ -37,6 +47,14 @@ const UploadPage = () => {
   const onDrop = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
+
+    // Vérifier la limitation avant de continuer
+    const rateLimitStatus = ClientRateLimiter.canUpdateCV();
+    
+    if (!rateLimitStatus.canUpdate) {
+      setShowLimitPopup(true);
+      return;
+    }
 
     const languageInstruction = language === 'en'
       ? 'You MUST respond ONLY with valid JSON. No text, no explanations, no comments before or after the JSON object.'
@@ -298,6 +316,9 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
 
     // Utiliser le hook pour analyser le CV
     await analyzeCV(file, systemPrompt);
+    
+    // Incrémenter le compteur de limitation
+    ClientRateLimiter.incrementUsage();
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -323,6 +344,11 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-foreground">{t('upload.title')}</h1>
             <p className="text-muted-foreground mt-2">{t('upload.subtitle')}</p>
+            
+            {/* Indicateur de limitation */}
+            <div className="mt-4 flex justify-center">
+              <RateLimitStatus showDetails={false} />
+            </div>
           </div>
           
           <div
@@ -354,6 +380,13 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
           )}
         </div>
       </div>
+
+      {/* Popup de limitation */}
+      <UpdateCVWithLimit
+        isOpen={showLimitPopup}
+        onClose={() => setShowLimitPopup(false)}
+        onUpdateCV={handleUpdateFromPopup}
+      />
     </div>
   );
 };
