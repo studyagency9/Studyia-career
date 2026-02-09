@@ -1829,7 +1829,7 @@ export const templateInfoBase = [
     id: "professional",
     nameKey: "templates.professional",
     descKey: "templates.professionalDesc",
-    color: "from-blue-500 to-blue-600",
+    color: "from-blue-600 to-blue-700",
     recommended: ["Tous métiers", "Entreprise"],
   },
   {

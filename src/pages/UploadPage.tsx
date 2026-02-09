@@ -6,29 +6,11 @@ import { ArrowLeft, UploadCloud, AlertTriangle } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
 import { useTranslation } from '@/i18n/i18nContext';
 import { AnalysisAnimation } from '@/components/AnalysisAnimation';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Setup PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
-const extractTextFromPDF = async (file: File): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-  let textContent = '';
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const text = await page.getTextContent();
-    textContent += text.items.map(item => ('str' in item ? item.str : '')).join(' ') + '\n';
-  }
-  return textContent;
-};
+import { useCVAnalysis } from '@/hooks/useCVAnalysis';
 
 const UploadPage = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { t, language } = useTranslation();
   
@@ -48,12 +30,13 @@ const UploadPage = () => {
     navigate('/builder', { state: { uploadedData: data } });
   };
 
+  const { analyzeCV, isLoading, error, clearError } = useCVAnalysis({
+    onSuccess: handleUploadSuccess,
+  });
+
   const onDrop = async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
-
-    setIsLoading(true);
-    setError(null);
 
     const languageInstruction = language === 'en'
       ? 'You MUST respond ONLY with valid JSON. No text, no explanations, no comments before or after the JSON object.'
@@ -313,105 +296,8 @@ Un JSON propre, cohérent, prêt à être injecté directement dans l’éditeur
 - reformatage
 - analyse IA ultérieure`;
 
-    try {
-      let cvText = '';
-      if (file.type === 'application/pdf') {
-        cvText = await extractTextFromPDF(file);
-      } else {
-        // Placeholder for DOCX processing if needed in the future
-        throw new Error(t('upload.docxNotSupported'));
-      }
-
-      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-      
-      if (!apiKey) {
-        throw new Error(t('upload.apiKeyMissing'));
-      }
-
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://career.studyia.net",
-          "X-Title": "Studyia Career CV Builder"
-        },
-        body: JSON.stringify({
-          model: "meta-llama/llama-3.3-70b-instruct:free",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Here is the CV text to analyze:\n\n${cvText}` }
-          ]
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('OpenRouter API Error:', errorData);
-        
-        // Toutes les erreurs API sont converties en message générique pour l'utilisateur
-        console.error(`API Error: ${response.status} - ${response.statusText}`, errorData);
-        throw new Error(t('upload.serviceUnavailable'));
-      }
-
-      const result = await response.json();
-      
-      // Vérifier que result.choices existe et contient au moins un élément
-      if (!result.choices || !result.choices[0] || !result.choices[0].message) {
-        console.error('Unexpected API response format:', result);
-        throw new Error(t('upload.serviceUnavailable'));
-      }
-      
-      const rawContent = result.choices[0].message.content;
-      
-      // Find the start and end of the JSON object
-      const jsonStart = rawContent.indexOf('{');
-      const jsonEnd = rawContent.lastIndexOf('}') + 1;
-
-      if (jsonStart === -1 || jsonEnd === 0) {
-        console.error('No valid JSON found in API response');
-        throw new Error(t('upload.serviceUnavailable'));
-      }
-
-      let jsonString = rawContent.substring(jsonStart, jsonEnd);
-      
-      // Remove control characters that cause JSON parsing errors
-      jsonString = jsonString.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-      
-      let data;
-      try {
-        data = JSON.parse(jsonString);
-      } catch (jsonError) {
-        console.error('JSON parsing error:', jsonError);
-        throw new Error(t('upload.serviceUnavailable'));
-      }
-
-      toast({
-        title: t('upload.analysisSuccess'),
-        description: t('upload.analysisSuccessDesc'),
-      });
-      handleUploadSuccess(data);
-    } catch (err) {
-      console.error("Upload and analysis error:", err);
-      let userMessage = t('upload.genericError');
-      
-      // Check if it's a network error
-      if (err instanceof TypeError && (err.message.includes('fetch') || err.message.includes('Failed to fetch') || err.message.includes('NetworkError'))) {
-        userMessage = t('upload.networkError');
-      } else {
-        // Pour toutes les autres erreurs, utiliser un message générique convivial
-        userMessage = t('upload.serviceUnavailable');
-      }
-      
-      setError(userMessage);
-      toast({
-        title: t('upload.analysisErrorTitle'),
-        description: userMessage,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Utiliser le hook pour analyser le CV
+    await analyzeCV(file, systemPrompt);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

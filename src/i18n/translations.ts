@@ -426,6 +426,8 @@ export const translations = {
       backHome: 'Retour à l\'accueil',
     },
     templates: {
+      test: 'Test Debug',
+      testDesc: 'Template minimal pour diagnostiquer les erreurs PDF',
       professional: 'Professionnel',
       professionalDesc: 'Moderne et efficace',
       creative: 'Créatif',
@@ -1360,6 +1362,8 @@ export const translations = {
       backHome: 'Back to home',
     },
     templates: {
+      test: 'Debug Test',
+      testDesc: 'Minimal template to diagnose PDF errors',
       professional: 'Professional',
       professionalDesc: 'Modern and efficient',
       creative: 'Creative',

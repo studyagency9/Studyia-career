@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { PDFViewer } from '@react-pdf/renderer';
 import './pdf-viewer-styles.css';
 
@@ -19,30 +19,43 @@ const CustomPDFViewer: React.FC<CustomPDFViewerProps> = ({
   height = '100%',
   className = ''
 }) => {
-  // Injecter le CSS pour masquer les boutons de téléchargement et d'impression
+  const viewerRef = useRef<HTMLDivElement>(null);
+
+  // Effet pour masquer les boutons de téléchargement et d'impression
   useEffect(() => {
-    // Ajouter une feuille de style pour masquer les boutons
-    const style = document.createElement('style');
-    style.textContent = `
-      /* Masquer les boutons de téléchargement et d'impression */
-      .react-pdf__Toolbar button[data-pdfjs-action="download"],
-      .react-pdf__Toolbar button[data-pdfjs-action="print"],
-      .react-pdf__Toolbar button[data-action="download"],
-      .react-pdf__Toolbar button[data-action="print"],
-      #download, #print, #secondaryDownload, #secondaryPrint,
-      .toolbarButton.download, .toolbarButton.print,
-      button[data-l10n-id="download"],
-      button[data-l10n-id="print"],
-      [data-toolbar-id="download"],
-      [data-toolbar-id="print"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-    
+    const hideButtons = () => {
+      // Chercher les iframes dans le conteneur
+      const iframes = viewerRef.current?.querySelectorAll('iframe');
+      
+      iframes?.forEach(iframe => {
+        try {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iframeDoc) {
+            // Masquer les boutons de téléchargement et d'impression
+            const buttons = iframeDoc.querySelectorAll(
+              '#download, #print, .toolbarButton.download, .toolbarButton.print, ' +
+              'button[data-pdfjs-action="download"], button[data-pdfjs-action="print"]'
+            );
+            
+            buttons.forEach(button => {
+              const element = button as HTMLElement;
+              element.style.display = 'none';
+              element.style.visibility = 'hidden';
+              element.style.opacity = '0';
+              element.style.pointerEvents = 'none';
+            });
+          }
+        } catch (error) {
+          // Ignorer les erreurs de cross-origin
+        }
+      });
+    };
+
+    // Observer les changements dans le DOM
+    const observer = new MutationObserver(() => {
+      setTimeout(hideButtons, 100);
+    });
+
     // Désactiver les raccourcis clavier
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && 
@@ -51,31 +64,56 @@ const CustomPDFViewer: React.FC<CustomPDFViewerProps> = ({
         return false;
       }
     };
-    
-    // Ajouter l'écouteur d'événement
+
     document.addEventListener('keydown', handleKeyDown);
+
+    // Commencer l'observation
+    if (viewerRef.current) {
+      observer.observe(viewerRef.current, {
+        childList: true,
+        subtree: true,
+        attributes: true
+      });
+    }
+
+    // Essayer immédiatement
+    setTimeout(hideButtons, 500);
     
-    // Nettoyer les ressources
+    // Nettoyer
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+      observer.disconnect();
     };
   }, []);
 
   return (
-    <div className="custom-pdf-viewer-container" style={{ width, height, position: 'relative' }}>
-      {/* Utiliser PDFViewer avec l'enfant */}
-      <PDFViewer width={width} height={height} className={`${className} pdf-viewer-no-download`}>
+    <div 
+      ref={viewerRef}
+      className="custom-pdf-viewer-container" 
+      style={{ 
+        width, 
+        height, 
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      <PDFViewer 
+        width={width} 
+        height={height} 
+        className={`${className} pdf-viewer-no-download`}
+        showToolbar={true}
+      >
         {children}
       </PDFViewer>
       
-      {/* Overlay pour bloquer les boutons de téléchargement et d'impression */}
+      {/* Overlay pour bloquer les clics sur la toolbar */}
       <div 
-        className="pdf-buttons-overlay"
+        className="pdf-toolbar-overlay"
         style={{
           position: 'absolute',
           top: 0,
           right: 0,
-          width: '120px',
+          width: '150px',
           height: '50px',
           zIndex: 9999,
           pointerEvents: 'auto',
