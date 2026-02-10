@@ -59,7 +59,7 @@ class GeminiService {
 
   constructor() {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-    this.baseUrl = 'https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash-lite:streamGenerateContent';
+    this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
     
     if (!this.apiKey) {
       console.warn('Gemini API key not found in environment variables');
@@ -193,6 +193,93 @@ class GeminiService {
    */
   isConfigured(): boolean {
     return !!this.apiKey;
+  }
+
+  /**
+   * Génère une réponse brute sans validation Zod (pour matching, optimisation, etc.)
+   */
+  async generateRawResponse(prompt: string): Promise<string> {
+    console.log('🔑 Vérification configuration Gemini...');
+    console.log('🔑 API Key présente:', !!this.apiKey);
+    console.log('🔑 Base URL:', this.baseUrl);
+    
+    if (!this.apiKey) {
+      throw new Error('Gemini API key is required');
+    }
+
+    const request: GeminiRequest = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: prompt
+            }
+          ]
+        }
+      ]
+    };
+
+    console.log('📤 Prompt envoyé à Gemini (premiers 200 chars):', prompt.substring(0, 200) + '...');
+    console.log('📤 Taille du prompt:', prompt.length, 'caractères');
+
+    try {
+      const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Gemini API Error:', errorData);
+        throw new Error(`Gemini API Error: ${response.status} - ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      // Debug: log la structure complète de la réponse
+      console.log('🔍 Structure réponse Gemini API:', {
+        hasCandidates: !!result.candidates,
+        candidatesLength: result.candidates?.length || 0,
+        firstCandidate: result.candidates?.[0],
+        fullResult: result
+      });
+      
+      // La nouvelle API retourne directement result.candidates
+      if (!result.candidates || result.candidates.length === 0) {
+        console.error('❌ Aucun candidat dans la réponse Gemini');
+        console.error('❌ Réponse complète:', JSON.stringify(result, null, 2));
+        throw new Error('Gemini API: No candidates in response');
+      }
+      
+      const firstCandidate = result.candidates[0];
+      if (!firstCandidate.content) {
+        console.error('❌ Pas de content dans le premier candidat');
+        throw new Error('Gemini API: No content in candidate');
+      }
+      
+      if (!firstCandidate.content.parts || firstCandidate.content.parts.length === 0) {
+        console.error('❌ Pas de parts dans le content');
+        throw new Error('Gemini API: No parts in content');
+      }
+      
+      const content = firstCandidate.content.parts[0].text || '';
+      
+      if (!content) {
+        console.error('❌ Texte vide dans la réponse');
+        throw new Error('Gemini API: Empty text in response');
+      }
+      
+      console.log('✅ Contenu Gemini extrait avec succès');
+      return content;
+
+    } catch (error) {
+      console.error('Gemini service error:', error);
+      throw error;
+    }
   }
 }
 

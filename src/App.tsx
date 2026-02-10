@@ -15,6 +15,7 @@ import { useReferralTracking } from "@/hooks/useReferralTracking";
 const Index = lazy(() => import("./pages/Index"));
 const BuilderPage = lazy(() => import("./pages/BuilderPage"));
 const UploadPage = lazy(() => import("./pages/UploadPage"));
+const ApplyPage = lazy(() => import("./pages/ApplyPage"));
 const PartnerInfoPage = lazy(() => import("./pages/PartnerInfoPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -84,6 +85,7 @@ const AppRoutes = () => (
             <Route path="/" element={<Index />} />
             <Route path="/builder" element={<BuilderPage />} />
             <Route path="/upload" element={<UploadPage />} />
+            <Route path="/apply" element={<ApplyPage />} />
             <Route path="/partner-info" element={<PartnerInfoPage />} />
             
             {/* Partner authentication routes */}

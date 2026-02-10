@@ -75,6 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    // 1. Essayer la connexion via API normale
     try {
       const response = await api.post('/auth/login', { email, password });
       if (response.data.success) {
@@ -90,8 +91,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
     } catch (error) {
-      console.error('Erreur de connexion partenaire:', error);
+      console.error('Erreur de connexion API:', error);
     }
+
+    // 2. Fallback admin local si l'API échoue
+    if (email === 'admin@studyia.net' && password === 'admin123') {
+      const adminPartner: Partner = {
+        id: 'admin-local',
+        email: 'admin@studyia.net',
+        firstName: 'Admin',
+        lastName: 'Local',
+        company: 'Studyia Career',
+        plan: 'business',
+        cvUsedThisMonth: 0,
+        planRenewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active',
+        cvHistory: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      localStorage.setItem('partner_accessToken', 'admin-local-token');
+      localStorage.setItem('partner_refreshToken', 'admin-local-refresh');
+      localStorage.setItem('partner', JSON.stringify(adminPartner));
+      
+      setPartner(adminPartner);
+      setSavedCVs([]);
+
+      return true;
+    }
+
     return false;
   }, []);
 

@@ -1,4 +1,4 @@
-import { CheckCircle, FileText, Download, Eye, Users, Zap, Shield, Star, ArrowRight, ChevronRight, Menu, X, Upload } from "lucide-react";
+import { CheckCircle, FileText, Download, Eye, Users, Zap, Shield, Star, ArrowRight, ChevronRight, Menu, X, Upload, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
@@ -86,6 +86,12 @@ const HeroSection = () => {
               <Button variant="heroOutline" size="xl" className="w-full sm:w-auto">
                 {t('home.hero.ctaSecondary')}
                 <Upload className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to="/apply">
+              <Button variant="heroOutline" size="xl" className="w-full sm:w-auto bg-gradient-to-r from-purple-500/20 to-purple-600/20 hover:from-purple-500/30 hover:to-purple-600/30 border-purple-500/30 hover:border-purple-500/50">
+                <Target className="w-5 h-5 mr-2" />
+                Postuler à une offre
               </Button>
             </Link>
           </motion.div>
