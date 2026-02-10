@@ -4,7 +4,7 @@ import {
   Briefcase, Upload, FileText, Target, Sparkles, ArrowRight, 
   CheckCircle, AlertCircle, TrendingUp, Zap, Download, Eye,
   Copy, Clipboard, Loader2, Star, Award, Users, Building,
-  XCircle, AlertTriangle, Search
+  XCircle, AlertTriangle, Search, Lightbulb
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1353,9 +1353,14 @@ Compétences requises :
                 </Card>
 
                 {/* Message spécial pour les profils incompatibles */}
-                {analysisResult.matchScore < 30 && (
-                  <Card className="bg-background/95 backdrop-blur-xl border-red-500/50 shadow-2xl">
-                    <CardContent className="p-8">
+                {(() => {
+                  console.log('🔍 Debug score:', analysisResult.matchScore);
+                  console.log('🔍 Condition < 30:', analysisResult.matchScore < 30);
+                  console.log('🔍 Condition >= 30:', analysisResult.matchScore >= 30);
+                  return analysisResult.matchScore < 30;
+                })() && (
+                  <Card className="bg-background/95 backdrop-blur-xl border-red-500/50 shadow-2xl mx-2 sm:mx-0">
+                    <CardContent className="p-6 sm:p-8">
                       <div className="text-center space-y-4">
                         <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto">
                           <AlertTriangle className="w-8 h-8 text-red-500" />
@@ -1364,14 +1369,73 @@ Compétences requises :
                           <h3 className="text-xl font-bold mb-2 text-red-600">
                             Cette offre ne vous correspond pas
                           </h3>
-                          <p className="text-muted-foreground mb-4">
+                          <p className="text-sm sm:text-base text-muted-foreground mb-4">
                             Les compétences requises pour ce poste sont très différentes de celles que vous possédez. 
                             Il ne serait pas pertinent de postuler pour cette offre.
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            Nous vous conseillons de rechercher des offres plus alignées avec votre profil 
-                            en Community Management, Design Graphique et Création de contenu.
-                          </p>
+                          
+                          {/* Compétences manquantes critiques */}
+                          {analysisResult.missingSkills && analysisResult.missingSkills.length > 0 && (
+                            <div className="text-left bg-red-50 dark:bg-red-950/20 rounded-lg p-4 mb-4">
+                              <h4 className="font-semibold text-red-700 dark:text-red-300 mb-2">
+                                Compétences manquantes critiques :
+                              </h4>
+                              <ul className="text-sm text-red-600 dark:text-red-400 space-y-1">
+                                {analysisResult.missingSkills.map((skill, index) => (
+                                  <li key={index} className="flex items-start gap-2">
+                                    <span className="text-red-500 mt-1">•</span>
+                                    <span>{skill}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                              <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800">
+                                <p className="text-xs text-red-500 italic">
+                                  {analysisResult.matchScore < 30 
+                                    ? "Aucune compétence correspondante trouvée"
+                                    : `${analysisResult.skillsAlignment?.matched?.length || 0} compétences sur ${analysisResult.missingSkills.length + (analysisResult.skillsAlignment?.matched?.length || 0)} correspondent`
+                                  }
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Explications des faiblesses */}
+                          {analysisResult.weaknesses && analysisResult.weaknesses.length > 0 && (
+                            <div className="text-left bg-orange-50 dark:bg-orange-950/20 rounded-lg p-4 mb-4">
+                              <h4 className="font-semibold text-orange-700 dark:text-orange-300 mb-2">
+                                Pourquoi ça ne correspond pas :
+                              </h4>
+                              <ul className="text-sm text-orange-600 dark:text-orange-400 space-y-1">
+                                {analysisResult.weaknesses.map((weakness, index) => (
+                                  <li key={index} className="flex items-start gap-2">
+                                    <span className="text-orange-500 mt-1">•</span>
+                                    <span>{weakness}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {/* Suggestions réalistes */}
+                          <div className="text-left bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 mb-4">
+                            <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-2">
+                              Que faire maintenant ?
+                            </h4>
+                            <ul className="text-sm text-blue-600 dark:text-blue-400 space-y-2">
+                              <li className="flex items-start gap-2">
+                                <span className="text-blue-500 mt-1">🔍</span>
+                                <span>Cherchez des offres plus alignées avec vos compétences en {analysisResult.skillsAlignment?.matched?.[0] || 'développement'}</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <span className="text-blue-500 mt-1">📚</span>
+                                <span>Formez-vous sur les compétences manquantes si ce poste vous intéresse vraiment</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <span className="text-blue-500 mt-1">💼</span>
+                                <span>Mettez en avant vos forces dans des offres qui correspondent à votre profil</span>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                         <Button 
                           onClick={() => {
@@ -1390,17 +1454,21 @@ Compétences requises :
                 )}
 
                 {/* Suggestions et optimisations seulement si score >= 30 */}
-                {analysisResult.matchScore >= 30 && (
+                {(() => {
+                  console.log('🔍 Debug optimisation - score:', analysisResult.matchScore);
+                  console.log('🔍 Debug optimisation - condition >= 30:', analysisResult.matchScore >= 30);
+                  return analysisResult.matchScore >= 30;
+                })() && (
                   <>
                     {/* Suggestions */}
-                    <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <TrendingUp className="w-5 h-5 text-primary" />
-                          Suggestions d'optimisation
+                    <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl mx-2 sm:mx-0">
+                      <CardHeader className="px-4 sm:px-6 md:px-8">
+                        <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                          <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+                          Suggestions pour améliorer votre candidature
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-4 px-4 sm:px-6 md:px-8">
                         {analysisResult.suggestions.map((suggestion, index) => (
                           <div key={index} className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                             <Star className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
@@ -1411,33 +1479,33 @@ Compétences requises :
                     </Card>
 
                     {/* Bouton d'optimisation */}
-                    <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl">
-                      <CardContent className="p-8">
+                    <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl mx-2 sm:mx-0">
+                      <CardContent className="p-6 sm:p-8">
                         <div className="text-center space-y-4">
-                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <Sparkles className="w-8 h-8 text-white" />
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg">
+                            <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                           </div>
-                          <h3 className="text-xl font-bold mb-2">
+                          <h3 className="text-xl sm:text-2xl font-bold mb-2">
                             Prêt à optimiser votre candidature ?
                           </h3>
-                          <p className="text-muted-foreground mb-6">
+                          <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                             Notre IA va optimiser votre CV et générer une lettre de motivation personnalisée pour cette offre.
                           </p>
                           <Button
                             onClick={handleOptimization}
                             disabled={isAnalyzing}
-                            className="h-14 bg-gradient-to-r from-purple-500 to-pink-600 hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300"
+                            className="h-12 sm:h-14 bg-gradient-to-r from-purple-500 to-pink-600 hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 text-sm sm:text-base"
                           >
                             {isAnalyzing ? (
                               <>
-                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
                                 Optimisation en cours...
                               </>
                             ) : (
                               <>
-                                <Sparkles className="w-5 h-5 mr-2" />
+                                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                                 Optimiser mon CV & Lettre
-                                <ArrowRight className="w-5 h-5 ml-2" />
+                                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
                               </>
                             )}
                           </Button>

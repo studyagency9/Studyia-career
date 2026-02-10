@@ -59,7 +59,8 @@ class GeminiService {
 
   constructor() {
     this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-    this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+    // Utiliser la même URL que le matching qui fonctionne
+    this.baseUrl = 'https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash-lite:streamGenerateContent';
     
     if (!this.apiKey) {
       console.warn('Gemini API key not found in environment variables');
@@ -104,15 +105,13 @@ class GeminiService {
 
       const result = await response.json();
 
-      // Debug: Log la structure de la réponse
-      console.log('Gemini API response structure:', {
-        isArray: Array.isArray(result),
-        length: Array.isArray(result) ? result.length : 'N/A',
-        firstKeys: Array.isArray(result) && result.length > 0 ? Object.keys(result[0]) : Object.keys(result)
-      });
+      console.log('✅ Réponse Gemini reçue pour parsing CV');
+      console.log('📊 Type de réponse:', typeof result);
+      console.log('📊 Réponse brute:', result);
 
       // Gemini streaming retourne un tableau de réponses
       const responses = Array.isArray(result) ? result : [result];
+      console.log('📡 Nombre de réponses:', responses.length);
       
       if (responses.length === 0) {
         console.error('Empty response from Gemini API');
@@ -122,65 +121,40 @@ class GeminiService {
       // Combiner toutes les réponses pour reconstruire le JSON complet
       const combinedContent = responses
         .map(response => {
+          console.log('📡 Traitement réponse:', response);
           if (response.candidates && response.candidates[0] && response.candidates[0].content) {
-            return response.candidates[0].content.parts[0].text;
+            const content = response.candidates[0].content.parts[0].text;
+            console.log('📡 Contenu trouvé:', content.substring(0, 100) + '...');
+            return content;
           }
+          console.log('⚠️ Pas de contenu trouvé dans cette réponse');
           return '';
         })
         .join('')
         .trim();
 
-      console.log('Combined content from streaming:', {
-        responseCount: responses.length,
-        combinedLength: combinedContent.length,
-        contentPreview: combinedContent.substring(0, 300) + (combinedContent.length > 300 ? '...' : ''),
-        hasBraces: combinedContent.includes('{') && combinedContent.includes('}')
-      });
+      console.log('📡 Contenu combiné final:', combinedContent.substring(0, 200) + '...');
 
       if (!combinedContent) {
         console.error('No content found in any response');
         throw new Error('No content found in response');
       }
 
-      const rawContent = combinedContent;
+      // Parser le JSON de la réponse combinée
+      const jsonMatch = combinedContent.match(/```json\n([\s\S]*?)\n```/);
+      const jsonString = jsonMatch ? jsonMatch[1] : combinedContent;
       
-      // Debug: Log le contenu brut
-      console.log('Raw content from Gemini:', {
-        contentLength: rawContent?.length || 0,
-        contentPreview: rawContent?.substring(0, 200) + (rawContent?.length > 200 ? '...' : ''),
-        hasBraces: rawContent?.includes('{') && rawContent?.includes('}'),
-        firstChar: rawContent?.[0],
-        lastChar: rawContent?.[rawContent?.length - 1]
-      });
+      console.log('📡 JSON extrait:', jsonString.substring(0, 200) + '...');
       
-      // Extraction du JSON de la réponse
-      const jsonStart = rawContent.indexOf('{');
-      const jsonEnd = rawContent.lastIndexOf('}') + 1;
-
-      if (jsonStart === -1 || jsonEnd === 0) {
-        console.error('No valid JSON found in API response');
-        console.error('Full content for debugging:', rawContent);
-        throw new Error('No valid JSON found in response');
-      }
-
-      let jsonString = rawContent.substring(jsonStart, jsonEnd);
-      
-      // Nettoyage des caractères de contrôle
-      jsonString = jsonString.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-      
-      // Parsing et validation du JSON
-      let parsedData;
       try {
-        parsedData = JSON.parse(jsonString);
-      } catch (jsonError) {
-        console.error('JSON parsing error:', jsonError);
-        throw new Error('Failed to parse JSON response');
+        const parsed = JSON.parse(jsonString);
+        console.log('✅ JSON parsé avec succès:', parsed);
+        return parsed;
+      } catch (parseError) {
+        console.error('❌ Error parsing JSON from Gemini response:', parseError);
+        console.error('❌ Raw content:', combinedContent);
+        throw new Error('Failed to parse JSON from Gemini response');
       }
-
-      // Validation avec Zod
-      const validatedData = CVParsedSchema.parse(parsedData);
-      
-      return validatedData;
 
     } catch (error) {
       console.error('Gemini service error:', error);

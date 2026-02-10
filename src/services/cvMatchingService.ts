@@ -55,6 +55,12 @@ class CVMatchingService {
       console.log('🤖 DÉBUT ANALYSE MATCHING AVEC GEMINI');
       console.log('📊 Données CV:', cvData);
       console.log('💼 Données offre:', jobOffer);
+      
+      // Vérifier si on utilise le fallback
+      console.log('🔑 Vérification API Key Gemini...');
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      console.log('🔑 API Key présente:', !!apiKey);
+      console.log('🔑 API Key length:', apiKey?.length || 0);
 
       // Construire le prompt pour Gemini
       const matchingPrompt = `
@@ -111,11 +117,13 @@ Analyse en détail et retourne le JSON exact.
 `;
 
       console.log('📡 Appel à Gemini pour le matching...');
+      console.log('📝 Prompt envoyé (premiers 200 caractères):', matchingPrompt.substring(0, 200) + '...');
       
       // Utiliser la même méthode que jobOfferService
       const geminiResponse = await this.callGeminiDirectly(matchingPrompt);
       
       console.log('✅ Réponse Gemini reçue pour matching');
+      console.log('📊 Type de réponse:', typeof geminiResponse);
       console.log('📊 Réponse brute:', geminiResponse);
 
       // Extraire le JSON de la réponse
@@ -197,9 +205,12 @@ Analyse en détail et retourne le JSON exact.
   private async callGeminiDirectly(prompt: string): Promise<any> {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
-      console.warn('Gemini API key not found, using fallback');
+      console.warn('❌ Gemini API key not found, using fallback');
       throw new Error('Gemini API key not found');
     }
+
+    console.log('🔑 API Key Gemini trouvée, longueur:', apiKey.length);
+    console.log('🔑 API Key commence par:', apiKey.substring(0, 10) + '...');
 
     const baseUrl = 'https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash-lite:streamGenerateContent';
     
@@ -216,6 +227,10 @@ Analyse en détail et retourne le JSON exact.
       ]
     };
 
+    console.log('📡 Envoi requête à Gemini API...');
+    console.log('📡 URL:', baseUrl);
+    console.log('📡 Request body:', JSON.stringify(request, null, 2));
+
     try {
       const response = await fetch(`${baseUrl}?key=${apiKey}`, {
         method: "POST",
@@ -225,14 +240,20 @@ Analyse en détail et retourne le JSON exact.
         body: JSON.stringify(request),
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Gemini API Error:', errorData);
+        console.error('❌ Gemini API Error:', errorData);
         throw new Error(`Gemini API Error: ${response.status} - ${response.statusText}`);
       }
 
       const result = await response.json();
+      console.log('📡 Response JSON reçu:', result);
+      
       const responses = Array.isArray(result) ? result : [result];
+      console.log('📡 Nombre de réponses:', responses.length);
       
       if (responses.length === 0) {
         throw new Error('Empty response from Gemini API');
@@ -241,13 +262,19 @@ Analyse en détail et retourne le JSON exact.
       // Combiner toutes les réponses
       const combinedContent = responses
         .map(response => {
+          console.log('📡 Traitement réponse:', response);
           if (response.candidates && response.candidates[0] && response.candidates[0].content) {
-            return response.candidates[0].content.parts[0].text;
+            const content = response.candidates[0].content.parts[0].text;
+            console.log('📡 Contenu trouvé:', content.substring(0, 100) + '...');
+            return content;
           }
+          console.log('⚠️ Pas de contenu trouvé dans cette réponse');
           return '';
         })
         .join('')
         .trim();
+
+      console.log('📡 Contenu combiné final:', combinedContent.substring(0, 200) + '...');
 
       if (!combinedContent) {
         throw new Error('No content found in response');
@@ -257,16 +284,20 @@ Analyse en détail et retourne le JSON exact.
       const jsonMatch = combinedContent.match(/```json\n([\s\S]*?)\n```/);
       const jsonString = jsonMatch ? jsonMatch[1] : combinedContent;
       
+      console.log('📡 JSON extrait:', jsonString.substring(0, 200) + '...');
+      
       try {
-        return JSON.parse(jsonString);
+        const parsed = JSON.parse(jsonString);
+        console.log('✅ JSON parsé avec succès:', parsed);
+        return parsed;
       } catch (parseError) {
-        console.error('Error parsing JSON from Gemini response:', parseError);
-        console.error('Raw content:', combinedContent);
+        console.error('❌ Error parsing JSON from Gemini response:', parseError);
+        console.error('❌ Raw content:', combinedContent);
         throw new Error('Failed to parse JSON from Gemini response');
       }
 
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
+      console.error('❌ Error calling Gemini API:', error);
       throw error;
     }
   }
@@ -275,6 +306,9 @@ Analyse en détail et retourne le JSON exact.
    * Effectue une analyse de matching basique (fallback)
    */
   private performBasicMatching(cvData: any, jobOffer: JobOffer): CVMatchResult {
+    console.log('⚠️ UTILISATION DU FALLBACK - RÉPONSE SIMULÉE');
+    console.log('⚠️ Ceci n\'est pas une vraie analyse IA');
+    
     const cvSkills = (cvData.skills || []).map((s: string) => s.toLowerCase());
     const offerSkills = jobOffer.skills.map(s => s.toLowerCase());
     
@@ -333,17 +367,17 @@ Analyse en détail et retourne le JSON exact.
       cvSkills.length < 3 && 'Portfolio de compétences limité'
     ].filter(Boolean) as string[];
     
-    // Résumé optimisé
+    // Résumé optimisé (SIMULÉ)
     const optimizedSummary = this.generateOptimizedSummary(cvData, jobOffer);
     
-    // Points clés
+    // Points clés (SIMULÉS)
     const keyPoints = [
       `${matchedSkills.length} compétences sur ${offerSkills.length} correspondent`,
       relevantExperiences.length > 0 ? `${relevantExperiences.length} expériences pertinentes` : 'Expérience à mieux valoriser',
       missingSkills.length === 0 ? 'Toutes les compétences requises' : `${missingSkills.length} compétences à développer`
     ];
     
-    return {
+    const fallbackResult = {
       matchScore,
       missingSkills,
       relevantExperiences,
@@ -362,6 +396,11 @@ Analyse en détail et retourne le JSON exact.
         additional: additionalSkills
       }
     };
+    
+    console.log('⚠️ RÉPONSE FALLBACK GÉNÉRÉE:', fallbackResult);
+    console.log('⚠️ SCORE SIMULÉ:', matchScore + '%');
+    
+    return fallbackResult;
   }
 
   /**
