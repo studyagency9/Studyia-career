@@ -3,6 +3,27 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import vercel from 'vite-plugin-vercel';
+import { writeFileSync } from "fs";
+
+// Plugin pour générer version.json automatiquement
+const versionPlugin = () => ({
+  name: 'version-plugin',
+  buildStart() {
+    const version = {
+      version: process.env.npm_package_version || '1.0.0',
+      buildTime: new Date().toISOString(),
+      gitCommit: process.env.GIT_COMMIT || '',
+      environment: process.env.NODE_ENV || 'development'
+    };
+    
+    writeFileSync(
+      path.resolve(__dirname, 'public/version.json'),
+      JSON.stringify(version, null, 2)
+    );
+    
+    console.log('📝 Version file generated:', version);
+  }
+});
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -20,16 +41,20 @@ export default defineConfig(({ mode }) => ({
       }
     },
   },
-  plugins: [react(), vercel(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), vercel(), versionPlugin(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
-    // Optimize bundle size
+    // Cache busting avec hash dans les noms de fichiers
     rollupOptions: {
       output: {
+        // Ajouter un hash aux noms de fichiers pour forcer le rechargement
+        entryFileNames: `assets/[name].[hash].js`,
+        chunkFileNames: `assets/[name].[hash].js`,
+        assetFileNames: `assets/[name].[hash].[ext]`,
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': ['framer-motion', 'lucide-react'],

@@ -10,6 +10,7 @@ import { SkipToContent } from "@/components/SkipToContent";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AssociateAuthProvider, useAssociateAuth } from "@/contexts/AssociateAuthContext";
 import { useReferralTracking } from "@/hooks/useReferralTracking";
+import { UpdateNotification } from "@/components/UpdateNotification";
 
 // Lazy loading des pages pour améliorer les performances
 const Index = lazy(() => import("./pages/Index"));
@@ -126,6 +127,9 @@ const App = () => (
       <AuthProvider>
         <AssociateAuthProvider>
           <AppRoutes />
+          <UpdateNotification />
+          <Toaster />
+          <Sonner />
         </AssociateAuthProvider>
       </AuthProvider>
     </I18nProvider>

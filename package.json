@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
+    "build:deploy": "node scripts/deploy-with-cache-busting.js",
+    "deploy": "npm run build:deploy",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",

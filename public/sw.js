@@ -1,80 +1,128 @@
-// Service Worker for Studyia Career Associate PWA
-const CACHE_NAME = 'studyia-associate-v1';
+// Service Worker for Studyia Career - Cache busting for updates
+const CACHE_NAME = 'studyia-career-v2'; // Version incrémentée pour forcer la mise à jour
 const urlsToCache = [
-  '/associate/dashboard',
-  '/associate/sales',
-  '/associate/withdraw',
-  '/associate/login',
+  '/',
+  '/apply',
+  '/dashboard',
+  '/login',
+  '/signup',
+  '/pricing',
+  '/static/js/bundle.js',
+  '/static/css/main.css'
 ];
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
+  console.log('🔄 Service Worker: Installation...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
-        // Utiliser addAll avec gestion d'erreur pour éviter l'échec complet si une URL est inaccessible
+        console.log('📦 Cache ouvert:', CACHE_NAME);
         return Promise.allSettled(
           urlsToCache.map(url => 
             cache.add(url).catch(err => {
-              console.warn(`Impossible de mettre en cache l'URL: ${url}`, err);
-              // Ne pas faire échouer l'installation complète
+              console.warn(`⚠️ Impossible de mettre en cache l'URL: ${url}`, err);
               return Promise.resolve();
             })
           )
         );
       })
+      .then(() => {
+        console.log('✅ Service Worker: Installation terminée');
+        // Forcer l'activation immédiate du nouveau service worker
+        return self.skipWaiting();
+      })
   );
-  self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  console.log('🔄 Service Worker: Activation...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
+            console.log('🗑️ Suppression ancien cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
+    .then(() => {
+      console.log('✅ Service Worker: Activation terminée');
+      // Prendre le contrôle de toutes les pages ouvertes
+      return self.clients.claim();
+    })
   );
-  self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Network first, cache fallback avec cache busting
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
+  // Ignorer les requêtes non-GET (POST, PUT, etc.)
+  if (event.request.method !== 'GET') {
+    return;
+  }
 
-        return fetch(event.request).then(
-          (response) => {
-            // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+  // Stratégie: Network First pour les pages HTML, Cache First pour les assets
+  const request = event.request;
+  const url = new URL(request.url);
+  
+  // Pour les pages HTML, toujours essayer le réseau en premier
+  if (url.pathname === '/' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // Si réseau OK, mettre en cache et retourner
+          if (response.ok) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Si réseau échoue, essayer le cache
+          return caches.match(request);
+        })
+    );
+  } else {
+    // Pour les assets (JS, CSS, images), Cache First avec réseau fallback
+    event.respondWith(
+      caches.match(request)
+        .then((response) => {
+          if (response) {
+            // Vérifier si la version en cache est encore valide (max 1h)
+            const cachedTime = response.headers.get('sw-cached-time');
+            if (cachedTime && (Date.now() - parseInt(cachedTime)) < 3600000) {
               return response;
             }
-
-            // Clone the response
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
+            // Sinon, essayer le réseau
+            return fetch(request).then((networkResponse) => {
+              if (networkResponse.ok) {
+                const responseToCache = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(request, responseToCache);
+                });
+              }
+              return networkResponse;
+            }).catch(() => response); // Fallback au cache si réseau échoue
           }
-        );
-      })
-  );
+          
+          // Si rien en cache, aller sur le réseau
+          return fetch(request).then((response) => {
+            if (response.ok) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseToCache);
+              });
+            }
+            return response;
+          });
+        })
+    );
+  }
 });
 
 // Background sync for offline actions
