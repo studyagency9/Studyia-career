@@ -87,15 +87,12 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const baseUrl = window.location.origin;
           if (associateData.referralLink && associateData.referralLink.includes('/signup')) {
             associateData.referralLink = `${baseUrl}/?ref=${associateData.referralCode}`;
-            // Mettre à jour le stockage local avec le nouveau lien
             localStorage.setItem('associate', JSON.stringify(associateData));
-            console.log('Lien de parrainage mis à jour:', associateData.referralLink);
           }
           
           setAssociate(associateData);
           // Valider le token en récupérant les données à jour
           const response = await api.get('/associates/dashboard');
-          console.log('Dashboard API response:', response.data);
           if (response.data.success) {
             // Générer un lien de parrainage si nécessaire
             if (!associateData.referralLink) {
@@ -105,7 +102,6 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
             // Mettre à jour les stats si nécessaire
           }
         } catch (error) {
-          console.error("Session associé invalide, déconnexion.", error);
           logout();
         }
       }
@@ -123,7 +119,6 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const signup = useCallback(async (data: SignupData): Promise<boolean> => {
     try {
       const response = await api.post('/associates/signup', data);
-      console.log('Signup API response:', response.data);
       if (response.data.success) {
         const { associate, token } = response.data.data;
         
@@ -136,19 +131,15 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return true;
       } else {
         // Gérer les erreurs renvoyées par l'API avec succès mais avec une erreur métier
-        console.error('Erreur d\'inscription:', response.data.error || 'Erreur inconnue');
       }
     } catch (error: any) {
       // Gérer les erreurs réseau ou CORS
       if (error.response) {
         // La requête a été faite et le serveur a répondu avec un code d'état
-        console.error('Erreur d\'inscription:', error.response.data?.error || 'Erreur serveur');
       } else if (error.request) {
         // La requête a été faite mais aucune réponse n'a été reçue (problème CORS)
-        console.error('Erreur réseau:', 'Aucune réponse du serveur. Vérifiez votre connexion ou les paramètres CORS.');
       } else {
         // Une erreur s'est produite lors de la configuration de la requête
-        console.error('Erreur de configuration:', error.message);
       }
     }
     return false;
@@ -157,7 +148,6 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await api.post('/associates/login', { email, password });
-      console.log('Login API response:', response.data);
       if (response.data.success) {
         const { associate, token } = response.data.data;
 
@@ -169,7 +159,6 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return true;
       } else {
         // Gérer les erreurs renvoyées par l'API avec succès mais avec une erreur métier
-        console.error('Erreur de connexion:', response.data.error || 'Erreur inconnue');
         return false;
       }
     } catch (error: any) {
@@ -178,19 +167,13 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
         // La requête a été faite et le serveur a répondu avec un code d'état
         if (error.response.status === 429) {
           // Erreur 429 - Too Many Requests
-          const errorMessage = 'Trop de tentatives de connexion. Veuillez patienter quelques instants avant de réessayer.';
-          console.error('Erreur de connexion:', errorMessage);
           // Ajouter un délai avant de permettre une nouvelle tentative
           setCooldown('login', 30000); // 30 secondes de délai
-        } else {
-          console.error('Erreur de connexion:', error.response.data?.error || 'Erreur serveur');
         }
       } else if (error.request) {
         // La requête a été faite mais aucune réponse n'a été reçue (problème CORS)
-        console.error('Erreur réseau:', 'Aucune réponse du serveur. Vérifiez votre connexion ou les paramètres CORS.');
       } else {
         // Une erreur s'est produite lors de la configuration de la requête
-        console.error('Erreur de configuration:', error.message);
       }
       return false;
     }
@@ -247,7 +230,7 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }) : null);
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération des données du dashboard:", error);
+      // Erreur silencieuse pour ne pas ralentir l'interface
     }
   }, [associate]);
 
@@ -300,7 +283,7 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return profileData;
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération du profil:", error);
+      // Erreur silencieuse pour ne pas ralentir l'interface
     }
     return null;
   }, [associate]);
@@ -317,7 +300,7 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return true;
       }
     } catch (error: any) {
-      console.error("Erreur lors de la mise à jour du profil:", error.response?.data?.error || error.message);
+      // Erreur silencieuse pour ne pas ralentir l'interface
     }
     return false;
   }, [associate]);
@@ -329,7 +312,7 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await api.put('/associates/password', { currentPassword, newPassword });
       return response.data.success;
     } catch (error: any) {
-      console.error("Erreur lors du changement de mot de passe:", error.response?.data?.error || error.message);
+      // Erreur silencieuse pour ne pas ralentir l'interface
       return false;
     }
   }, [associate]);
@@ -342,7 +325,7 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await api.get('/associates/referrals', { params });
       return response.data.success ? response.data.data : null;
     } catch (error) {
-      console.error("Erreur lors de la récupération des statistiques de parrainage:", error);
+      // Erreur silencieuse pour ne pas ralentir l'interface
       return null;
     }
   }, [associate]);
@@ -354,7 +337,6 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await api.get('/associates/stats/daily');
       return response.data.success ? response.data.data : null;
     } catch (error) {
-      console.error("Erreur lors de la récupération des statistiques quotidiennes:", error);
       return null;
     }
   }, [associate]);
@@ -366,7 +348,6 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await api.get('/associates/stats/weekly');
       return response.data.success ? response.data.data : null;
     } catch (error) {
-      console.error("Erreur lors de la récupération des statistiques hebdomadaires:", error);
       return null;
     }
   }, [associate]);
@@ -378,7 +359,6 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await api.get('/associates/stats/monthly');
       return response.data.success ? response.data.data : null;
     } catch (error) {
-      console.error("Erreur lors de la récupération des statistiques mensuelles:", error);
       return null;
     }
   }, [associate]);
@@ -387,95 +367,49 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchSales = useCallback(async (params: SalesQueryParams = {}): Promise<any> => {
     if (!associate) return { success: false, error: 'Non authentifié' };
     
-    console.log('Appel API fetchSales avec params:', params);
-    
-    // Ne pas utiliser AbortController pour éviter les erreurs CanceledError
     try {
       const response = await api.get('/associates/sales', { params });
       
-      // Log complet de la réponse brute
-      console.log('Réponse brute du backend:', response);
-      console.log('Données de la réponse:', response.data);
-      
       if (response.data.success) {
         const salesData = response.data.data;
-        console.log('Données sales extraites:', salesData);
         
         // Si c'est la première page, mettre à jour l'état local
         if (!params.page || params.page === 1) {
-          // Vérifier que sales existe et est un tableau
           const sales = Array.isArray(salesData.sales) ? salesData.sales : [];
-          console.log('Tableau de ventes brut:', sales);
-          
-          const formattedSales = sales.map((sale: any) => {
-            console.log('Vente individuelle brute:', sale);
-            return {
-              id: sale.id || sale._id || `temp-${Date.now()}`,
-              cvId: sale.cvId || '',
-              clientName: sale.clientName || '',
-              clientEmail: sale.clientEmail || '',
-              amount: sale.amount || 0,
-              commission: sale.commission || 0,
-              date: sale.date || sale.createdAt || new Date().toISOString(),
-              status: sale.status || 'pending',
-              // Champs pour compatibilité
-              customerName: sale.clientName || '',
-              customerEmail: sale.clientEmail || '',
-              commissionAmount: sale.commission || 0,
-              createdAt: sale.date || sale.createdAt || new Date().toISOString(),
-              cvType: sale.cvType || 'public'
-            };
-          });
-          console.log('Ventes formatées:', formattedSales);
+          const formattedSales = sales.map((sale: any) => ({
+            id: sale.id || sale._id || `temp-${Date.now()}`,
+            cvId: sale.cvId || '',
+            clientName: sale.clientName || '',
+            clientEmail: sale.clientEmail || '',
+            amount: sale.amount || 0,
+            commission: sale.commission || 0,
+            date: sale.date || sale.createdAt || new Date().toISOString(),
+            status: sale.status || 'pending',
+            customerName: sale.clientName || '',
+            customerEmail: sale.clientEmail || '',
+            commissionAmount: sale.commission || 0,
+            createdAt: sale.date || sale.createdAt || new Date().toISOString(),
+            cvType: sale.cvType || 'public'
+          }));
           setSales(formattedSales);
         }
-        return salesData;
+        
+        return {
+          success: true,
+          sales: salesData.sales || [],
+          pagination: salesData.pagination || { total: 0, pages: 1, currentPage: 1 }
+        };
+      } else {
+        return {
+          success: false,
+          error: response.data.error || 'Erreur lors de la récupération des ventes'
+        };
       }
-      console.log('Réponse API avec erreur:', response.data);
-      return { success: false, error: response.data.error || 'Erreur inconnue' };
     } catch (error: any) {
-      console.error("Erreur lors de la récupération des ventes:", error);
-      console.log('Détails de l\'erreur:', { 
-        name: error.name, 
-        message: error.message, 
-        code: error.code,
-        response: error.response,
-        request: error.request
-      });
-      
-      // Gérer les erreurs CanceledError
-      if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
-        // Retourner des données vides mais valides pour éviter l'affichage d'erreur
-        return { 
-          success: true, 
-          data: {
-            sales: [],
-            pagination: { total: 0, pages: 1, currentPage: 1 }
-          },
-          error: 'Requête annulée'
-        };
-      }
-      
-      // Gérer l'erreur 500 spécifiquement
-      if (error.response && error.response.status === 500) {
-        // Retourner des données fictives temporaires en cas d'erreur 500
-        return { 
-          success: true, 
-          data: {
-            sales: [],
-            pagination: { total: 0, pages: 1, currentPage: 1 }
-          },
-          error: 'Erreur serveur temporaire'
-        };
-      }
-      
-      return { 
-        success: true, 
-        data: {
-          sales: [],
-          pagination: { total: 0, pages: 1, currentPage: 1 }
-        },
-        error: error.message || 'Erreur réseau'
+      return {
+        success: false,
+        error: error.message || 'Erreur réseau',
+        pagination: { total: 0, pages: 1, currentPage: 1 }
       };
     }
   }, [associate]);
@@ -490,26 +424,9 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return recentSalesData;
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération des ventes récentes:", error);
+      return null;
     }
-    return null;
   }, [associate]);
-
-  // Fonction pour demander un retrait de fonds
-  const requestWithdrawal = useCallback(async (data: WithdrawalRequestData): Promise<any> => {
-    if (!associate) return null;
-    try {
-      const response = await api.post('/associates/withdrawal', data);
-      if (response.data.success) {
-        // Rafraîchir les données du dashboard après un retrait
-        fetchDashboardData();
-        return response.data.data;
-      }
-    } catch (error: any) {
-      console.error("Erreur lors de la demande de retrait:", error.response?.data?.error || error.message);
-    }
-    return null;
-  }, [associate, fetchDashboardData]);
 
   // Fonction pour récupérer l'historique des retraits
   const fetchWithdrawals = useCallback(async (page: number = 1, limit: number = 20): Promise<any> => {
@@ -518,10 +435,25 @@ export const AssociateAuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await api.get('/associates/withdrawals', { params: { page, limit } });
       return response.data.success ? response.data.data : null;
     } catch (error) {
-      console.error("Erreur lors de la récupération de l'historique des retraits:", error);
       return null;
     }
   }, [associate]);
+
+  // Fonction pour demander un retrait de fonds
+  const requestWithdrawal = useCallback(async (data: WithdrawalRequestData): Promise<any> => {
+    if (!associate) return null;
+    try {
+      const response = await api.post('/associates/withdrawal', data);
+      if (response.data.success) {
+        // Rafraîchir les données du dashboard après un retrait réussi
+        await fetchDashboardData();
+        return response.data.data;
+      }
+    } catch (error: any) {
+      console.error("Erreur lors de la demande de retrait:", error.response?.data?.error || error.message);
+    }
+    return null;
+  }, [associate, fetchDashboardData]);
 
   return (
     <AssociateAuthContext.Provider

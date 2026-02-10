@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { DollarSign, Smartphone, AlertCircle, ArrowLeft, Sparkles, Wallet, Check, Info, Zap } from 'lucide-react';
+import { DollarSign, Smartphone, AlertCircle, ArrowLeft, Sparkles, Wallet, Check, Info, Zap, Eye } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const WithdrawPage = () => {
-  const { balance, requestWithdrawal } = useAssociateAuth();
+  const { balance, requestWithdrawal, fetchWithdrawals } = useAssociateAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   const [amount, setAmount] = useState('');
@@ -19,6 +19,9 @@ const WithdrawPage = () => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [provider, setProvider] = useState<'MTN' | 'Orange'>('MTN');
   const [isLoading, setIsLoading] = useState(false);
+  const [withdrawalsHistory, setWithdrawalsHistory] = useState<any>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const minWithdrawal = 5000;
   const fees = {
@@ -26,6 +29,26 @@ const WithdrawPage = () => {
   };
 
   const netAmount = (parseInt(amount) || 0) - fees[method];
+
+  // Charger l'historique des retraits
+  const loadWithdrawalsHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const data = await fetchWithdrawals(1, 10);
+      if (data) {
+        setWithdrawalsHistory(data);
+      }
+    } catch (error) {
+      // Erreur silencieuse pour ne pas ralentir l'interface
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  // Charger l'historique au montage du composant
+  useEffect(() => {
+    loadWithdrawalsHistory();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +69,7 @@ const WithdrawPage = () => {
     if (withdrawAmount > balance.available) {
       toast({
         title: t('associate.withdraw.errorBalanceTitle'),
-        description: t('associate.withdraw.errorBalanceDesc'),
+        description: t('share.errorBalanceDesc'),
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -72,6 +95,14 @@ const WithdrawPage = () => {
         });
         setAmount('');
         setMobileNumber('');
+        
+        // Recharger les données après un retrait réussi
+        await loadWithdrawalsHistory();
+        
+        // Actualiser la page pour refléter les nouvelles données
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         toast({
           title: t('associate.withdraw.errorTitle'),
@@ -80,7 +111,7 @@ const WithdrawPage = () => {
         });
       }
     } catch (error) {
-      console.error('Erreur lors de la demande de retrait:', error);
+      // Erreur silencieuse pour ne pas ralentir l'interface
       toast({
         title: t('associate.withdraw.errorTitle'),
         description: t('associate.withdraw.errorGeneric'),
@@ -183,6 +214,59 @@ const WithdrawPage = () => {
                 <p className="text-white/80 text-lg">FCFA</p>
               </div>
             </Card>
+
+            {/* Pending and Completed Balance Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Pending Balance */}
+              <Card className="p-6 bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-500/20 backdrop-blur-xl shadow-xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    <p className="text-orange-600 font-medium">En attente</p>
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-orange-600 mb-1">
+                  {isLoadingHistory ? (
+                    <div className="animate-pulse bg-muted rounded w-20 h-8"></div>
+                  ) : (
+                    <>
+                      {(withdrawalsHistory?.withdrawals
+                        ?.filter((w: any) => w.status === 'pending')
+                        ?.reduce((sum: number, w: any) => sum + w.amount, 0) || 0)
+                        .toLocaleString()} FCFA
+                    </>
+                  )}
+                </p>
+               
+              </Card>
+
+              {/* Completed Balance */}
+              <Card className="p-6 bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20 backdrop-blur-xl shadow-xl">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                    <p className="text-green-600 font-medium">Déjà retiré</p>
+                  </div>
+                </div>
+                <p className="text-3xl font-bold text-green-600 mb-1">
+                  {isLoadingHistory ? (
+                    <div className="animate-pulse bg-muted rounded w-20 h-8"></div>
+                  ) : (
+                    <>
+                      {(withdrawalsHistory?.withdrawals
+                        ?.filter((w: any) => w.status === 'completed')
+                        ?.reduce((sum: number, w: any) => sum + w.amount, 0) || 0)
+                        .toLocaleString()} FCFA
+                    </>
+                  )}
+                </p>
+                
+              </Card>
+            </div>
 
             <Card className="p-6 bg-card/80 backdrop-blur-xl border-border/50 shadow-xl">
               <div className="flex items-center gap-3 mb-4">
@@ -377,6 +461,105 @@ const WithdrawPage = () => {
                   )}
                 </Button>
               </form>
+            </Card>
+          </motion.div>
+
+          {/* Withdrawals History Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.3 }}
+            className="mt-6 md:mt-8"
+          >
+            <Card className="p-6 md:p-8 bg-card/80 backdrop-blur-xl border-border/50 shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600">
+                    <Wallet className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Historique des retraits</h3>
+                    <p className="text-xs text-muted-foreground">Vos demandes de retrait précédentes</p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="gap-2"
+                >
+                  {showHistory ? (
+                    <>
+                      <Eye className="w-4 h-4" />
+                      Masquer
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4" />
+                      Afficher
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {showHistory && (
+                <div className="space-y-4">
+                  {isLoadingHistory ? (
+                    <div className="flex justify-center py-8">
+                      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : withdrawalsHistory?.withdrawals?.length > 0 ? (
+                    <div className="space-y-3">
+                      {withdrawalsHistory.withdrawals.map((withdrawal: any, index: number) => (
+                        <motion.div
+                          key={withdrawal.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-muted/50 to-transparent hover:from-muted hover:to-muted/50 transition-all border border-border/50"
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium">{withdrawal.amount.toLocaleString()} FCFA</p>
+                            <p className="text-sm text-muted-foreground">
+                              {withdrawal.paymentMethod === 'mobile_money' 
+                                ? `Mobile Money - Frais: ${withdrawal.fee || 0} FCFA`
+                                : withdrawal.paymentMethod
+                              }
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Net: {withdrawal.netAmount?.toLocaleString() || (withdrawal.amount - (withdrawal.fee || 0)).toLocaleString()} FCFA
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-bold ${
+                              withdrawal.status === 'completed' ? 'text-green-600' :
+                              withdrawal.status === 'pending' ? 'text-orange-600' :
+                              withdrawal.status === 'rejected' ? 'text-red-600' :
+                              'text-muted-foreground'
+                            }`}>
+                              {withdrawal.status === 'completed' ? 'Complété' :
+                               withdrawal.status === 'pending' ? 'En attente' :
+                               withdrawal.status === 'rejected' ? 'Rejeté' :
+                               withdrawal.status}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(withdrawal.requestDate || withdrawal.createdAt).toLocaleDateString('fr-FR')}
+                            </p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-4">
+                        <Wallet className="w-8 h-8 opacity-50" />
+                      </div>
+                      <p className="text-lg font-medium mb-2">Aucun retrait</p>
+                      <p className="text-sm opacity-70">Vous n'avez pas encore effectué de demande de retrait</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
           </motion.div>
         </div>

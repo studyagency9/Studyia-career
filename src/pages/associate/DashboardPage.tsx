@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { DollarSign, TrendingUp, Users, Copy, Share2, Download, Eye, ArrowLeft, LogOut, Sparkles, Zap, Target, Check, ExternalLink, ChevronRight, BarChart3, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,13 +11,20 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { InstallPWAPrompt } from '@/components/InstallPWAPrompt';
 
 const DashboardPage = () => {
-  const { associate, stats, balance, sales, logout } = useAssociateAuth();
+  const { associate, stats, balance, sales, logout, fetchDailyStats, fetchWeeklyStats, fetchMonthlyStats, fetchRecentSales, fetchSales, fetchWithdrawals } = useAssociateAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [showPWAPrompt, setShowPWAPrompt] = useState(false);
+  const [detailedStats, setDetailedStats] = useState({
+    daily: null,
+    weekly: null,
+    monthly: null
+  });
+  const [recentSalesData, setRecentSalesData] = useState<any>(null);
+  const [withdrawalsData, setWithdrawalsData] = useState<any>(null);
 
   if (!associate) return null;
 
@@ -102,7 +109,44 @@ const DashboardPage = () => {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(associate.referralLink)}`, '_blank');
   };
 
-  const recentSales = sales.slice(0, 5);
+  // Utiliser toutes les ventes de l'API si disponibles, sinon utiliser les ventes du dashboard
+  const displayRecentSales = recentSalesData?.sales || sales.slice(0, 5);
+
+  // Charger les stats détaillées
+  const loadDetailedStats = async () => {
+    try {
+      const [dailyData, weeklyData, monthlyData, allSalesResult, withdrawalsResult] = await Promise.allSettled([
+        fetchDailyStats(),
+        fetchWeeklyStats(),
+        fetchMonthlyStats(),
+        fetchSales({ limit: 5 }), // Utiliser fetchSales pour obtenir toutes les ventes (limitées à 5)
+        fetchWithdrawals(1, 10) // Charger les données de retraits
+      ]);
+      
+      setDetailedStats({
+        daily: dailyData.status === 'fulfilled' ? dailyData.value : null,
+        weekly: weeklyData.status === 'fulfilled' ? weeklyData.value : null,
+        monthly: monthlyData.status === 'fulfilled' ? monthlyData.value : null
+      });
+      
+      // Stocker toutes les ventes (pas seulement les récentes)
+      if (allSalesResult.status === 'fulfilled' && allSalesResult.value) {
+        setRecentSalesData(allSalesResult.value);
+      }
+      
+      // Stocker les données de retraits
+      if (withdrawalsResult.status === 'fulfilled' && withdrawalsResult.value) {
+        setWithdrawalsData(withdrawalsResult.value);
+      }
+    } catch (error) {
+      // Erreur silencieuse pour ne pas ralentir l'interface
+    }
+  };
+
+  // Charger les données au montage du composant
+  useEffect(() => {
+    loadDetailedStats();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-green-500/5 relative overflow-hidden">
@@ -233,11 +277,21 @@ const DashboardPage = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
                       <p className="text-white/70 text-xs mb-1">{t('associate.dashboard.balancePending')}</p>
-                      <p className="font-bold text-lg">{balance.pending.toLocaleString()} FCFA</p>
+                      <p className="font-bold text-lg">
+                        {(withdrawalsData?.withdrawals
+                          ?.filter((w: any) => w.status === 'pending')
+                          ?.reduce((sum: number, w: any) => sum + w.amount, 0) || balance.pending || 0)
+                          .toLocaleString()} FCFA
+                      </p>
                     </div>
                     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
                       <p className="text-white/70 text-xs mb-1">{t('associate.dashboard.balanceWithdrawn')}</p>
-                      <p className="font-bold text-lg">{balance.withdrawn.toLocaleString()} FCFA</p>
+                      <p className="font-bold text-lg">
+                        {(withdrawalsData?.withdrawals
+                          ?.filter((w: any) => w.status === 'completed')
+                          ?.reduce((sum: number, w: any) => sum + w.amount, 0) || balance.withdrawn || 0)
+                          .toLocaleString()} FCFA
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -317,10 +371,10 @@ const DashboardPage = () => {
                 </div>
                 <span className="text-xs font-medium text-muted-foreground">{t('associate.dashboard.statsToday')}</span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold mb-1">{stats.today.sales}</h3>
+              <h3 className="text-2xl md:text-3xl font-bold mb-1">{detailedStats.daily?.sales || stats.today.sales}</h3>
               <p className="text-xs md:text-sm text-muted-foreground mb-2">{t('associate.dashboard.sales')}</p>
               <p className="text-base md:text-lg font-bold text-green-600">
-                +{stats.today.commission.toLocaleString()} FCFA
+                +{(detailedStats.daily?.commission || stats.today.commission).toLocaleString()} FCFA
               </p>
             </Card>
           </motion.div>
@@ -333,10 +387,10 @@ const DashboardPage = () => {
                 </div>
                 <span className="text-xs font-medium text-muted-foreground">{t('associate.dashboard.statsWeek')}</span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold mb-1">{stats.thisWeek.sales}</h3>
+              <h3 className="text-2xl md:text-3xl font-bold mb-1">{detailedStats.weekly?.sales || stats.thisWeek.sales}</h3>
               <p className="text-xs md:text-sm text-muted-foreground mb-2">{t('associate.dashboard.sales')}</p>
               <p className="text-base md:text-lg font-bold text-blue-600">
-                +{stats.thisWeek.commission.toLocaleString()} FCFA
+                +{(detailedStats.weekly?.commission || stats.thisWeek.commission).toLocaleString()} FCFA
               </p>
             </Card>
           </motion.div>
@@ -349,10 +403,10 @@ const DashboardPage = () => {
                 </div>
                 <span className="text-xs font-medium text-muted-foreground">{t('associate.dashboard.statsMonth')}</span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold mb-1">{stats.thisMonth.sales}</h3>
+              <h3 className="text-2xl md:text-3xl font-bold mb-1">{detailedStats.monthly?.sales || stats.thisMonth.sales}</h3>
               <p className="text-xs md:text-sm text-muted-foreground mb-2">{t('associate.dashboard.sales')}</p>
               <p className="text-base md:text-lg font-bold text-primary">
-                +{stats.thisMonth.commission.toLocaleString()} FCFA
+                +{(detailedStats.monthly?.commission || stats.thisMonth.commission).toLocaleString()} FCFA
               </p>
             </Card>
           </motion.div>
@@ -469,7 +523,7 @@ const DashboardPage = () => {
                 </Link>
               </div>
 
-              {recentSales.length === 0 ? (
+              {displayRecentSales.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mx-auto mb-4">
                     <Users className="w-8 h-8 opacity-50" />
@@ -479,7 +533,7 @@ const DashboardPage = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {recentSales.map((sale, index) => (
+                  {displayRecentSales.map((sale, index) => (
                     <motion.div
                       key={sale.id}
                       initial={{ opacity: 0, x: -20 }}
