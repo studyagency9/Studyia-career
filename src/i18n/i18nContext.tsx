@@ -38,13 +38,18 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const setLanguage = useCallback((lang: Language) => {
+    console.log('🌍 Changement de langue demandé:', lang);
+    console.log('🌍 Langue actuelle:', language);
     setLanguageState(lang);
     localStorage.setItem('language', lang);
     document.documentElement.lang = lang;
-  }, []);
+    console.log('🌍 Nouvelle langue définie:', lang);
+  }, [language]);
 
   const t = useCallback((key: string): string => {
-    return getNestedTranslation(translations[language], key);
+    const result = getNestedTranslation(translations[language], key);
+    console.log('🌍 Traduction demandée:', key, '->', result, '(langue:', language, ')');
+    return result;
   }, [language]);
 
   useEffect(() => {

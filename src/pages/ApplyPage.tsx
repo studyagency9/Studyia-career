@@ -66,7 +66,7 @@ const ApplyPage = () => {
     onError: (error) => {
       console.error('❌ Erreur analyse CV:', error);
       toast({
-        title: 'Erreur lors de l\'analyse du CV',
+        title: t('apply.errors.analysisError'),
         description: error.message,
         variant: 'destructive'
       });
@@ -84,30 +84,23 @@ const ApplyPage = () => {
   }, []);
 
   useSEO({
-    title: 'Postuler à une offre d\'emploi - IA CV & Lettre | Studyia Career',
-    description: 'Postulez intelligemment à n\'importe quelle offre d\'emploi. Notre IA analyse l\'offre, optimise votre CV et génère une lettre de motivation personnalisée. Augmentez vos chances de recrutement.',
-    keywords: 'postuler offre emploi, CV optimisé IA, lettre de motivation automatique, matching CV emploi, candidature intelligente, IA recrutement, optimisation CV, génération lettre motivation',
+    title: t('apply.seo.title'),
+    description: t('apply.seo.description'),
+    keywords: t('apply.seo.keywords'),
     canonical: 'https://career.studyia.net/apply',
     openGraph: {
-      title: 'Postuler aux offres avec IA - Studyia Career',
-      description: 'Optimisez votre candidature avec notre IA : analyse d\'offre, CV personnalisé et lettre de motivation générée automatiquement.',
+      title: t('apply.seo.ogTitle'),
+      description: t('apply.seo.ogDescription'),
       type: 'website',
       url: 'https://career.studyia.net/apply',
       images: [
-        {
-          url: 'https://career.studyia.net/og-image-apply.jpg',
-          width: 1200,
-          height: 630,
-          alt: 'Postuler aux offres d\'emploi avec IA - Studyia Career'
-        }
-      ],
-      siteName: 'Studyia Career',
-      locale: 'fr_FR'
+        'https://career.studyia.net/og-image-apply.jpg'
+      ]
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Postuler aux offres avec IA - Studyia Career',
-      description: 'Optimisez votre candidature avec notre IA : CV personnalisé et lettre de motivation générée.',
+      title: t('apply.seo.twitterTitle'),
+      description: t('apply.seo.twitterDescription'),
       images: ['https://career.studyia.net/og-image-apply.jpg'],
       creator: '@studyia_career',
       site: '@studyia_career'
@@ -127,8 +120,8 @@ const ApplyPage = () => {
       {
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
-        name: 'Studyia Career - Postuler aux offres',
-        description: 'Application IA pour optimiser les candidatures et générer des lettres de motivation personnalisées',
+        name: t('apply.seo.softwareName'),
+        description: t('apply.seo.softwareDescription'),
         url: 'https://career.studyia.net/apply',
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Web',
@@ -259,8 +252,8 @@ const ApplyPage = () => {
     if (!jobOfferText.trim()) {
       console.log('❌ Texte vide');
       toast({
-        title: 'Veuillez coller une offre d\'emploi',
-        description: 'Le texte de l\'offre est requis pour continuer',
+        title: t('apply.errors.emptyOffer'),
+        description: t('apply.errors.emptyOfferDesc'),
         variant: 'destructive',
       });
       return;
@@ -287,16 +280,16 @@ const ApplyPage = () => {
       setStep('cv');
       
       toast({
-        title: 'Offre analysée avec succès !',
-        description: `${analyzedOffer.skills.length} compétences identifiées`,
+        title: t('apply.success.analyzing'),
+        description: `${analyzedOffer.skills.length} ${t('apply.success.skillsIdentified')}`,
       });
     } catch (error) {
       console.error('❌ Erreur analyse offre:', error);
       console.error('❌ Type d\'erreur:', error.constructor.name);
       console.error('❌ Message:', error.message);
       toast({
-        title: 'Erreur lors de l\'analyse',
-        description: 'Impossible de parser l\'offre d\'emploi',
+        title: t('apply.errors.offerAnalysisError'),
+        description: t('apply.errors.offerAnalysisErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -570,8 +563,8 @@ ${cvText}`;
       setStep('results'); // Aller aux résultats pour l'optimisation
       
       toast({
-        title: 'Analyse terminée !',
-        description: `Matching de ${matchResult.matchScore}% avec l'offre`,
+        title: t('apply.success.analysisComplete'),
+        description: t('apply.success.analysisCompleteDesc', { score: matchResult.matchScore }),
       });
     } catch (error) {
       console.error('❌ Erreur analyse complète:', error);
@@ -580,8 +573,8 @@ ${cvText}`;
       console.error('❌ Stack trace:', error.stack);
       
       toast({
-        title: 'Erreur lors de l\'analyse',
-        description: error instanceof Error ? error.message : 'Impossible d\'analyser votre CV',
+        title: t('apply.errors.cvAnalysisError'),
+        description: error instanceof Error ? error.message : t('apply.errors.cvAnalysisErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -721,8 +714,8 @@ ${cvText}`;
   const handleOptimization = async () => {
     if (!parsedCV || !analysisResult || !parsedJobOffer) {
       toast({
-        title: 'Erreur',
-        description: 'Données manquantes pour l\'optimisation',
+        title: t('apply.errors.missingData'),
+        description: t('apply.errors.missingData'),
         variant: 'destructive'
       });
       return;
@@ -778,14 +771,14 @@ ${cvText}`;
       setStep('optimization');
       
       toast({
-        title: 'Optimisation terminée !',
-        description: 'Votre CV et votre lettre sont prêts',
+        title: t('apply.success.optimizationComplete'),
+        description: t('apply.success.optimizationCompleteDesc'),
       });
     } catch (error) {
       console.error('❌ Erreur optimisation:', error);
       toast({
-        title: 'Erreur lors de l\'optimisation',
-        description: error instanceof Error ? error.message : 'Impossible d\'optimiser vos documents',
+        title: t('apply.errors.optimizationError'),
+        description: error instanceof Error ? error.message : t('apply.errors.optimizationErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -836,8 +829,8 @@ ${cvText}`;
   const handleDownloadCV = async () => {
     if (!analysisResult?.optimizedCV) {
       toast({
-        title: 'CV non disponible',
-        description: 'Veuillez d\'abord optimiser votre CV',
+        title: t('apply.errors.noCV'),
+        description: t('apply.errors.noCVDesc'),
         variant: 'destructive'
       });
       return;
@@ -845,8 +838,8 @@ ${cvText}`;
 
     try {
       toast({
-        title: 'Génération PDF',
-        description: 'Votre CV optimisé est en cours de génération...',
+        title: t('apply.loading.generatingPDF'),
+        description: t('apply.loading.generatingPDFDesc'),
       });
 
       // Convertir les données au format template
@@ -874,15 +867,15 @@ ${cvText}`;
       URL.revokeObjectURL(url);
 
       toast({
-        title: '✅ CV téléchargé !',
-        description: 'Votre CV optimisé a été téléchargé avec succès',
+        title: t('apply.success.cvDownloaded'),
+        description: t('apply.success.cvDownloadedDesc'),
       });
 
     } catch (error) {
       console.error('❌ Erreur téléchargement CV:', error);
       toast({
-        title: 'Erreur de téléchargement',
-        description: 'Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.',
+        title: t('apply.errors.downloadError'),
+        description: t('apply.errors.pdfErrorDesc'),
         variant: 'destructive'
       });
     }
@@ -894,8 +887,8 @@ ${cvText}`;
   const handleDownloadLetter = async () => {
     if (!analysisResult?.coverLetter) {
       toast({
-        title: 'Lettre non disponible',
-        description: 'Veuillez d\'abord générer votre lettre de motivation',
+        title: t('apply.errors.noLetter'),
+        description: t('apply.errors.noLetterDesc'),
         variant: 'destructive'
       });
       return;
@@ -904,13 +897,13 @@ ${cvText}`;
     try {
       await downloadCoverLetter(analysisResult.coverLetter);
       toast({
-        title: 'Lettre téléchargée',
-        description: 'Votre lettre de motivation a été téléchargée avec succès',
+        title: t('apply.success.letterDownloaded'),
+        description: t('apply.success.letterDownloadedDesc'),
       });
     } catch (error) {
       toast({
-        title: 'Erreur de téléchargement',
-        description: 'Impossible de télécharger la lettre de motivation',
+        title: t('apply.errors.downloadError'),
+        description: t('apply.errors.downloadErrorDesc'),
         variant: 'destructive',
       });
     }
@@ -922,8 +915,8 @@ ${cvText}`;
   const handleDownloadAll = async () => {
     if (!analysisResult?.optimizedCV || !analysisResult?.coverLetter) {
       toast({
-        title: 'Documents incomplets',
-        description: 'Veuillez d\'abord optimiser votre CV et générer votre lettre',
+        title: t('apply.errors.incomplete'),
+        description: t('apply.errors.incompleteDesc'),
         variant: 'destructive'
       });
       return;
@@ -931,8 +924,8 @@ ${cvText}`;
 
     try {
       toast({
-        title: 'Téléchargement complet',
-        description: 'Votre dossier de candidature est en cours de préparation...',
+        title: t('apply.loading.preparingFolder'),
+        description: t('apply.loading.preparingFolderDesc'),
       });
 
       // Générer le PDF du CV optimisé
@@ -965,15 +958,15 @@ ${cvText}`;
       URL.revokeObjectURL(url);
 
       toast({
-        title: '✅ Téléchargement réussi !',
-        description: 'Votre dossier complet (CV + lettre) a été téléchargé',
+        title: t('apply.success.folderDownloaded'),
+        description: t('apply.success.folderDownloadedDesc'),
       });
 
     } catch (error) {
       console.error('❌ Erreur téléchargement dossier:', error);
       toast({
-        title: 'Erreur de téléchargement',
-        description: 'Une erreur est survenue lors de la préparation du dossier',
+        title: t('apply.errors.downloadError'),
+        description: t('apply.errors.downloadErrorDesc'),
         variant: 'destructive'
       });
     }
@@ -1032,7 +1025,7 @@ ${cvText}`;
             >
               <Target className="w-5 h-5 text-primary" />
             </motion.div>
-            <span className="text-sm font-bold text-primary tracking-wide">Postuler Intelligemment</span>
+            <span className="text-sm font-bold text-primary tracking-wide">{t('apply.hero.badge') || 'Postuler Intelligemment'}</span>
           </motion.div>
 
           <motion.h1 
@@ -1041,18 +1034,20 @@ ${cvText}`;
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-foreground via-primary to-blue-bright bg-clip-text text-transparent mb-4 leading-tight"
           >
-            Postulez à n'importe quelle<br />
-            <span className="text-gradient">offre d'emploi</span>
+            {t('apply.hero.title')}
+            <br />
+            <span className="text-gradient">{t('apply.hero.titleHighlight')}</span>
           </motion.h1>
 
           <motion.p 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto"
+            transition={{ duration: 0.7, delay: 0.4 }}
+            className="text-lg md:text-xl text-foreground/90 leading-relaxed max-w-3xl mx-auto"
           >
-            Notre IA analyse l'offre, optimise votre CV et génère une lettre de motivation parfaite<br />
-            pour maximiser vos chances de recrutement.
+            {t('apply.hero.subtitle')}
+            <br className="hidden md:block" />
+            {t('apply.hero.subtitle2')}
           </motion.p>
         </div>
 
@@ -1065,11 +1060,11 @@ ${cvText}`;
         >
           <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 overflow-x-auto">
             {[
-              { id: 'offer', label: 'Offre', icon: Briefcase },
-              { id: 'cv', label: 'CV', icon: FileText },
-              { id: 'analysis', label: 'Analyse', icon: Sparkles },
-              { id: 'results', label: 'Résultats', icon: Award },
-              { id: 'optimization', label: 'Optimisation', icon: Sparkles },
+              { id: 'offer', label: t('apply.steps.offer'), icon: Briefcase },
+              { id: 'cv', label: t('apply.steps.cv'), icon: FileText },
+              { id: 'analysis', label: t('apply.steps.analysis'), icon: Sparkles },
+              { id: 'results', label: t('apply.steps.results'), icon: Award },
+              { id: 'optimization', label: t('apply.steps.optimization'), icon: Sparkles },
             ].map((item, index) => (
               <div key={item.id} className="flex items-center flex-shrink-0">
                 <motion.div
@@ -1120,10 +1115,10 @@ ${cvText}`;
                       <Briefcase className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
                     <CardTitle className="text-xl sm:text-2xl font-bold mb-2">
-                      Collez l'offre d'emploi
+                      {t('apply.jobOffer.title')}
                     </CardTitle>
                     <CardDescription className="text-base sm:text-lg">
-                      Copiez-collez le texte complet de l'offre pour laquelle vous voulez postuler
+                      {t('apply.jobOffer.description')}
                     </CardDescription>
                   </CardHeader>
                   
@@ -1132,15 +1127,11 @@ ${cvText}`;
                       <Textarea
                         id="job-offer-text"
                         name="jobOfferText"
-                        placeholder="Collez ici le texte complet de l'offre d'emploi...
+                        placeholder={`${t('apply.jobOffer.placeholder')}
 
-Exemple :
-Nous recherchons un Développeur Full Stack Senior pour rejoindre notre équipe TechCorp. Vous serez responsable du développement de nos applications web modernes...
+${t('apply.jobOffer.example')}
 
-Compétences requises :
-- React, Node.js, MongoDB
-- 5+ ans d'expérience
-- Anglais courant"
+${t('apply.jobOffer.requirements')}`}
                         value={jobOfferText}
                         onChange={(e) => setJobOfferText(e.target.value)}
                         className="min-h-[300px] resize-none border-border/50 bg-background/50 focus:border-primary transition-all duration-200"
@@ -1149,7 +1140,7 @@ Compétences requises :
                       {jobOfferText && (
                         <div className="absolute top-2 right-2">
                           <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-                            {jobOfferText.length} caractères
+                            {jobOfferText.length} {t('common.characters')}
                           </Badge>
                         </div>
                       )}
@@ -1164,12 +1155,12 @@ Compétences requises :
                         {isAnalyzing ? (
                           <>
                             <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                            Analyse en cours...
+                            {t('apply.jobOffer.analyzing')}
                           </>
                         ) : (
                           <>
                             <Sparkles className="w-5 h-5 mr-2" />
-                            Analyser l'offre
+                            {t('apply.jobOffer.analyzeButton')}
                             <ArrowRight className="w-5 h-5 ml-2" />
                           </>
                         )}
@@ -1181,15 +1172,15 @@ Compétences requises :
                           navigator.clipboard.readText().then(text => {
                             setJobOfferText(text);
                             toast({
-                              title: 'Texte collé',
-                              description: 'L\'offre a été collée depuis votre presse-papiers',
+                              title: t('apply.success.textPasted'),
+                              description: t('apply.success.textPastedDesc'),
                             });
                           });
                         }}
                         className="h-14 border-border/50 hover:border-primary/50"
                       >
                         <Clipboard className="w-5 h-5 mr-2" />
-                        Coller depuis presse-papiers
+                        {t('common.pasteFromClipboard')}
                       </Button>
                     </div>
                   </CardContent>
@@ -1215,10 +1206,10 @@ Compétences requises :
                       <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
                     <CardTitle className="text-xl sm:text-2xl font-bold mb-2">
-                      Téléchargez votre CV
+                      {t('apply.cvUpload.title')}
                     </CardTitle>
                     <CardDescription className="text-base sm:text-lg">
-                      Uploadez votre CV actuel pour l'optimiser selon l'offre
+                      {t('apply.cvUpload.description')}
                     </CardDescription>
                   </CardHeader>
                   
@@ -1262,19 +1253,19 @@ Compétences requises :
                       
                       <div className="space-y-1 sm:space-y-2">
                         <p className="text-base sm:text-lg font-medium">
-                          {isDragActive ? 'Lâchez votre CV ici...' : 'Glissez-déposez votre CV ici'}
+                          {isDragActive ? t('apply.cvUpload.dropActive') : t('apply.cvUpload.dragText')}
                         </p>
                         <p className="text-sm sm:text-base text-muted-foreground">
-                          ou cliquez pour sélectionner un fichier
+                          {t('apply.cvUpload.clickText')}
                         </p>
                         <p className="text-xs sm:text-sm text-muted-foreground">
-                          PDF uniquement • Maximum 10MB
+                          {t('apply.cvUpload.format')}
                         </p>
                       </div>
                       
                       <Button variant="outline" className="mt-3 sm:mt-4 text-sm sm:text-base">
                         <FileText className="w-4 h-4 mr-2" />
-                        Choisir un fichier
+                        {t('apply.cvUpload.chooseFile')}
                       </Button>
                     </div>
 
@@ -1727,12 +1718,12 @@ Compétences requises :
                     >
                       <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl">
                         <CardHeader>
-                          <CardTitle>Aperçu des documents</CardTitle>
+                          <CardTitle>{t('apply.results.previewTitle')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                              <h4 className="font-semibold mb-2">CV Optimisé</h4>
+                              <h4 className="font-semibold mb-2">{t('apply.results.cvPreview')}</h4>
                               <div className="bg-background/50 border border-border/30 rounded-lg p-4 h-64 flex items-center justify-center text-muted-foreground">
                                 Aperçu du CV...
                               </div>
@@ -1791,10 +1782,10 @@ Compétences requises :
                   <CardHeader className="px-4 sm:px-6">
                     <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                       <FileText className="w-5 h-5 text-primary" />
-                      Choisissez votre template de CV
+                      {t('apply.results.templateTitle')}
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">
-                      Sélectionnez le design qui correspond le mieux à votre style
+                      {t('apply.results.templateDescription')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="px-4 sm:px-6">
@@ -1802,9 +1793,9 @@ Compétences requises :
                     <div className="sm:hidden">
                       <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory">
                         {[
-                          { id: 'professional', name: 'Professionnel', description: 'Classique et élégant' },
-                          { id: 'modern', name: 'Moderne', description: 'Design contemporain' },
-                          { id: 'creative', name: 'Créatif', description: 'Original et dynamique' },
+                          { id: 'professional', name: t('apply.results.templates.professional'), description: t('apply.results.templates.professionalDesc') },
+                          { id: 'modern', name: t('apply.results.templates.modern'), description: t('apply.results.templates.modernDesc') },
+                          { id: 'creative', name: t('apply.results.templates.creative'), description: t('apply.results.templates.creativeDesc') },
                         ].map((template) => (
                           <div
                             key={template.id}
@@ -1825,9 +1816,9 @@ Compétences requises :
                       </div>
                       <div className="flex justify-center gap-2 mt-2">
                         {[
-                          { id: 'professional', name: 'Professionnel', description: 'Classique et élégant' },
-                          { id: 'modern', name: 'Moderne', description: 'Design contemporain' },
-                          { id: 'creative', name: 'Créatif', description: 'Original et dynamique' },
+                          { id: 'professional', name: t('apply.results.templates.professional'), description: t('apply.results.templates.professionalDesc') },
+                          { id: 'modern', name: t('apply.results.templates.modern'), description: t('apply.results.templates.modernDesc') },
+                          { id: 'creative', name: t('apply.results.templates.creative'), description: t('apply.results.templates.creativeDesc') },
                         ].map((template, index) => (
                           <button
                             key={template.id}
@@ -1845,9 +1836,9 @@ Compétences requises :
                     {/* Desktop: Grid normal */}
                     <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 gap-4">
                       {[
-                        { id: 'professional', name: 'Professionnel', description: 'Classique et élégant' },
-                        { id: 'modern', name: 'Moderne', description: 'Design contemporain' },
-                        { id: 'creative', name: 'Créatif', description: 'Original et dynamique' },
+                        { id: 'professional', name: t('apply.results.templates.professional'), description: t('apply.results.templates.professionalDesc') },
+                        { id: 'modern', name: t('apply.results.templates.modern'), description: t('apply.results.templates.modernDesc') },
+                        { id: 'creative', name: t('apply.results.templates.creative'), description: t('apply.results.templates.creativeDesc') },
                       ].map((template) => (
                         <div
                           key={template.id}
@@ -1932,12 +1923,12 @@ Compétences requises :
                       >
                         <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl">
                           <CardHeader>
-                            <CardTitle>Aperçu des documents</CardTitle>
+                            <CardTitle>{t('apply.results.previewTitle')}</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div>
-                                <h4 className="font-semibold mb-2">CV Optimisé ({selectedTemplate})</h4>
+                                <h4 className="font-semibold mb-2">{t('apply.results.cvPreview')} ({selectedTemplate})</h4>
                                 <div className="bg-white border border-gray-200 rounded-lg p-4 h-64 overflow-y-auto">
                                   {analysisResult.optimizedCV ? (
                                     <div className="scale-[0.3] origin-top-left w-[200%] h-[200%] relative">
