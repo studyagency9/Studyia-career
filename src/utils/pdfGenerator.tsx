@@ -56,7 +56,7 @@ const parseDate = (dateString: string): Date => {
   return new Date(year, monthIndex);
 };
 
-export const generatePDF = async (cvData: CVData, translations?: any): Promise<void> => {
+export const generatePDFBlob = async (cvData: CVData): Promise<Blob> => {
   try {
     // Créer une copie des données pour éviter de modifier l'original
     const processedData = { ...cvData };
@@ -85,9 +85,9 @@ export const generatePDF = async (cvData: CVData, translations?: any): Promise<v
       return startDateB.getTime() - startDateA.getTime();
     });
     
-    // Ajouter les traductions aux données
-    if (translations) {
-      processedData.translations = translations;
+    // Ajouter les traductions aux données si elles existent
+    if (processedData.translations) {
+      // Les traductions sont déjà dans les données
     }
     
     // Sélectionner le template PDF approprié
@@ -98,22 +98,10 @@ export const generatePDF = async (cvData: CVData, translations?: any): Promise<v
     const asPdf = pdf(<PDFTemplate data={processedData} showWatermark={isMinimalTemplate} />);
     const blob = await asPdf.toBlob();
     
-    // Créer le lien de téléchargement
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `CV_${processedData.personalInfo.firstName}_${processedData.personalInfo.lastName}.pdf`;
-    
-    // Déclencher le téléchargement
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // Nettoyer l'URL
-    URL.revokeObjectURL(url);
+    return blob;
     
   } catch (error) {
-    console.error('Erreur lors de la génération du PDF:', error);
-    throw new Error('Impossible de générer le PDF. Veuillez réessayer.');
+    console.error('Erreur lors de la génération du blob PDF:', error);
+    throw new Error('Impossible de générer le blob PDF. Veuillez réessayer.');
   }
 };

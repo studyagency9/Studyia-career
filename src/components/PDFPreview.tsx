@@ -159,22 +159,17 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({ data, className, transla
 
   // Préparer le contenu à afficher en fonction du type d'appareil
   const renderContent = () => {
-    // Sur mobile, afficher uniquement un message sans bouton de téléchargement
+    // Sur mobile, afficher un aperçu optimisé pour mobile
     if (isMobile) {
       return (
-        <div className={className}>
-          <div className="bg-muted/30 border-2 border-dashed border-border rounded-xl p-8 text-center space-y-4">
-            <div className="flex justify-center">
-              <FileText className="w-16 h-16 text-muted-foreground" />
+        <div className={`${className} overflow-auto`}>
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg mx-auto" style={{ maxWidth: '100%', width: '210mm' }}>
+            <div className="p-4 sm:p-6" style={{ transform: 'scale(0.8)', transformOrigin: 'top left' }}>
+              <PDFTemplate data={dataWithTranslations} />
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Aperçu PDF non disponible sur mobile
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                L'aperçu PDF ne fonctionne pas sur les appareils mobiles. Utilisez le bouton de téléchargement principal pour obtenir votre CV.
-              </p>
-            </div>
+          </div>
+          <div className="text-center mt-4 text-xs text-muted-foreground">
+            <p>Aperçu optimisé pour mobile • Utilisez le bouton de téléchargement pour le PDF complet</p>
           </div>
         </div>
       );

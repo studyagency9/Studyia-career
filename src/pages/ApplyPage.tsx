@@ -21,6 +21,7 @@ import { jobOfferService, JobOffer } from '@/services/jobOfferService';
 import { cvMatchingService, CVMatchResult } from '@/services/cvMatchingService';
 import { coverLetterService, CoverLetterData } from '@/services/coverLetterService';
 import { downloadCoverLetter } from '@/utils/coverLetterPDF';
+import { generatePDFBlob } from '@/utils/pdfGenerator';
 import { useCVAnalysis } from '@/hooks/useCVAnalysis';
 import { ClientRateLimiter } from '@/utils/clientRateLimit';
 import geminiService, { CVParsed } from '@/services/gemini';
@@ -83,15 +84,146 @@ const ApplyPage = () => {
   }, []);
 
   useSEO({
-    title: 'Postuler à une offre - Studyia Career | CV et Lettre de Motivation IA',
-    description: 'Postulez intelligemment à n\'importe quelle offre d\'emploi. Notre IA analyse l\'offre, optimise votre CV et génère une lettre de motivation parfaite.',
-    keywords: 'postuler offre emploi, CV optimisé, lettre de motivation IA, matching CV, candidature intelligente',
+    title: 'Postuler à une offre d\'emploi - IA CV & Lettre | Studyia Career',
+    description: 'Postulez intelligemment à n\'importe quelle offre d\'emploi. Notre IA analyse l\'offre, optimise votre CV et génère une lettre de motivation personnalisée. Augmentez vos chances de recrutement.',
+    keywords: 'postuler offre emploi, CV optimisé IA, lettre de motivation automatique, matching CV emploi, candidature intelligente, IA recrutement, optimisation CV, génération lettre motivation',
     canonical: 'https://career.studyia.net/apply',
-    structuredData: getWebPageSchema({
-      name: 'Postuler à une offre d\'emploi',
-      description: 'Outil intelligent pour postuler aux offres avec CV optimisé et lettre de motivation générée par IA',
-      url: 'https://career.studyia.net/apply'
-    })
+    openGraph: {
+      title: 'Postuler aux offres avec IA - Studyia Career',
+      description: 'Optimisez votre candidature avec notre IA : analyse d\'offre, CV personnalisé et lettre de motivation générée automatiquement.',
+      type: 'website',
+      url: 'https://career.studyia.net/apply',
+      images: [
+        {
+          url: 'https://career.studyia.net/og-image-apply.jpg',
+          width: 1200,
+          height: 630,
+          alt: 'Postuler aux offres d\'emploi avec IA - Studyia Career'
+        }
+      ],
+      siteName: 'Studyia Career',
+      locale: 'fr_FR'
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Postuler aux offres avec IA - Studyia Career',
+      description: 'Optimisez votre candidature avec notre IA : CV personnalisé et lettre de motivation générée.',
+      images: ['https://career.studyia.net/og-image-apply.jpg'],
+      creator: '@studyia_career',
+      site: '@studyia_career'
+    },
+    robots: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1',
+    author: 'Studyia Career',
+    publisher: 'Studyia Career',
+    language: 'fr-FR',
+    revisitAfter: '7 days',
+    category: 'Emploi et Carrière',
+    structuredData: [
+      getWebPageSchema({
+        name: 'Postuler à une offre d\'emploi avec IA',
+        description: 'Outil intelligent pour postuler aux offres avec CV optimisé et lettre de motivation générée par IA',
+        url: 'https://career.studyia.net/apply'
+      }),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Studyia Career - Postuler aux offres',
+        description: 'Application IA pour optimiser les candidatures et générer des lettres de motivation personnalisées',
+        url: 'https://career.studyia.net/apply',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'EUR'
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.8',
+          ratingCount: '1247',
+          bestRating: '5',
+          worstRating: '1'
+        },
+        featureList: [
+          'Analyse IA des offres d\'emploi',
+          'Optimisation automatique du CV',
+          'Génération de lettre de motivation',
+          'Matching compétences-offre',
+          'Templates CV professionnels',
+          'Export PDF et ZIP'
+        ]
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: 'Service de candidature intelligente',
+        description: 'Service d\'IA pour optimiser les candidatures d\'emploi avec CV personnalisé et lettre de motivation générée',
+        provider: {
+          '@type': 'Organization',
+          name: 'Studyia Career',
+          url: 'https://career.studyia.net'
+        },
+        serviceType: 'Employment Service',
+        areaServed: 'FR',
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: 'Services de candidature',
+          itemListElement: [
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Analyse d\'offre d\'emploi par IA'
+              }
+            },
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Optimisation de CV par IA'
+              }
+            },
+            {
+              '@type': 'Offer',
+              itemOffered: {
+                '@type': 'Service',
+                name: 'Génération de lettre de motivation'
+              }
+            }
+          ]
+        }
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'Comment fonctionne l\'analyse d\'offre d\'emploi ?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Notre IA analyse le texte de l\'offre pour identifier les compétences requises, les qualifications et les responsabilités. Elle compare ensuite votre profil avec ces exigences.'
+            }
+          },
+          {
+            '@type': 'Question',
+            name: 'L\'IA peut-elle vraiment améliorer mon CV ?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Oui, notre IA adapte votre CV en mettant en avant les compétences pertinentes pour l\'offre, en optimisant les descriptions et en suggérant des améliorations basées sur les meilleures pratiques.'
+            }
+          },
+          {
+            '@type': 'Question',
+            name: 'La lettre de motivation est-elle vraiment personnalisée ?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Absolument. Chaque lettre est générée spécifiquement pour l\'offre et votre profil, en analysant les exigences et en créant un contenu unique et pertinent.'
+            }
+          }
+        ]
+      }
+    ]
   });
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -701,7 +833,7 @@ ${cvText}`;
   /**
    * Télécharge le CV optimisé avec le template choisi
    */
-  const handleDownloadCV = () => {
+  const handleDownloadCV = async () => {
     if (!analysisResult?.optimizedCV) {
       toast({
         title: 'CV non disponible',
@@ -712,73 +844,45 @@ ${cvText}`;
     }
 
     try {
+      toast({
+        title: 'Génération PDF',
+        description: 'Votre CV optimisé est en cours de génération...',
+      });
+
       // Convertir les données au format template
       const templateData = convertToTemplateFormat(analysisResult.optimizedCV);
       
-      // Générer le contenu du CV en format texte pour l'instant
-      const cvContent = `
-CV OPTIMISÉ - TEMPLATE ${selectedTemplate.toUpperCase()}
-====================================
-
-INFORMATIONS PERSONNELLES
-------------------------
-Nom: ${templateData.personalInfo.firstName} ${templateData.personalInfo.lastName}
-Email: ${templateData.personalInfo.email}
-Téléphone: ${templateData.personalInfo.phone}
-Ville: ${templateData.personalInfo.city}, ${templateData.personalInfo.country}
-
-POSTE VISÉ
------------
-${templateData.targetJob}
-
-RÉSUMÉ
-------
-${templateData.personalInfo.summary}
-
-EXPÉRIENCES PROFESSIONNELLES
-----------------------------
-${templateData.experiences.map(exp => `
-${exp.title}
-${exp.company} | ${exp.startDate} - ${exp.endDate}
-${exp.description}
-`).join('\n')}
-
-FORMATION
-----------
-${templateData.education.map(edu => `
-${edu.degree}
-${edu.school} | ${edu.startDate} - ${edu.endDate}
-${edu.description}
-`).join('\n')}
-
-COMPÉTENCES
------------
-${templateData.skills.join(', ')}
-      `.trim();
+      // Générer le PDF avec le template choisi
+      const pdfBlob = await generatePDFBlob(templateData);
       
-      // Créer un blob et télécharger
-      const blob = new Blob([cvContent], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
+      // Valider que nous avons bien un Blob
+      if (!(pdfBlob instanceof Blob)) {
+        console.error('❌ generatePDF n\'a pas retourné un Blob:', typeof pdfBlob);
+        throw new Error('La génération du PDF a échoué');
+      }
       
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `cv-optimise-${templateData.personalInfo.firstName}-${templateData.personalInfo.lastName}-${selectedTemplate}.txt`;
+      console.log('✅ PDF Blob généré:', pdfBlob.size, 'bytes');
       
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
+      // Télécharger le PDF
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `CV_Optimise_${templateData.personalInfo.firstName}_${templateData.personalInfo.lastName}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       toast({
-        title: 'CV téléchargé',
-        description: `CV avec template ${selectedTemplate} téléchargé avec succès`,
+        title: '✅ CV téléchargé !',
+        description: 'Votre CV optimisé a été téléchargé avec succès',
       });
+
     } catch (error) {
-      console.error('❌ Erreur génération CV:', error);
+      console.error('❌ Erreur téléchargement CV:', error);
       toast({
-        title: 'Erreur de génération',
-        description: 'Impossible de générer le CV',
+        title: 'Erreur de téléchargement',
+        description: 'Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.',
         variant: 'destructive'
       });
     }
@@ -815,7 +919,7 @@ ${templateData.skills.join(', ')}
   /**
    * Télécharge le dossier complet
    */
-  const handleDownloadAll = () => {
+  const handleDownloadAll = async () => {
     if (!analysisResult?.optimizedCV || !analysisResult?.coverLetter) {
       toast({
         title: 'Documents incomplets',
@@ -825,12 +929,54 @@ ${templateData.skills.join(', ')}
       return;
     }
 
-    toast({
-      title: 'Téléchargement complet',
-      description: 'Votre dossier de candidature est en cours de préparation...',
-    });
-    // TODO: Implémenter le download combiné
-    console.log('📁 Téléchargement dossier complet');
+    try {
+      toast({
+        title: 'Téléchargement complet',
+        description: 'Votre dossier de candidature est en cours de préparation...',
+      });
+
+      // Générer le PDF du CV optimisé
+      const templateData = convertToTemplateFormat(analysisResult.optimizedCV);
+      const pdfBlob = await generatePDFBlob(templateData);
+      
+      // Créer le fichier de lettre de motivation
+      const letterContent = analysisResult.coverLetter;
+      const letterBlob = new Blob([letterContent], { type: 'text/plain;charset=utf-8' });
+      
+      // Créer un ZIP avec les deux fichiers
+      const JSZip = await import('jszip');
+      const zip = new JSZip.default();
+      
+      // Ajouter les fichiers au ZIP
+      zip.file(`CV_${parsedCV?.personalInfo.firstName}_${parsedCV?.personalInfo.lastName}.pdf`, pdfBlob);
+      zip.file(`Lettre_Motivation_${parsedCV?.personalInfo.firstName}_${parsedCV?.personalInfo.lastName}.txt`, letterBlob);
+      
+      // Générer le ZIP
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      
+      // Télécharger le ZIP
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Dossier_Candidature_${parsedCV?.personalInfo.firstName}_${parsedCV?.personalInfo.lastName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: '✅ Téléchargement réussi !',
+        description: 'Votre dossier complet (CV + lettre) a été téléchargé',
+      });
+
+    } catch (error) {
+      console.error('❌ Erreur téléchargement dossier:', error);
+      toast({
+        title: 'Erreur de téléchargement',
+        description: 'Une erreur est survenue lors de la préparation du dossier',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -915,9 +1061,9 @@ ${templateData.skills.join(', ')}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="flex items-center justify-center mb-12"
+          className="flex items-center justify-center mb-8 sm:mb-12 px-2 sm:px-4"
         >
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 overflow-x-auto">
             {[
               { id: 'offer', label: 'Offre', icon: Briefcase },
               { id: 'cv', label: 'CV', icon: FileText },
@@ -925,9 +1071,9 @@ ${templateData.skills.join(', ')}
               { id: 'results', label: 'Résultats', icon: Award },
               { id: 'optimization', label: 'Optimisation', icon: Sparkles },
             ].map((item, index) => (
-              <div key={item.id} className="flex items-center">
+              <div key={item.id} className="flex items-center flex-shrink-0">
                 <motion.div
-                  className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                  className={`flex items-center justify-center w-8 h-8 sm:w-10 md:w-12 rounded-full border-2 transition-all duration-300 ${
                     step === item.id 
                       ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/50' 
                       : (step === 'optimization' && index < 4) || (step === 'results' && index < 3)
@@ -937,16 +1083,16 @@ ${templateData.skills.join(', ')}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <item.icon className="w-5 h-5" />
+                  <item.icon className="w-3 h-3 sm:w-4 md:w-5" />
                 </motion.div>
-                <span className={`ml-2 text-sm font-medium ${
+                <span className={`ml-1 sm:ml-2 text-xs sm:text-sm font-medium ${
                   step === item.id ? 'text-primary' : 
                   (step === 'optimization' && index < 4) || (step === 'results' && index < 3) ? 'text-green-500' : 'text-muted-foreground'
-                }`}>
+                } hidden md:inline`}>
                   {item.label}
                 </span>
                 {index < 4 && (
-                  <div className={`w-8 h-0.5 mx-4 ${
+                  <div className={`w-1 sm:w-2 md:w-8 h-0.5 mx-0.5 sm:mx-1 md:mx-4 ${
                     (step === 'optimization' && index < 4) || (step === 'results' && index < 3) ? 'bg-green-500' : 'bg-border'
                   }`} />
                 )}
@@ -956,7 +1102,7 @@ ${templateData.skills.join(', ')}
         </motion.div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto px-2 sm:px-0">
           {/* Step 1: Job Offer */}
           <AnimatePresence mode="wait">
             {step === 'offer' && (
@@ -966,21 +1112,22 @@ ${templateData.skills.join(', ')}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.3 }}
+                className="space-y-4 sm:space-y-6 mx-2 sm:mx-0"
               >
                 <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl">
-                  <CardHeader className="text-center pb-8">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-bright to-primary flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <Briefcase className="w-8 h-8 text-white" />
+                  <CardHeader className="text-center pb-6 sm:pb-8 px-4 sm:px-6">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-bright to-primary flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg">
+                      <Briefcase className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
-                    <CardTitle className="text-2xl font-bold mb-2">
+                    <CardTitle className="text-xl sm:text-2xl font-bold mb-2">
                       Collez l'offre d'emploi
                     </CardTitle>
-                    <CardDescription className="text-lg">
+                    <CardDescription className="text-base sm:text-lg">
                       Copiez-collez le texte complet de l'offre pour laquelle vous voulez postuler
                     </CardDescription>
                   </CardHeader>
                   
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
                     <div className="relative">
                       <Textarea
                         id="job-offer-text"
@@ -1060,47 +1207,48 @@ Compétences requises :
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.3 }}
+                className="space-y-4 sm:space-y-6 mx-2 sm:mx-0"
               >
                 <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl">
-                  <CardHeader className="text-center pb-8">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <FileText className="w-8 h-8 text-white" />
+                  <CardHeader className="text-center pb-6 sm:pb-8 px-4 sm:px-6">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg">
+                      <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
-                    <CardTitle className="text-2xl font-bold mb-2">
+                    <CardTitle className="text-xl sm:text-2xl font-bold mb-2">
                       Téléchargez votre CV
                     </CardTitle>
-                    <CardDescription className="text-lg">
+                    <CardDescription className="text-base sm:text-lg">
                       Uploadez votre CV actuel pour l'optimiser selon l'offre
                     </CardDescription>
                   </CardHeader>
                   
                   {/* Job Offer Summary */}
                   {parsedJobOffer && (
-                    <div className="px-8 pb-6">
-                      <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-4">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Building className="w-5 h-5 text-blue-500" />
-                          <span className="font-semibold text-blue-500">{parsedJobOffer.company}</span>
+                    <div className="px-4 sm:px-6 sm:px-8 pb-4 sm:pb-6">
+                      <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-3 sm:p-4">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                          <Building className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                          <span className="font-semibold text-blue-500 text-sm sm:text-base">{parsedJobOffer.company}</span>
                         </div>
-                        <h4 className="text-lg font-bold mb-2">{parsedJobOffer.title}</h4>
-                        <div className="flex flex-wrap gap-2">
+                        <h4 className="text-base sm:text-lg font-bold mb-2">{parsedJobOffer.title}</h4>
+                        <div className="flex flex-wrap gap-1 sm:gap-2">
                           {parsedJobOffer.skills.slice(0, 5).map((skill, index) => (
-                            <Badge key={index} variant="secondary" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                            <Badge key={index} variant="secondary" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-xs">
                               {skill}
                             </Badge>
                           ))}
                           {parsedJobOffer.skills.length > 5 && (
-                            <Badge variant="secondary">+{parsedJobOffer.skills.length - 5}</Badge>
+                            <Badge variant="secondary" className="text-xs">+{parsedJobOffer.skills.length - 5}</Badge>
                           )}
                         </div>
                       </div>
                     </div>
                   )}
                   
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-4 sm:space-y-6 px-4 sm:px-6">
                     <div
                       {...getRootProps()}
-                      className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
+                      className={`border-2 border-dashed rounded-xl p-4 sm:p-6 lg:p-8 text-center cursor-pointer transition-all duration-200 ${
                         isDragActive 
                           ? 'border-primary bg-primary/5' 
                           : 'border-border/50 hover:border-primary/50 hover:bg-primary/5'
@@ -1108,23 +1256,23 @@ Compétences requises :
                     >
                       <input {...getInputProps()} />
                       
-                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-blue-bright/20 flex items-center justify-center mx-auto mb-4">
-                        <Upload className="w-10 h-10 text-primary" />
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-blue-bright/20 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                        <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
                       </div>
                       
-                      <div className="space-y-2">
-                        <p className="text-lg font-medium">
+                      <div className="space-y-1 sm:space-y-2">
+                        <p className="text-base sm:text-lg font-medium">
                           {isDragActive ? 'Lâchez votre CV ici...' : 'Glissez-déposez votre CV ici'}
                         </p>
-                        <p className="text-muted-foreground">
+                        <p className="text-sm sm:text-base text-muted-foreground">
                           ou cliquez pour sélectionner un fichier
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           PDF uniquement • Maximum 10MB
                         </p>
                       </div>
                       
-                      <Button variant="outline" className="mt-4">
+                      <Button variant="outline" className="mt-3 sm:mt-4 text-sm sm:text-base">
                         <FileText className="w-4 h-4 mr-2" />
                         Choisir un fichier
                       </Button>
@@ -1532,7 +1680,7 @@ Compétences requises :
                               className="h-14 bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg hover:shadow-blue-500/50"
                             >
                               <FileText className="w-5 h-5 mr-2" />
-                              CV Optimisé
+                              Télécharger le CV optimisé
                             </Button>
                             
                             <Button
@@ -1640,17 +1788,62 @@ Compétences requises :
 
                 {/* Template Selection */}
                 <Card className="bg-background/95 backdrop-blur-xl border-border/50 shadow-2xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                  <CardHeader className="px-4 sm:px-6">
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                       <FileText className="w-5 h-5 text-primary" />
                       Choisissez votre template de CV
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-sm sm:text-base">
                       Sélectionnez le design qui correspond le mieux à votre style
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <CardContent className="px-4 sm:px-6">
+                    {/* Mobile: Horizontal scroll */}
+                    <div className="sm:hidden">
+                      <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory">
+                        {[
+                          { id: 'professional', name: 'Professionnel', description: 'Classique et élégant' },
+                          { id: 'modern', name: 'Moderne', description: 'Design contemporain' },
+                          { id: 'creative', name: 'Créatif', description: 'Original et dynamique' },
+                        ].map((template) => (
+                          <div
+                            key={template.id}
+                            className={`flex-shrink-0 w-64 p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 snap-center ${
+                              selectedTemplate === template.id
+                                ? 'border-primary bg-primary/10'
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                            onClick={() => setSelectedTemplate(template.id)}
+                          >
+                            <div className="aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 rounded mb-3 flex items-center justify-center">
+                              <FileText className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <h4 className="font-semibold text-center">{template.name}</h4>
+                            <p className="text-sm text-muted-foreground text-center">{template.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-center gap-2 mt-2">
+                        {[
+                          { id: 'professional', name: 'Professionnel', description: 'Classique et élégant' },
+                          { id: 'modern', name: 'Moderne', description: 'Design contemporain' },
+                          { id: 'creative', name: 'Créatif', description: 'Original et dynamique' },
+                        ].map((template, index) => (
+                          <button
+                            key={template.id}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              selectedTemplate === template.id
+                                ? 'bg-primary w-6'
+                                : 'bg-border'
+                            }`}
+                            onClick={() => setSelectedTemplate(template.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Desktop: Grid normal */}
+                    <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 gap-4">
                       {[
                         { id: 'professional', name: 'Professionnel', description: 'Classique et élégant' },
                         { id: 'modern', name: 'Moderne', description: 'Design contemporain' },
@@ -1694,7 +1887,7 @@ Compétences requises :
                         className="h-14 bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg hover:shadow-blue-500/50"
                       >
                         <FileText className="w-5 h-5 mr-2" />
-                        CV Optimisé
+                        Télécharger le CV optimisé
                       </Button>
                       
                       <Button

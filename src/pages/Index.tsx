@@ -35,7 +35,7 @@ const HeroSection = () => {
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       
-      <div className="container relative z-10 pt-32 pb-20 md:pt-40 md:pb-32">
+      <div className="container relative z-10 pt-24 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32 px-4 sm:px-6">
         <motion.div 
           className="max-w-4xl mx-auto text-center"
           initial="hidden"
@@ -45,7 +45,7 @@ const HeroSection = () => {
           {/* Badge */}
           <motion.div 
             variants={fadeInUp}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8"
+            className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 sm:mb-8"
           >
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-sm text-primary-foreground/80">{t('home.hero.badge')}</span>
@@ -54,7 +54,7 @@ const HeroSection = () => {
           {/* Main heading */}
           <motion.h1 
             variants={fadeInUp}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight mb-6"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight mb-4 sm:mb-6"
           >
             {t('home.hero.title')}
             <br />
@@ -64,7 +64,7 @@ const HeroSection = () => {
           {/* Subtitle */}
           <motion.p 
             variants={fadeInUp}
-            className="text-lg md:text-xl text-primary-foreground/70 max-w-2xl mx-auto mb-10"
+            className="text-lg sm:text-xl md:text-2xl text-primary-foreground/80 leading-relaxed mb-8 sm:mb-10 max-w-3xl mx-auto px-4"
           >
             {t('home.hero.subtitle')}
             <br className="hidden md:block" />
@@ -74,23 +74,23 @@ const HeroSection = () => {
           {/* CTA Buttons */}
           <motion.div 
             variants={fadeInUp}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center px-4"
           >
             <Link to="/builder">
-              <Button variant="hero" size="xl" className="w-full sm:w-auto">
+              <Button variant="hero" size="lg" className="w-full sm:w-auto px-6 sm:px-8">
                 {t('home.hero.ctaPrimary')}
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             </Link>
             <Link to="/upload">
-              <Button variant="heroOutline" size="xl" className="w-full sm:w-auto">
+              <Button variant="heroOutline" size="lg" className="w-full sm:w-auto px-6 sm:px-8">
                 {t('home.hero.ctaSecondary')}
-                <Upload className="w-5 h-5" />
+                <Upload className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
               </Button>
             </Link>
             <Link to="/apply">
-              <Button variant="heroOutline" size="xl" className="w-full sm:w-auto bg-gradient-to-r from-purple-500/20 to-purple-600/20 hover:from-purple-500/30 hover:to-purple-600/30 border-purple-500/30 hover:border-purple-500/50">
-                <Target className="w-5 h-5 mr-2" />
+              <Button variant="heroOutline" size="lg" className="w-full sm:w-auto bg-gradient-to-r from-purple-500/20 to-purple-600/20 hover:from-purple-500/30 hover:to-purple-600/30 border-purple-500/30 hover:border-purple-500/50 px-6 sm:px-8">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Postuler à une offre
               </Button>
             </Link>
