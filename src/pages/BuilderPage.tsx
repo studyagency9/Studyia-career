@@ -61,7 +61,7 @@ import { getJobTitles, getDegrees, getSummarySuggestions, getAllSkills } from "@
 import { FileSignature, Rocket, UserCheck } from 'lucide-react';
 import { templateComponents, templateInfoBase } from "@/components/CVTemplates";
 import { CVAnalysis } from "@/components/CVAnalysis";
-import { generatePDF } from '@/utils/pdfGenerator';
+import { generatePDF, downloadPDF } from '@/utils/pdfGenerator';
 import PDFPreview from '@/components/PDFPreview';
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/i18nContext";
@@ -877,7 +877,7 @@ const BuilderPage = () => {
     if (cvData.template === 'minimal') {
       // Téléchargement gratuit pour le template minimaliste
       try {
-        await generatePDF(cvData);
+        await downloadPDF(cvData);
         toast({
           title: "CV téléchargé avec succès !",
           description: "Votre CV minimaliste a été téléchargé gratuitement.",
@@ -939,44 +939,32 @@ const BuilderPage = () => {
             console.log('⚠️ PDF pas encore accessible (peut-être besoin de configurer le serveur)');
           }
         }, 2000);
-        
-        // Continuer avec le téléchargement normal
-        await generatePDF(cvData);
-        
-        toast({ 
-          title: t('builder.preview.downloadSuccess'), 
-          description: t('builder.preview.downloadSuccessDesc')
-        });
-        
-        // Rediriger vers la page d'accueil après le téléchargement
-        setTimeout(() => {
-          navigate('/');
-        }, 3000);
-        
       } else {
         console.log('⚠️ Upload échoué, mais URL générée pour test');
         console.log(`🔗 URL de test: ${uploadResult.url}`);
-        
-        // Continuer avec le téléchargement normal même si l'upload échoue
-        await generatePDF(cvData);
-        
-        toast({ 
-          title: t('builder.preview.downloadSuccess'), 
-          description: t('builder.preview.downloadSuccessDesc')
-        });
-        
-        // Rediriger vers la page d'accueil après le téléchargement
-        setTimeout(() => {
-          navigate('/');
-        }, 3000);
       }
+      
+      // TÉLÉCHARGER DIRECTEMENT LE PDF (comme avant)
+      console.log('📥 Démarrage du téléchargement direct du PDF...');
+      await downloadPDF(cvData);
+      
+      toast({ 
+        title: t('builder.preview.downloadSuccess'), 
+        description: t('builder.preview.downloadSuccessDesc')
+      });
+      
+      // Rediriger vers la page d'accueil après le téléchargement
+      setTimeout(() => {
+        navigate('/');
+      }, 3000);
       
     } catch (error) {
       console.error('❌ Erreur lors de l\'upload:', error);
       
       // Fallback: téléchargement normal
       try {
-        await generatePDF(cvData);
+        console.log('🔄 Fallback: téléchargement normal du PDF...');
+        await downloadPDF(cvData);
         
         toast({ 
           title: t('builder.preview.downloadSuccess'), 
@@ -1336,7 +1324,7 @@ const BuilderPage = () => {
       
       // Générer le PDF après la fermeture du dialogue
       try {
-        await generatePDF(suggestedCvData);
+        await downloadPDF(suggestedCvData);
         toast({ 
           title: t('builder.preview.downloadSuccess'), 
           description: t('builder.preview.downloadSuccessDesc')

@@ -87,7 +87,7 @@ export class RealPDFUploader {
       console.log('🌐 Upload vers le serveur DigitalOcean...');
       console.log(`   URL: https://studyiacareer-backend-qpmpz.ondigitalocean.app/api/pdfs/upload`);
       
-      const response = await api.post('/api/pdfs/upload', formData, {
+      const response = await api.post('/pdfs/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -153,7 +153,7 @@ export class RealPDFUploader {
       const filename = pdfUrl.split('/').pop();
       
       // Utiliser votre API de vérification
-      const response = await api.get(`/api/pdfs/verify/${filename}`);
+      const response = await api.get(`/pdfs/verify/${filename}`);
       
       if (response.data.success) {
         const accessible = response.data.data.accessible;

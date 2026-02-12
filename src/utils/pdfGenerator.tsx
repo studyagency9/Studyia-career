@@ -108,3 +108,39 @@ export const generatePDFBlob = async (cvData: CVData): Promise<Blob> => {
 
 // Alias pour compatibilité avec le code existant
 export const generatePDF = generatePDFBlob;
+
+// Vraie fonction de téléchargement PDF
+export const downloadPDF = async (cvData: CVData): Promise<void> => {
+  try {
+    console.log('📥 DÉBUT TÉLÉCHARGEMENT PDF');
+    console.log('👤 Utilisateur:', cvData.personalInfo.firstName, cvData.personalInfo.lastName);
+    
+    // Générer le blob PDF
+    const pdfBlob = await generatePDFBlob(cvData);
+    console.log('✅ PDF généré, taille:', pdfBlob.size, 'bytes');
+    
+    // Créer l'URL de téléchargement
+    const url = URL.createObjectURL(pdfBlob);
+    console.log('🔗 URL de téléchargement créée');
+    
+    // Créer le lien de téléchargement
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CV_${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}.pdf`;
+    console.log('📄 Nom du fichier:', a.download);
+    
+    // Déclencher le téléchargement
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // Nettoyer l'URL
+    URL.revokeObjectURL(url);
+    
+    console.log('🎉 TÉLÉCHARGEMENT TERMINÉ AVEC SUCCÈS');
+    
+  } catch (error) {
+    console.error('❌ Erreur lors du téléchargement du PDF:', error);
+    throw new Error('Impossible de télécharger le PDF. Veuillez réessayer.');
+  }
+};
