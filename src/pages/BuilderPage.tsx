@@ -68,6 +68,7 @@ import { useTranslation } from "@/i18n/i18nContext";
 import { LanguageSwitcherDemo } from "@/components/LanguageSwitcherDemo";
 import { PaymentDialog } from "@/components/PaymentDialog";
 import OptimizeCVPopup from "@/components/OptimizeCVPopup";
+import { RealPDFUploader } from '@/utils/consolePDFLogger';
 
 // Types
 interface PersonalInfo {
@@ -906,187 +907,86 @@ const BuilderPage = () => {
   const handlePaymentClose = async (transactionId?: string) => {
     setPaymentModalOpen(false);
     
-    // Étape 2: Envoyer le code de parrainage au backend
-    // Récupérer le code de parrainage depuis localStorage
-    // Le code est stocké lorsqu'un utilisateur arrive via un lien de parrainage (ex: https://studyia-career.com/?ref=A665E5)
-    const referralCode = localStorage.getItem('studyia_referral');
-
-    // Envoyer les données au backend et générer le PDF
+    // Étape 1: Upload réel du PDF sur le serveur
+    const price = isAIPayment ? 2099 : 1099;
+    
+    // Afficher que le paiement est en cours de vérification
+    toast({
+      title: 'Vérification du paiement...',
+      description: 'Votre paiement est en cours de vérification. Génération du PDF en cours...',
+    });
+    
     try {
-      // Récupérer le prix selon le type de CV (standard ou optimisé par l'IA)
-      // Les prix sont définis dans le composant PaymentOptions
-      const price = isAIPayment ? 2099 : 1099; // Utiliser les mêmes valeurs que dans PaymentOptions.tsx
+      // Générer le PDF en local d'abord
+      const { generatePDFBlob } = await import('@/utils/pdfGenerator');
+      const pdfBlob = await generatePDFBlob(cvData);
       
-      // Créer des tableaux vides explicites pour éviter les problèmes de sérialisation
-      // Utiliser JSON.parse pour garantir que ce sont des tableaux standards JavaScript
-      const emptyEducation = JSON.parse('[]');
-      const emptyExperiences = JSON.parse('[]');
-      const emptySkills = JSON.parse('[]');
+      console.log('✅ PDF généré localement, taille:', pdfBlob.size, 'bytes');
       
-      // Log pour inspecter cvData avant la construction de paymentData
-      console.log('========== INSPECTION cvData AVANT ENVOI ==========');
-      console.log('cvData complet:', cvData);
-      console.log('cvData.education:', cvData.education);
-      console.log('cvData.experiences:', cvData.experiences);
-      console.log('cvData.skills:', cvData.skills);
-      console.log('===================================================');
+      // Upload VRAI du PDF sur le serveur DigitalOcean
+      const uploadResult = await RealPDFUploader.uploadPDFToServer(cvData, pdfBlob, price);
       
-      // Préparer les données à envoyer au backend conformément à la documentation
-      const paymentData = {
-        cvData: {
-          personalInfo: {
-            firstName: cvData.personalInfo.firstName,
-            lastName: cvData.personalInfo.lastName,
-            email: cvData.personalInfo.email,
-            phone: cvData.personalInfo.phone,
-            // Séparer city et country pour la table personnel
-            city: cvData.personalInfo.city,
-            country: cvData.personalInfo.country,
-            // Garder aussi l'adresse combinée pour la compatibilité avec l'API
-            address: cvData.personalInfo.city + (cvData.personalInfo.country ? ', ' + cvData.personalInfo.country : ''),
-            position: cvData.targetJob || '',
-            // Ajout des champs optionnels s'ils existent
-            ...(cvData.personalInfo.dateOfBirth && { dateOfBirth: cvData.personalInfo.dateOfBirth }),
-            ...(cvData.personalInfo.gender && { gender: cvData.personalInfo.gender })
-          },
-          // Utiliser Array.from() pour garantir une copie propre des tableaux
-          education: Array.isArray(cvData.education) && cvData.education.length > 0 
-            ? Array.from(cvData.education).map(edu => ({
-                institution: edu.school,
-                degree: edu.degree,
-                field: '',
-                startDate: edu.startDate,
-                endDate: edu.endDate,
-                description: edu.description
-              })) 
-            : emptyEducation,
-          experiences: Array.isArray(cvData.experiences) && cvData.experiences.length > 0 
-            ? Array.from(cvData.experiences).map(exp => ({
-                company: exp.company,
-                position: exp.title,
-                startDate: exp.startDate,
-                endDate: exp.endDate,
-                description: exp.description
-              })) 
-            : emptyExperiences,
-          skills: Array.isArray(cvData.skills) && cvData.skills.length > 0 
-            ? Array.from(cvData.skills).map(skill => ({
-                name: skill,
-                level: 80 // Niveau par défaut
-              })) 
-            : emptySkills,
-          language: 'fr', // Langue par défaut
-          template: cvData.template
-        },
-        price: price, // Prix du CV selon le type (standard ou optimisé par l'IA)
-        referralCode: referralCode || null,
-        paymentToken: transactionId || 'direct-payment',
-        pdfUrl: null // Sera généré côté client
-      };
-      
-      // Logs détaillés des données envoyées au serveur
-      console.log('========== DÉBUT LOGS DONNÉES ENVOYÉES AU SERVEUR ==========');
-      console.log('URL:', 'https://studyia-career-backend.onrender.com/api/cv/purchase');
-      console.log('Méthode:', 'POST');
-      console.log('Headers:', { 'Content-Type': 'application/json' });
-      console.log('Données complètes:', paymentData);
-      console.log('personalInfo:', paymentData.cvData.personalInfo);
-      
-      // Logs détaillés des tableaux
-      console.log('education (type):', typeof paymentData.cvData.education);
-      console.log('education (isArray):', Array.isArray(paymentData.cvData.education));
-      console.log('education (length):', paymentData.cvData.education.length);
-      console.log('education (contenu):', paymentData.cvData.education);
-      
-      console.log('experiences (type):', typeof paymentData.cvData.experiences);
-      console.log('experiences (isArray):', Array.isArray(paymentData.cvData.experiences));
-      console.log('experiences (length):', paymentData.cvData.experiences.length);
-      console.log('experiences (contenu):', paymentData.cvData.experiences);
-      
-      console.log('skills (type):', typeof paymentData.cvData.skills);
-      console.log('skills (isArray):', Array.isArray(paymentData.cvData.skills));
-      console.log('skills (length):', paymentData.cvData.skills.length);
-      console.log('skills (contenu):', paymentData.cvData.skills);
-      
-      console.log('price:', paymentData.price);
-      console.log('referralCode:', paymentData.referralCode);
-      console.log('paymentToken:', paymentData.paymentToken);
-      console.log('========== FIN LOGS DONNÉES ENVOYÉES AU SERVEUR ==========');
-      
-      // Envoyer les données au backend
-      try {
-        // Sérialiser et désérialiser les données pour s'assurer que les tableaux sont correctement formatés
-        const serializedData = JSON.stringify(paymentData);
-        console.log('Données sérialisées (CV standard):', serializedData);
+      if (uploadResult.success && uploadResult.url) {
+        console.log('🎉 PDF uploadé avec succès sur le serveur !');
+        console.log(`🔗 URL: ${uploadResult.url}`);
         
-        // Utiliser l'instance axios configurée pour une meilleure gestion des erreurs
-        const response = await fetch('https://studyia-career-backend.onrender.com/api/cv/purchase', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: serializedData
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          console.log('========== DÉBUT LOGS RÉPONSE SERVEUR ==========');
-          console.log('[Achat CV] Succès:', result);
-          console.log('Status:', response.status);
-          console.log('Réponse complète:', result);
-          console.log('========== FIN LOGS RÉPONSE SERVEUR ==========');
-          
-          if (referralCode) {
-            console.log(`[Parrainage] Commission attribuée pour le code: ${referralCode}`);
-            // Enregistrer la conversion pour l'associé
-            trackConversion('public', {
-              email: cvData.personalInfo.email,
-              name: `${cvData.personalInfo.firstName} ${cvData.personalInfo.lastName}`
-            });
+        // Vérifier si le PDF est vraiment accessible
+        setTimeout(async () => {
+          const isAccessible = await RealPDFUploader.verifyPDFExists(uploadResult.url!);
+          if (isAccessible) {
+            console.log('✅ PDF accessible via l\'URL - Vous pouvez l\'ouvrir dans votre navigateur !');
+          } else {
+            console.log('⚠️ PDF pas encore accessible (peut-être besoin de configurer le serveur)');
           }
-          
-          // Ne pas afficher de toast de succès pour l'enregistrement
-        } else {
-          // Continuer silencieusement pour permettre le téléchargement
-          const errorText = await response.text();
-          console.log('========== DÉBUT LOGS ERREUR SERVEUR ==========');
-          console.error('[Achat CV] Erreur:', errorText);
-          console.log('Status:', response.status);
-          console.log('Message d’erreur:', errorText);
-          console.log('========== FIN LOGS ERREUR SERVEUR ==========');
-          
-          // Ne pas afficher de toast d'erreur à l'utilisateur
-        }
-      } catch (apiError) {
-        // Juste logger l'erreur en console sans afficher de message à l'utilisateur
-        console.error('[Achat CV] Erreur réseau:', apiError);
+        }, 2000);
         
-        // Enregistrer silencieusement l'achat en local
-        try {
-          const pendingPurchases = JSON.parse(localStorage.getItem('pendingPurchases') || '[]');
-          pendingPurchases.push({
-            ...paymentData,
-            timestamp: new Date().toISOString()
-          });
-          localStorage.setItem('pendingPurchases', JSON.stringify(pendingPurchases));
-        } catch (storageError) {
-          console.error('[Achat CV] Erreur de stockage local:', storageError);
-        }
-      }
-
-      // Générer le PDF et attendre que le téléchargement soit initialisé
-      try {
-        await generatePDF(cvData, pdfTranslations);
+        // Continuer avec le téléchargement normal
+        await generatePDF(cvData);
         
         toast({ 
           title: t('builder.preview.downloadSuccess'), 
           description: t('builder.preview.downloadSuccessDesc')
         });
         
-        // Rediriger vers la page d'accueil après un délai plus long pour s'assurer que le téléchargement a commencé
+        // Rediriger vers la page d'accueil après le téléchargement
         setTimeout(() => {
           navigate('/');
-        }, 5000);
+        }, 3000);
+        
+      } else {
+        console.log('⚠️ Upload échoué, mais URL générée pour test');
+        console.log(`🔗 URL de test: ${uploadResult.url}`);
+        
+        // Continuer avec le téléchargement normal même si l'upload échoue
+        await generatePDF(cvData);
+        
+        toast({ 
+          title: t('builder.preview.downloadSuccess'), 
+          description: t('builder.preview.downloadSuccessDesc')
+        });
+        
+        // Rediriger vers la page d'accueil après le téléchargement
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'upload:', error);
+      
+      // Fallback: téléchargement normal
+      try {
+        await generatePDF(cvData);
+        
+        toast({ 
+          title: t('builder.preview.downloadSuccess'), 
+          description: t('builder.preview.downloadSuccessDesc')
+        });
+        
+        // Rediriger vers la page d'accueil après le téléchargement
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
       } catch (pdfError) {
         console.error("Erreur spécifique lors de la génération du PDF:", pdfError);
         toast({
@@ -1095,13 +995,6 @@ const BuilderPage = () => {
           variant: "destructive",
         });
       }
-    } catch (error) {
-      console.error("Erreur lors de la génération du PDF:", error);
-      toast({
-        title: t('errors.pdfError'),
-        description: t('builder.preview.downloadError'),
-        variant: "destructive",
-      });
     }
   };
 
@@ -1443,7 +1336,7 @@ const BuilderPage = () => {
       
       // Générer le PDF après la fermeture du dialogue
       try {
-        await generatePDF(suggestedCvData, pdfTranslations);
+        await generatePDF(suggestedCvData);
         toast({ 
           title: t('builder.preview.downloadSuccess'), 
           description: t('builder.preview.downloadSuccessDesc')
