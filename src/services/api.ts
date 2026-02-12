@@ -4,7 +4,7 @@ import axios from 'axios';
 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('192.168');
 
 // URL de base de l'API - utiliser le proxy local en développement
-const baseURL = isDev ? '/api' : 'https://studyia-career-backend.onrender.com/api';
+const baseURL = isDev ? '/api' : 'https://studyiacareer-backend-qpmpz.ondigitalocean.app/api';
 
 const api = axios.create({
   baseURL,

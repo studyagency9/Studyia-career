@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'https://studyia-career-backend.onrender.com',
+        target: 'https://studyiacareer-backend-qpmpz.ondigitalocean.app',
         changeOrigin: true,
         secure: false,
         headers: {
