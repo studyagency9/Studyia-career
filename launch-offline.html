@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studyia Career - Mode Offline</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        .status {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .launch-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .launch-btn:hover {
+            transform: scale(1.05);
+        }
+        .offline-badge {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .instructions {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">Studyia Career</div>
+        <div class="offline-badge">🌐 Mode Offline</div>
+        <div class="status">
+            Prêt à lancer l'application sans connexion internet
+        </div>
+        
+        <button class="launch-btn" onclick="launchApp()">
+            🚀 Lancer l'Application
+        </button>
+        
+        <div class="instructions">
+            <h3>📋 Mode d'emploi :</h3>
+            <ul>
+                <li><strong>Identifiant Admin :</strong> admin@studyia.net</li>
+                <li><strong>Mot de passe :</strong> admin123</li>
+                <li><strong>Mode :</strong> Fonctionnement 100% offline</li>
+                <li><strong>Fonctionnalités :</strong> Dashboard, création de CV, navigation</li>
+                <li><strong>Limitations :</strong> Pas de sauvegarde distante</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 30px; font-size: 0.9em; color: #999;">
+            💡 Cette version fonctionne sans internet et sans terminal
+        </div>
+    </div>
+
+    <script>
+        function launchApp() {
+            // Ouvrir l'application dans une nouvelle fenêtre
+            const appWindow = window.open(
+                './dist/index.html',
+                'StudyiaCareer',
+                'width=1200,height=800,scrollbars=yes,resizable=yes'
+            );
+            
+            if (!appWindow) {
+                alert('🚫 Popup bloqué !\n\nAutorisez les popups pour ce site ou\nutilisez le bouton ci-dessous :');
+                document.getElementById('fallback-link').style.display = 'block';
+            } else {
+                // Fermer cette page après 2 secondes
+                setTimeout(() => {
+                    window.close();
+                }, 2000);
+            }
+        }
+        
+        // Lancement automatique après 3 secondes
+        setTimeout(() => {
+            console.log('🚀 Lancement automatique de Studyia Career...');
+            launchApp();
+        }, 3000);
+    </script>
+</body>
+</html>

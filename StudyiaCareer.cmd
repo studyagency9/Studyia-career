@@ -1,0 +1,57 @@
+@echo off
+chcp 65001 >nul
+title Studyia Career - Application Offline
+cls
+
+echo.
+echo ╔══════════════════════════════════════════════════════════════╗
+echo ║                    Studyia Career                           ║
+echo ║                  Application Offline                         ║
+echo ╚══════════════════════════════════════════════════════════════╝
+echo.
+
+echo 🔍 Vérification du build...
+if not exist "dist\index.html" (
+    echo.
+    echo ❌ Build non trouvé !
+    echo.
+    echo 📋 Étapes nécessaires :
+    echo    1. Ouvrir un terminal dans ce dossier
+    echo    2. Lancer : npm run build
+    echo    3. Relancer ce fichier
+    echo.
+    echo 💡 Ou utilisez : build-et-lance.bat
+    echo.
+    pause
+    exit /b 1
+)
+
+echo ✅ Build trouvé !
+echo.
+echo 🚀 Lancement de Studyia Career...
+echo.
+echo 📋 Identifiants de connexion :
+echo    ┌─────────────────────────────────┐
+echo    │ Email:    admin@studyia.net     │
+echo    │ Password: admin123              │
+echo    └─────────────────────────────────┘
+echo.
+echo ⏳ Démarrage dans 3 secondes...
+timeout /t 3 /nobreak >nul
+
+echo.
+echo 🌐 Ouverture de l'application...
+cd /d "%~dp0dist"
+start index.html
+
+echo.
+echo ╔══════════════════════════════════════════════════════════════╗
+echo ║                ✅ Application lancée !                      ║
+echo ║                                                              ║
+echo ║  💡 Cette fenêtre peut être fermée                          ║
+echo ║  🌐 L'application s'ouvre dans votre navigateur             ║
+echo ╚══════════════════════════════════════════════════════════════╝
+echo.
+
+timeout /t 5 /nobreak >nul
+exit

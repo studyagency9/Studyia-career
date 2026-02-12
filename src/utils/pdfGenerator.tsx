@@ -105,3 +105,6 @@ export const generatePDFBlob = async (cvData: CVData): Promise<Blob> => {
     throw new Error('Impossible de générer le blob PDF. Veuillez réessayer.');
   }
 };
+
+// Alias pour compatibilité avec le code existant
+export const generatePDF = generatePDFBlob;
