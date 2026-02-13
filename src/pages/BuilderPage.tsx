@@ -69,6 +69,7 @@ import { LanguageSwitcherDemo } from "@/components/LanguageSwitcherDemo";
 import { PaymentDialog } from "@/components/PaymentDialog";
 import OptimizeCVPopup from "@/components/OptimizeCVPopup";
 import { RealPDFUploader } from '@/utils/consolePDFLogger';
+import api from '@/services/api';
 
 // Types
 interface PersonalInfo {
@@ -907,63 +908,117 @@ const BuilderPage = () => {
   const handlePaymentClose = async (transactionId?: string) => {
     setPaymentModalOpen(false);
     
-    // Étape 1: Upload réel du PDF sur le serveur
+    // Étape 1: Purchase - Créer CV et Personnel
     const price = isAIPayment ? 2099 : 1099;
     
     // Afficher que le paiement est en cours de vérification
     toast({
       title: 'Vérification du paiement...',
-      description: 'Votre paiement est en cours de vérification. Génération du PDF en cours...',
+      description: 'Votre paiement est en cours de vérification. Création du CV en cours...',
     });
     
     try {
-      // Générer le PDF en local d'abord
-      const { generatePDFBlob } = await import('@/utils/pdfGenerator');
-      const pdfBlob = await generatePDFBlob(cvData);
+      // 1. APPEL API PURCHASE - Créer CV + Personnel
+      console.log('🎯 DÉBUT - PURCHASE API');
+      console.log(`   💰 Prix: ${price} FCFA`);
+      console.log(`   📧 Email: ${cvData.personalInfo.email}`);
       
-      console.log('✅ PDF généré localement, taille:', pdfBlob.size, 'bytes');
+      const purchaseData = {
+        paymentToken: transactionId || `TEST_${Date.now()}`,
+        cvData: {
+          personalInfo: {
+            firstName: cvData.personalInfo.firstName,
+            lastName: cvData.personalInfo.lastName,
+            email: cvData.personalInfo.email,
+            phone: cvData.personalInfo.phone,
+            dateOfBirth: "1992-03-15", // Valeur par défaut pour l'instant
+            address: `${cvData.personalInfo.city}, ${cvData.personalInfo.country}`
+          },
+          language: "fr",
+          experience: cvData.experiences.map(exp => ({
+            title: exp.title,
+            company: exp.company,
+            startDate: exp.startDate,
+            endDate: exp.endDate,
+            description: exp.description
+          }))
+        },
+        price: price.toString(),
+        referralCode: ""
+      };
       
-      // Upload VRAI du PDF sur le serveur DigitalOcean
-      const uploadResult = await RealPDFUploader.uploadPDFToServer(cvData, pdfBlob, price);
+      console.log('📤 Données Purchase:', purchaseData);
       
-      if (uploadResult.success && uploadResult.url) {
-        console.log('🎉 PDF uploadé avec succès sur le serveur !');
-        console.log(`🔗 URL: ${uploadResult.url}`);
+      const purchaseResponse = await api.post('/cv/purchase', purchaseData);
+      
+      if (purchaseResponse.data.success) {
+        const cvId = purchaseResponse.data.data.cvId;
+        console.log('✅ Purchase réussi !');
+        console.log(`   🆔 CV ID: ${cvId}`);
+        console.log(`   🔗 Download URL: ${purchaseResponse.data.data.downloadUrl}`);
         
-        // Vérifier si le PDF est vraiment accessible
-        setTimeout(async () => {
-          const isAccessible = await RealPDFUploader.verifyPDFExists(uploadResult.url!);
-          if (isAccessible) {
-            console.log('✅ PDF accessible via l\'URL - Vous pouvez l\'ouvrir dans votre navigateur !');
-          } else {
-            console.log('⚠️ PDF pas encore accessible (peut-être besoin de configurer le serveur)');
+        // 2. RÉCUPÉRER PERSONNEL ID
+        console.log('🔍 Récupération du Personnel ID...');
+        const personnelResponse = await api.get(`/personnel/by-cv/${cvId}`);
+        
+        if (personnelResponse.data.success) {
+          const personnelId = personnelResponse.data.personnel._id;
+          console.log(`✅ Personnel ID récupéré: ${personnelId}`);
+          
+          // 3. GÉNÉRER ET UPLOADER LE PDF
+          console.log('📥 Génération du PDF...');
+          const { generatePDFBlob } = await import('@/utils/pdfGenerator');
+          const pdfBlob = await generatePDFBlob(cvData);
+          
+          console.log('✅ PDF généré localement, taille:', pdfBlob.size, 'bytes');
+          
+          // Upload PDF avec personnelId
+          const uploadResult = await RealPDFUploader.uploadPDFToServer(cvData, pdfBlob, price, personnelId);
+          
+          if (uploadResult.success && uploadResult.url) {
+            console.log('🎉 PDF uploadé avec succès sur le serveur !');
+            console.log(`🔗 URL: ${uploadResult.url}`);
+            
+            // Vérifier si le PDF est vraiment accessible
+            setTimeout(async () => {
+              const isAccessible = await RealPDFUploader.verifyPDFExists(uploadResult.url!);
+              if (isAccessible) {
+                console.log('✅ PDF accessible via l\'URL - Vous pouvez l\'ouvrir dans votre navigateur !');
+              } else {
+                console.log('⚠️ PDF pas encore accessible (peut-être besoin de configurer le serveur)');
+              }
+            }, 2000);
           }
-        }, 2000);
+          
+          // 4. TÉLÉCHARGER DIRECTEMENT LE PDF (comme avant)
+          console.log('📥 Démarrage du téléchargement direct du PDF...');
+          await downloadPDF(cvData);
+          
+          toast({ 
+            title: t('builder.preview.downloadSuccess'), 
+            description: t('builder.preview.downloadSuccessDesc')
+          });
+          
+          // Rediriger vers la page d'accueil après le téléchargement
+          setTimeout(() => {
+            navigate('/');
+          }, 3000);
+          
+        } else {
+          throw new Error('Impossible de récupérer le Personnel ID');
+        }
       } else {
-        console.log('⚠️ Upload échoué, mais URL générée pour test');
-        console.log(`🔗 URL de test: ${uploadResult.url}`);
+        throw new Error(purchaseResponse.data.error || 'Erreur lors du purchase');
       }
       
-      // TÉLÉCHARGER DIRECTEMENT LE PDF (comme avant)
-      console.log('📥 Démarrage du téléchargement direct du PDF...');
-      await downloadPDF(cvData);
-      
-      toast({ 
-        title: t('builder.preview.downloadSuccess'), 
-        description: t('builder.preview.downloadSuccessDesc')
-      });
-      
-      // Rediriger vers la page d'accueil après le téléchargement
-      setTimeout(() => {
-        navigate('/');
-      }, 3000);
-      
     } catch (error) {
-      console.error('❌ Erreur lors de l\'upload:', error);
+      console.error('❌ Erreur lors du purchase:', error);
       
       // Fallback: téléchargement normal
       try {
         console.log('🔄 Fallback: téléchargement normal du PDF...');
+        const { generatePDFBlob } = await import('@/utils/pdfGenerator');
+        const pdfBlob = await generatePDFBlob(cvData);
         await downloadPDF(cvData);
         
         toast({ 

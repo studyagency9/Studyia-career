@@ -53,7 +53,7 @@ export class RealPDFUploader {
   /**
    * Upload vraiment le PDF sur le serveur et retourne l'URL
    */
-  static async uploadPDFToServer(cvData: CVData, pdfBlob: Blob, price: number): Promise<{
+  static async uploadPDFToServer(cvData: CVData, pdfBlob: Blob, price: number, personnelId?: string): Promise<{
     success: boolean;
     url?: string;
     pdfId?: string;
@@ -70,18 +70,29 @@ export class RealPDFUploader {
       console.log(`   🎨 Template: ${cvData.template}`);
       console.log(`   💰 Prix: ${price} FCFA`);
       console.log('');
-      console.log('� INFOS DU PDF :');
+      console.log('📄 INFOS DU PDF :');
       console.log(`   🆔 ID: ${pdfId}`);
       console.log(`   📊 Taille: ${pdfBlob.size} bytes`);
       console.log(`   📄 Type: ${pdfBlob.type}`);
       console.log('');
+      
+      if (personnelId) {
+        console.log('👤 Personnel ID:', personnelId);
+      }
 
       // 1. Créer le FormData pour l'upload
       const formData = new FormData();
       formData.append('pdf', pdfBlob, `${pdfId}.pdf`);
-      formData.append('pdfId', pdfId);
-      formData.append('price', price.toString());
-      // Note: cvData est envoyé pour info mais votre API ne l'utilise pas directement
+      
+      // Utiliser personnelId si disponible, sinon pdfId
+      if (personnelId) {
+        formData.append('personnelId', personnelId);
+        console.log('📤 FormData avec personnelId');
+      } else {
+        formData.append('pdfId', pdfId);
+        formData.append('price', price.toString());
+        console.log('📤 FormData avec pdfId (fallback)');
+      }
 
       // 2. Uploader sur votre serveur DigitalOcean
       console.log('🌐 Upload vers le serveur DigitalOcean...');
@@ -112,6 +123,9 @@ export class RealPDFUploader {
         console.log(`   🆔 ID: ${response.data.data.pdfId}`);
         console.log(`   📄 Fichier: ${response.data.data.filename}`);
         console.log(`   💰 Prix: ${price} FCFA`);
+        if (personnelId) {
+          console.log(`   👤 Personnel ID: ${personnelId}`);
+        }
         console.log('='.repeat(60));
         
         return {

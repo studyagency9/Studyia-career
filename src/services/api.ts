@@ -1,10 +1,7 @@
 import axios from 'axios';
 
-// Déterminer si nous sommes en développement ou en production
-const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('192.168');
-
-// URL de base de l'API - utiliser le proxy local en développement
-const baseURL = isDev ? '/api' : 'https://studyiacareer-backend-qpmpz.ondigitalocean.app/api';
+// URL de base de l'API - forcer la production pour les tests
+const baseURL = 'https://studyiacareer-backend-qpmpz.ondigitalocean.app/api';
 
 const api = axios.create({
   baseURL,
