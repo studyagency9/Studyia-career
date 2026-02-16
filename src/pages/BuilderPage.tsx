@@ -779,7 +779,7 @@ const TemplateStep = ({ value, onChange, onNext }: { value: string; onChange: (v
 };
 
 // Step 7: Final Preview
-const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, onOptimizeClick, previewRef, pdfTranslations }: { data: CVData; onStartAnalysis: () => void; onDownload: () => void; onOptimizeClick: () => void; previewRef: React.RefObject<HTMLDivElement>; pdfTranslations: any }) => {
+const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, onOptimizeClick, previewRef, pdfTranslations, isPartner = false }: { data: CVData; onStartAnalysis: () => void; onDownload: () => void; onOptimizeClick: () => void; previewRef: React.RefObject<HTMLDivElement>; pdfTranslations: any; isPartner?: boolean }) => {
   const TemplateComponent = templateComponents[data.template as keyof typeof templateComponents] || templateComponents.professional;
 
   const { t } = useTranslation();
@@ -814,17 +814,19 @@ const FinalPreviewStep = ({ data, onStartAnalysis, onDownload, onOptimizeClick, 
           <Zap className="w-5 h-5 mr-2" />
           {t('builder.preview.analyze')}
         </Button>
-        <Button size="lg" variant={data.template === 'minimal' ? 'default' : 'outline'} onClick={onDownload} className={data.template === 'minimal' ? 'bg-green-500 hover:bg-green-600 text-white' : ''}>
-          <Download className="w-5 h-5 mr-2" />
-          {data.template === 'minimal' ? 'Télécharger gratuitement' : t('builder.preview.download')}
-        </Button>
+        {!isPartner && (
+          <Button size="lg" variant={data.template === 'minimal' ? 'default' : 'outline'} onClick={onDownload} className={data.template === 'minimal' ? 'bg-green-500 hover:bg-green-600 text-white' : ''}>
+            <Download className="w-5 h-5 mr-2" />
+            {data.template === 'minimal' ? 'Télécharger gratuitement' : t('builder.preview.download')}
+          </Button>
+        )}
       </div>
     </div>
   );
 };
 
 // Main Builder Page
-const BuilderPage = () => {
+const BuilderPage = ({ isPartner = false }: { isPartner?: boolean }) => {
   const { t, language } = useTranslation();
   
   useSEO({
@@ -1468,7 +1470,7 @@ const BuilderPage = () => {
       case 4: return <EducationStep data={cvData.education} onChange={(data) => updateCVData('education', data)} />;
       case 5: return <SkillsStep data={cvData.skills} onChange={(data) => updateCVData('skills', data)} />;
       case 6: return <TemplateStep value={cvData.template} onChange={(value) => updateCVData('template', value)} onNext={handleNext} />;
-      case 7: return <FinalPreviewStep data={cvData} onStartAnalysis={() => setAnalysisModalOpen(true)} onDownload={handleDownload} onOptimizeClick={() => setShowOptimizePopup(true)} previewRef={cvPreviewRef} pdfTranslations={pdfTranslations} />;
+      case 7: return <FinalPreviewStep data={cvData} onStartAnalysis={() => setAnalysisModalOpen(true)} onDownload={handleDownload} onOptimizeClick={() => setShowOptimizePopup(true)} previewRef={cvPreviewRef} pdfTranslations={pdfTranslations} isPartner={isPartner} />;
       default: return null;
     }
   };

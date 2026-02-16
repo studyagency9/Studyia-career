@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Download } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +10,8 @@ import PartnerLayout from '@/components/partner/PartnerLayout';
 import BuilderPage from '@/pages/BuilderPage';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import api from '@/services/api';
+import { generatePDFBlob } from '@/utils/pdfGenerator';
 import {
   Dialog,
   DialogContent,
@@ -124,6 +126,113 @@ const PartnerBuilderPage = () => {
     }
   };
 
+  // Fonction pour télécharger le CV en tant que partenaire
+  const handlePartnerDownload = async () => {
+    try {
+      // Récupérer les données du CV depuis localStorage
+      const builderData = localStorage.getItem('cv_data');
+      if (!builderData) {
+        toast({
+          title: 'Erreur',
+          description: 'Aucune donnée CV trouvée',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const cvData = JSON.parse(builderData);
+      
+      // Afficher le toast de début de processus
+      toast({
+        title: 'Génération en cours...',
+        description: 'Génération du PDF et création du CV...',
+      });
+
+      console.log('🎯 DÉBUT - TÉLÉCHARGEMENT PARTENAIRE');
+      console.log('============================================================');
+      console.log('📋 INFOS DU CV :');
+      console.log(`   👤 Nom: ${cvData.personalInfo?.firstName} ${cvData.personalInfo?.lastName}`);
+      console.log(`   📧 Email: ${cvData.personalInfo?.email}`);
+      console.log(`   🎨 Template: ${cvData.template}`);
+      console.log('');
+
+      // 1. Générer le PDF en local
+      console.log('📥 Génération du PDF...');
+      const pdfBlob = await generatePDFBlob(cvData);
+      console.log('✅ PDF généré localement, taille:', pdfBlob.size, 'bytes');
+
+      // 2. Créer une URL temporaire pour le PDF
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      console.log('🔗 URL temporaire PDF créée');
+
+      // 3. Préparer les données pour l'API partenaire
+      const partnerData = {
+        name: `CV ${cvData.personalInfo?.firstName} ${cvData.personalInfo?.lastName} - ${cvData.targetJob || 'Professionnel'}`,
+        language: localStorage.getItem('language') || 'fr',
+        data: {
+          personalInfo: {
+            firstName: cvData.personalInfo?.firstName || '',
+            lastName: cvData.personalInfo?.lastName || '',
+            email: cvData.personalInfo?.email || '',
+            phoneNumber: cvData.personalInfo?.phone || '',
+            dateOfBirth: "1990-01-01", // Valeur par défaut
+            gender: "M", // Valeur par défaut
+            position: cvData.targetJob || 'Professionnel',
+            address: `${cvData.personalInfo?.city || ''}, ${cvData.personalInfo?.country || ''}`
+          },
+          experiences: cvData.experiences || [],
+          education: cvData.education || [],
+          skills: cvData.skills || [],
+          template: cvData.template || 'modern'
+        },
+        pdfUrl: pdfUrl // URL temporaire pour le PDF
+      };
+
+      console.log('📤 Données partenaire:', partnerData);
+
+      // 4. Appeler l'API partenaire
+      console.log('🌐 Appel API /api/cvs/partner/create...');
+      const response = await api.post('/cvs/partner/create', partnerData);
+
+      if (response.data.success) {
+        console.log('✅ CV créé avec succès !');
+        console.log('   🆔 CV ID:', response.data.data.cv._id);
+        console.log('   📊 Quota utilisé:', response.data.data.quotaInfo.used);
+        console.log('   📊 Quota restant:', response.data.data.quotaInfo.remaining);
+
+        // 5. Télécharger le PDF localement pour le client
+        const a = document.createElement('a');
+        a.href = pdfUrl;
+        a.download = `CV_${cvData.personalInfo?.firstName}_${cvData.personalInfo?.lastName}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Nettoyer l'URL temporaire
+        URL.revokeObjectURL(pdfUrl);
+
+        toast({
+          title: 'CV créé avec succès !',
+          description: `CV enregistré et téléchargé. Quota restant: ${response.data.data.quotaInfo.remaining}`,
+        });
+
+        console.log('🎉 TÉLÉCHARGEMENT PARTENAIRE TERMINÉ AVEC SUCCÈS');
+        console.log('='.repeat(60));
+
+      } else {
+        throw new Error(response.data.error || 'Erreur lors de la création du CV');
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur lors du téléchargement partenaire:', error);
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleNameSubmit = () => {
     if (cvName.trim()) {
       setShowSaveDialog(false);
@@ -160,19 +269,30 @@ const PartnerBuilderPage = () => {
               </div>
             </div>
 
-            <Button
-              onClick={handleSave}
-              className="bg-gradient-to-r from-primary to-blue-bright hover:shadow-lg hover:shadow-primary/50 transition-all"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {t('home.partner.builder.save')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleSave}
+                className="bg-gradient-to-r from-primary to-blue-bright hover:shadow-lg hover:shadow-primary/50 transition-all"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {t('home.partner.builder.save')}
+              </Button>
+              
+              <Button
+                onClick={handlePartnerDownload}
+                variant="outline"
+                className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Télécharger
+              </Button>
+            </div>
           </div>
         </motion.div>
 
         {/* Builder Content */}
         <div className="bg-background">
-          <BuilderPage />
+          <BuilderPage isPartner={true} />
         </div>
 
         {/* Name Dialog */}
