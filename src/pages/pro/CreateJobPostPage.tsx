@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { jobPostsService } from '@/services/jobPostsService';
+import type { CreateJobPostData } from '@/types/jobPost';
 import {
   Select,
   SelectContent,
@@ -46,7 +48,6 @@ import { getAllCountryNames, searchCities } from '@/data/countriesAndCities';
 import { jobDescriptionTemplates, generateJobDescription, completeManualDescription } from '@/data/jobTemplates';
 import { jobOfferParsingService } from '@/services/jobOfferParsingService';
 import type { 
-  CreateJobPostData, 
   ExperienceLevel, 
   EducationLevel, 
   ContractType,
@@ -65,6 +66,7 @@ const CreateJobPostPage = () => {
   const [useTemplate, setUseTemplate] = useState<boolean | null>(null);
   const [pastedJobOffer, setPastedJobOffer] = useState('');
   const [isParsing, setIsParsing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [analysisStage, setAnalysisStage] = useState<'analyzing' | 'extracting' | 'completing'>('analyzing');
   const [formData, setFormData] = useState<Partial<CreateJobPostData & {
     languageRequirement: LanguageRequirement;
@@ -242,13 +244,82 @@ const CreateJobPostPage = () => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Creating job post:', formData);
-    toast({
-      title: '✨ Offre créée avec succès !',
-      description: 'Vous pouvez maintenant recevoir et filtrer les CV',
-    });
-    navigate('/pro/jobs');
+  const handleSubmit = async () => {
+    try {
+      console.log('🚀 Création de l\'offre d\'emploi...', formData);
+      
+      // Validation des champs obligatoires
+      if (!formData.title || !formData.company || !formData.description) {
+        toast({
+          title: '❌ Erreur',
+          description: 'Veuillez remplir tous les champs obligatoires',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      // Préparer les données pour l'API
+      const jobPostData: CreateJobPostData = {
+        title: formData.title,
+        description: formData.description,
+        company: formData.company,
+        city: formData.city,
+        country: formData.country,
+        remote: formData.remote,
+        requiredSkills: formData.requiredSkills || [],
+        optionalSkills: formData.optionalSkills || [],
+        education: formData.education || [],
+        experience: formData.experience,
+        minYearsExperience: formData.minYearsExperience || 0,
+        contractType: formData.contractType,
+        salaryMin: formData.salaryMin,
+        salaryMax: formData.salaryMax,
+        currency: formData.currency || 'XOF',
+        deadline: formData.deadline,
+        startDate: formData.startDate,
+        status: formData.status || 'active',
+        isUrgent: formData.isUrgent || false,
+        languageRequirement: formData.languageRequirement || 'none',
+        gender: formData.gender || 'any',
+        maritalStatus: formData.maritalStatus || 'any',
+        minAge: formData.minAge,
+        maxAge: formData.maxAge,
+        childrenAccepted: formData.childrenAccepted !== false,
+        drivingLicense: formData.drivingLicense || 'not_required',
+        contactEmail: formData.contactEmail,
+        contactPhone: formData.contactPhone,
+        contactWhatsApp: formData.contactWhatsApp,
+        contactAddress: formData.contactAddress,
+        contactWebsite: formData.contactWebsite,
+      };
+
+      console.log('📤 Envoi des données à l\'API:', jobPostData);
+
+      // Appel API pour créer l'offre
+      const createdJobPost = await jobPostsService.createJobPost(jobPostData);
+      
+      console.log('✅ Offre créée avec succès:', createdJobPost);
+
+      toast({
+        title: '✨ Offre créée avec succès !',
+        description: 'Vous pouvez maintenant recevoir et filtrer les CV',
+      });
+
+      // Rediriger vers la page des offres
+      navigate('/pro/jobs');
+
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la création de l\'offre:', error);
+      toast({
+        title: '❌ Erreur',
+        description: error.message || 'Impossible de créer l\'offre. Veuillez réessayer.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePasteAndParse = async () => {

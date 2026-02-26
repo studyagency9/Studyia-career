@@ -9,6 +9,7 @@ export type DrivingLicense = 'required' | 'preferred' | 'not_required';
 
 export interface JobPost {
   id: string;
+  _id?: string; // MongoDB ID
   title: string;
   description: string;
   descriptionTemplateId?: number;
@@ -62,8 +63,8 @@ export interface JobPost {
   updatedAt: string;
   publishedAt?: string;
   
-  // Statistics
-  stats: JobPostStats;
+  // Statistics (optional, may not be returned by all endpoints)
+  stats?: JobPostStats;
 }
 
 export interface JobPostStats {
@@ -95,7 +96,15 @@ export interface CreateJobPostData {
   currency?: string;
   deadline: string;
   startDate?: string;
+  status?: JobStatus;
   isUrgent?: boolean;
+  languageRequirement?: LanguageRequirement;
+  gender?: Gender;
+  maritalStatus?: MaritalStatus;
+  minAge?: number;
+  maxAge?: number;
+  childrenAccepted?: boolean;
+  drivingLicense?: DrivingLicense;
   contactEmail?: string;
   contactPhone?: string;
   contactWhatsApp?: string;

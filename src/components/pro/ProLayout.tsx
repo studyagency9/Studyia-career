@@ -1,20 +1,27 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, BarChart3, Settings, Sparkles, Bell, User, Briefcase } from 'lucide-react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, Settings, Sparkles, Bell, User, Briefcase, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useTranslation } from '@/i18n/i18nContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ProLayout = () => {
   const { t } = useTranslation();
+  const { partner, logout } = useAuth();
+  const navigate = useNavigate();
   
   const navItems = [
     { name: t('pro.common.dashboard'), href: '/pro/dashboard', icon: LayoutDashboard },
     { name: 'Offres', href: '/pro/jobs', icon: Briefcase },
     { name: t('pro.common.pipeline'), href: '/pro/pipeline', icon: Users },
-    { name: t('pro.common.analytics'), href: '/pro/analytics', icon: BarChart3 },
     { name: t('pro.common.settings'), href: '/pro/settings', icon: Settings },
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/partner/login');
+  };
 
   return (
     <div className="min-h-screen w-full flex bg-gray-50 text-gray-800">
@@ -71,18 +78,29 @@ const ProLayout = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="p-4 border-t border-white/10"
+          className="p-4 border-t border-white/10 space-y-3"
         >
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0">
               <User className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-white">Admin User</p>
-              <p className="text-xs text-gray-400">admin@studyia.net</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">
+                {partner?.firstName} {partner?.lastName}
+              </p>
+              <p className="text-xs text-gray-400 truncate">{partner?.email}</p>
             </div>
           </div>
-          <p className="text-xs text-center text-gray-500 mt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="w-full justify-start gap-2 text-gray-300 hover:text-white hover:bg-white/10"
+          >
+            <LogOut className="w-4 h-4" />
+            Déconnexion
+          </Button>
+          <p className="text-xs text-center text-gray-500 mt-2">
             &copy; 2026 Studyia Career
           </p>
         </motion.div>

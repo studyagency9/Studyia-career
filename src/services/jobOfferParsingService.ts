@@ -91,7 +91,8 @@ STRUCTURE JSON ATTENDUE (RESPECTE EXACTEMENT CES CHAMPS):
 RÈGLES D'EXTRACTION:
 - Si le titre n'est pas clair, déduis-le du contexte
 - Si l'entreprise n'est pas mentionnée, mets "Entreprise confidentielle"
-- Pour les compétences, extrais TOUTES les compétences techniques et soft skills mentionnées
+- Pour les compétences requises, extrais les 8 à 10 compétences les PLUS IMPORTANTES uniquement (priorise les compétences techniques essentielles)
+- Pour les compétences optionnelles, limite à 5 maximum
 - Pour l'éducation, mappe les diplômes vers les valeurs: Bac → 'high_school', Licence/Bachelor → 'bachelor', Master/Maîtrise → 'master', Doctorat/PhD → 'phd'
 - Pour l'expérience, analyse les années mentionnées et choisis le niveau approprié
 - Si "bilingue" ou "français et anglais" est mentionné → 'bilingual'
@@ -141,8 +142,8 @@ RETOURNE UNIQUEMENT LE JSON, RIEN D'AUTRE.`;
         city: parsed.city || '',
         country: parsed.country || '',
         remote: parsed.remote || false,
-        requiredSkills: parsed.requiredSkills || [],
-        optionalSkills: parsed.optionalSkills || [],
+        requiredSkills: (parsed.requiredSkills || []).slice(0, 10), // Limite à 10 compétences max
+        optionalSkills: (parsed.optionalSkills || []).slice(0, 5), // Limite à 5 compétences optionnelles max
         education: parsed.education || [],
         experience: parsed.experience || 'mid',
         minYearsExperience: parsed.minYearsExperience || 0,

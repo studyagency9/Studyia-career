@@ -1,64 +1,78 @@
 import { StatCard } from '@/components/pro/StatCard';
-import { Users, Briefcase, TrendingUp, Clock } from 'lucide-react';
+import { Users, Briefcase, TrendingUp, Clock, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/i18n/i18nContext';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { analyticsService } from '@/services/analyticsService';
+import { jobPostsService } from '@/services/jobPostsService';
 
 const DashboardPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { partner } = useAuth();
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [recentJobs, setRecentJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        // Fetch analytics data
+        const analytics = await analyticsService.getDashboard('month');
+        setDashboardData(analytics);
+
+        // Fetch recent job posts
+        const { jobPosts } = await jobPostsService.getJobPosts({
+          status: 'active',
+          limit: 3,
+        });
+        setRecentJobs(jobPosts);
+      } catch (error) {
+        console.error('Erreur lors du chargement du dashboard:', error);
+        // Fallback to mock data if API fails
+        setDashboardData({
+          totalApplications: 0,
+          activeJobPosts: 0,
+          averageScore: 0,
+          newApplications: 0,
+        });
+        setRecentJobs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   const stats = [
     {
       title: t('pro.dashboard.totalCandidates'),
-      value: '1,247',
+      value: loading ? '...' : dashboardData?.totalApplications?.toString() || '0',
       icon: Users,
-      trend: { value: 12, isPositive: true },
       color: 'blue' as const,
     },
     {
       title: t('pro.dashboard.activePosts'),
-      value: '23',
+      value: loading ? '...' : dashboardData?.activeJobPosts?.toString() || '0',
       icon: Briefcase,
-      trend: { value: 3, isPositive: true },
       color: 'green' as const,
     },
     {
       title: t('pro.dashboard.avgScore'),
-      value: '76%',
+      value: loading ? '...' : `${dashboardData?.averageScore || 0}%`,
       icon: TrendingUp,
-      trend: { value: 5, isPositive: true },
       color: 'purple' as const,
     },
     {
-      title: t('pro.dashboard.timeToHire'),
-      value: '14d',
+      title: 'Nouvelles candidatures',
+      value: loading ? '...' : dashboardData?.newApplications?.toString() || '0',
       icon: Clock,
-      trend: { value: 2, isPositive: false },
       color: 'orange' as const,
-    },
-  ];
-
-  const recentPosts = [
-    {
-      id: 1,
-      title: 'Senior Software Engineer',
-      candidates: 45,
-      status: 'active',
-      deadline: '2026-03-15',
-    },
-    {
-      id: 2,
-      title: 'Product Manager',
-      candidates: 32,
-      status: 'active',
-      deadline: '2026-03-20',
-    },
-    {
-      id: 3,
-      title: 'UX Designer',
-      candidates: 28,
-      status: 'active',
-      deadline: '2026-03-18',
     },
   ];
 
@@ -67,12 +81,20 @@ const DashboardPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('pro.dashboard.title')}</h1>
-          <p className="mt-2 text-gray-600">
-            {t('pro.dashboard.subtitle')}
-          </p>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Bonjour, {partner?.firstName} {partner?.lastName}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2 text-gray-600">
+            <Building2 className="w-4 h-4" />
+            <p className="font-medium">{partner?.company}</p>
+          </div>
         </div>
-        <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+        <Button 
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+          onClick={() => navigate('/pro/jobs/create')}
+        >
           {t('pro.dashboard.createPost')}
         </Button>
       </div>
@@ -88,12 +110,19 @@ const DashboardPage = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">{t('pro.dashboard.activeJobPosts')}</h2>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => navigate('/pro/jobs')}>
             {t('pro.dashboard.viewAll')}
           </Button>
         </div>
         <div className="space-y-4">
-          {recentPosts.map((post, index) => (
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Chargement...</div>
+          ) : recentJobs.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              Aucune offre active. Créez votre première offre !
+            </div>
+          ) : (
+            recentJobs.map((post, index) => (
             <motion.div
               key={post.id}
               initial={{ opacity: 0, x: -20 }}
@@ -104,19 +133,20 @@ const DashboardPage = () => {
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900">{post.title}</h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  {post.candidates} {t('pro.dashboard.candidates')} • {t('pro.dashboard.deadline')}: {post.deadline}
+                  {post.stats?.totalCandidates || 0} {t('pro.dashboard.candidates')} • {t('pro.dashboard.deadline')}: {new Date(post.deadline).toLocaleDateString('fr-FR')}
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 <span className="bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full">
                   {t('pro.dashboard.active')}
                 </span>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => navigate(`/pro/jobs/${post._id || post.id}`)}>
                   {t('pro.dashboard.view')}
                 </Button>
               </div>
             </motion.div>
-          ))}
+          ))
+          )}
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/i18n/i18nContext';
@@ -9,7 +9,8 @@ import {
   Plus, 
   Search, 
   Filter,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Briefcase
 } from 'lucide-react';
 import {
   Select,
@@ -19,124 +20,37 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { JobPost, JobStatus } from '@/types/jobPost';
+import { useJobPosts } from '@/hooks/useJobPosts';
 
 const JobPostsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { jobPosts, loading, fetchJobPosts } = useJobPosts();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<JobStatus | 'all'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'deadline' | 'candidates'>('recent');
 
-  // Mock data - À remplacer par des données réelles de l'API
-  const [jobPosts] = useState<JobPost[]>([
-    {
-      id: '1',
-      title: 'Développeur Full-Stack Senior',
-      description: 'Nous recherchons un développeur Full-Stack expérimenté pour rejoindre notre équipe technique. Vous travaillerez sur des projets innovants utilisant React, Node.js et PostgreSQL.',
-      company: 'TechCorp Sénégal',
-      city: 'Dakar',
-      country: 'Sénégal',
-      remote: true,
-      requiredSkills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'Docker'],
-      optionalSkills: ['AWS', 'Kubernetes'],
-      education: ['bachelor', 'master'],
-      experience: 'senior',
-      minYearsExperience: 5,
-      contractType: 'full_time',
-      salaryMin: 800000,
-      salaryMax: 1200000,
-      currency: 'XOF',
-      deadline: '2026-03-30',
-      startDate: '2026-04-15',
-      status: 'active',
-      isUrgent: true,
-      createdBy: 'user-1',
-      createdAt: '2026-02-20T10:00:00Z',
-      updatedAt: '2026-02-24T14:30:00Z',
-      publishedAt: '2026-02-20T10:00:00Z',
-      stats: {
-        totalCandidates: 45,
-        newCandidates: 8,
-        reviewedCandidates: 30,
-        shortlistedCandidates: 12,
-        rejectedCandidates: 3,
-        averageScore: 78,
-        topScore: 95,
-        viewCount: 234,
-      },
-    },
-    {
-      id: '2',
-      title: 'Chef de Projet Digital',
-      description: 'Pilotez nos projets digitaux de A à Z. Expérience en méthodologie Agile requise.',
-      company: 'Digital Agency',
-      city: 'Abidjan',
-      country: 'Côte d\'Ivoire',
-      remote: false,
-      requiredSkills: ['Gestion de projet', 'Agile', 'Scrum', 'Communication'],
-      optionalSkills: ['JIRA', 'Confluence'],
-      education: ['master'],
-      experience: 'mid',
-      minYearsExperience: 3,
-      contractType: 'full_time',
-      salaryMin: 600000,
-      salaryMax: 900000,
-      currency: 'XOF',
-      deadline: '2026-03-15',
-      status: 'active',
-      isUrgent: false,
-      createdBy: 'user-1',
-      createdAt: '2026-02-18T09:00:00Z',
-      updatedAt: '2026-02-18T09:00:00Z',
-      publishedAt: '2026-02-18T09:00:00Z',
-      stats: {
-        totalCandidates: 32,
-        newCandidates: 5,
-        reviewedCandidates: 25,
-        shortlistedCandidates: 8,
-        rejectedCandidates: 2,
-        averageScore: 72,
-        topScore: 88,
-        viewCount: 156,
-      },
-    },
-    {
-      id: '3',
-      title: 'Designer UX/UI',
-      description: 'Créez des expériences utilisateur exceptionnelles pour nos applications web et mobile.',
-      company: 'StartupHub',
-      city: 'Dakar',
-      country: 'Sénégal',
-      remote: true,
-      requiredSkills: ['Figma', 'Adobe XD', 'UI Design', 'UX Research', 'Prototyping'],
-      optionalSkills: ['Illustration', 'Animation'],
-      education: ['bachelor'],
-      experience: 'junior',
-      minYearsExperience: 2,
-      contractType: 'full_time',
-      salaryMin: 400000,
-      salaryMax: 700000,
-      currency: 'XOF',
-      deadline: '2026-04-10',
-      status: 'draft',
-      isUrgent: false,
-      createdBy: 'user-1',
-      createdAt: '2026-02-23T15:00:00Z',
-      updatedAt: '2026-02-24T10:00:00Z',
-      stats: {
-        totalCandidates: 0,
-        newCandidates: 0,
-        reviewedCandidates: 0,
-        shortlistedCandidates: 0,
-        rejectedCandidates: 0,
-        averageScore: 0,
-        topScore: 0,
-        viewCount: 0,
-      },
-    },
-  ]);
+  useEffect(() => {
+    console.log('🔍 JobPostsPage: Fetching job posts from API...');
+    fetchJobPosts({
+      status: statusFilter === 'all' ? undefined : statusFilter,
+      search: searchQuery || undefined,
+    }).then(() => {
+      console.log('✅ JobPostsPage: API response received, jobPosts count:', jobPosts.length);
+    }).catch((error) => {
+      console.error('❌ JobPostsPage: API error:', error);
+    });
+  }, [statusFilter]);
 
+  const handleSearch = () => {
+    fetchJobPosts({
+      status: statusFilter === 'all' ? undefined : statusFilter,
+      search: searchQuery || undefined,
+    });
+  };
+
+  // Using only real API data - no mocks
   const filteredJobs = jobPosts
     .filter(job => {
       const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -167,15 +81,11 @@ const JobPostsPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Offres d'emploi</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Mes offres d'emploi</h1>
           <p className="mt-2 text-gray-600">
-            Gérez vos offres et suivez les candidatures
+            Gérez vos offres d'emploi et suivez les candidatures
           </p>
         </div>
         <Button 
@@ -185,7 +95,7 @@ const JobPostsPage = () => {
           <Plus className="w-5 h-5" />
           Créer une offre
         </Button>
-      </motion.div>
+      </div>
 
       {/* Stats Cards */}
       <motion.div
@@ -220,14 +130,21 @@ const JobPostsPage = () => {
         className="bg-white rounded-xl shadow-sm border border-gray-100 p-4"
       >
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <Input
-              placeholder="Rechercher par titre, entreprise ou ville..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex-1 flex gap-2">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Rechercher une offre..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="pl-10"
+              />
+            </div>
+            <Button onClick={handleSearch} variant="outline" size="sm">
+              <Search className="w-4 h-4" />
+            </Button>
           </div>
           
           <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
@@ -259,23 +176,23 @@ const JobPostsPage = () => {
       </motion.div>
 
       {/* Job Posts Grid */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-      >
-        {filteredJobs.length > 0 ? (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {loading ? (
+          <div className="col-span-2 text-center py-12">
+            <div className="w-16 h-16 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-500">Chargement des offres...</p>
+          </div>
+        ) : filteredJobs.length > 0 ? (
           filteredJobs.map((job, index) => (
             <motion.div
-              key={job.id}
+              key={job._id || job.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * index }}
             >
               <JobPostCard
                 job={job}
-                onView={(id) => navigate(`/pro/pipeline?job=${id}`)}
+                onView={(id) => navigate(`/pro/jobs/${id}`)}
                 onEdit={(id) => navigate(`/pro/jobs/edit/${id}`)}
                 onArchive={(id) => console.log('Archive:', id)}
                 onDelete={(id) => console.log('Delete:', id)}
@@ -283,11 +200,28 @@ const JobPostsPage = () => {
             </motion.div>
           ))
         ) : (
-          <div className="col-span-2 text-center py-12">
-            <p className="text-gray-500">Aucune offre trouvée</p>
+          <div className="col-span-2 flex flex-col items-center justify-center py-20">
+            <div className="bg-gradient-to-br from-violet-50 to-blue-50 rounded-full p-6 mb-6">
+              <Briefcase className="w-16 h-16 text-violet-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              Aucune offre d'emploi pour le moment
+            </h3>
+            <p className="text-gray-600 text-center max-w-md mb-8">
+              Commencez à recruter les meilleurs talents en créant votre première offre d'emploi. 
+              C'est simple et rapide !
+            </p>
+            <Button 
+              size="lg"
+              className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 gap-2"
+              onClick={() => navigate('/pro/jobs/create')}
+            >
+              <Plus className="w-5 h-5" />
+              Créer ma première offre
+            </Button>
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 };

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CandidateFilters } from '@/components/pro/CandidateFilters';
 import { ScoreBadge } from '@/components/pro/ScoreBadge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Mail, Eye, Download, MoreVertical } from 'lucide-react';
+import { Mail, Eye, Download, MoreVertical, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   DropdownMenu,
@@ -12,9 +13,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTranslation } from '@/i18n/i18nContext';
+import { useCandidates } from '@/hooks/useCandidates';
+import type { Candidate as APICandidate } from '@/services/candidatesService';
 
 interface Candidate {
-  id: number;
+  id: string | number;
   name: string;
   email: string;
   position: string;
@@ -28,82 +31,40 @@ interface Candidate {
 
 const PipelinePage = () => {
   const { t } = useTranslation();
-  const [selectedCandidates, setSelectedCandidates] = useState<number[]>([]);
-  const [candidates] = useState<Candidate[]>([
-    {
-      id: 1,
-      name: 'Aminata Diallo',
-      email: 'aminata.diallo@email.com',
-      position: 'Senior Software Engineer',
-      city: 'Dakar',
-      degree: 'Master',
-      experience: 5,
-      score: 92,
-      appliedDate: '2026-02-20',
-      gender: 'F',
-    },
-    {
-      id: 2,
-      name: 'Mamadou Sow',
-      email: 'mamadou.sow@email.com',
-      position: 'Product Manager',
-      city: 'Abidjan',
-      degree: 'Bachelor',
-      experience: 3,
-      score: 78,
-      appliedDate: '2026-02-19',
-      gender: 'M',
-    },
-    {
-      id: 3,
-      name: 'Fatou Ndiaye',
-      email: 'fatou.ndiaye@email.com',
-      position: 'UX Designer',
-      city: 'Douala',
-      degree: 'Master',
-      experience: 4,
-      score: 85,
-      appliedDate: '2026-02-18',
-      gender: 'F',
-    },
-    {
-      id: 4,
-      name: 'Ibrahima Kane',
-      email: 'ibrahima.kane@email.com',
-      position: 'Senior Software Engineer',
-      city: 'Dakar',
-      degree: 'PhD',
-      experience: 7,
-      score: 95,
-      appliedDate: '2026-02-17',
-      gender: 'M',
-    },
-    {
-      id: 5,
-      name: 'Aissatou Diop',
-      email: 'aissatou.diop@email.com',
-      position: 'Data Analyst',
-      city: 'Yaoundé',
-      degree: 'Master',
-      experience: 2,
-      score: 68,
-      appliedDate: '2026-02-16',
-      gender: 'F',
-    },
-  ]);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const jobId = searchParams.get('job');
+  
+  const { candidates: apiCandidates, loading } = useCandidates(jobId || '');
+  const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
+  
+  // Convert API candidates to display format - no mocks
+  const displayCandidates: Candidate[] = apiCandidates.map(c => ({
+    id: c._id,
+    name: `${c.cvData.personalInfo.firstName} ${c.cvData.personalInfo.lastName}`,
+    email: c.cvData.personalInfo.email,
+    position: c.cvData.experiences[0]?.position || 'Non spécifié',
+    city: c.cvData.personalInfo.city,
+    degree: c.cvData.education[0]?.degree || 'Non spécifié',
+    experience: c.cvData.experiences.length,
+    score: c.matchingAnalysis?.globalScore || 0,
+    appliedDate: new Date(c.createdAt).toISOString().split('T')[0],
+    gender: 'N/A',
+  }));
 
-  const toggleCandidate = (id: number) => {
+  const toggleCandidate = (id: string) => {
     setSelectedCandidates((prev) =>
       prev.includes(id) ? prev.filter((cId) => cId !== id) : [...prev, id]
     );
   };
 
   const toggleAll = () => {
-    setSelectedCandidates(
-      selectedCandidates.length === candidates.length
-        ? []
-        : candidates.map((c) => c.id)
-    );
+    if (selectedCandidates.length === displayCandidates.length) {
+      setSelectedCandidates([]);
+    } else {
+      const ids: string[] = displayCandidates.map((c) => String(c.id));
+      setSelectedCandidates(ids);
+    }
   };
 
   const handleFilterChange = (filters: any) => {
@@ -115,9 +76,9 @@ const PipelinePage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('pro.pipeline.title')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Pipeline de candidats</h1>
           <p className="mt-2 text-gray-600">
-            {t('pro.pipeline.subtitle')}
+            Gérez et suivez vos candidats
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -145,7 +106,7 @@ const PipelinePage = () => {
               <tr>
                 <th className="px-6 py-4 text-left">
                   <Checkbox
-                    checked={selectedCandidates.length === candidates.length}
+                    checked={selectedCandidates.length === displayCandidates.length && displayCandidates.length > 0}
                     onCheckedChange={toggleAll}
                   />
                 </th>
@@ -176,7 +137,35 @@ const PipelinePage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {candidates.map((candidate, index) => (
+              {loading ? (
+            <tr>
+              <td colSpan={9} className="text-center py-12">
+                <div className="flex flex-col items-center">
+                  <div className="w-12 h-12 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-gray-500">Chargement des candidats...</p>
+                </div>
+              </td>
+            </tr>
+          ) : displayCandidates.length === 0 ? (
+            <tr>
+              <td colSpan={9} className="text-center py-16">
+                <div className="flex flex-col items-center">
+                  <div className="bg-gradient-to-br from-violet-50 to-blue-50 rounded-full p-5 mb-4">
+                    <Users className="w-12 h-12 text-violet-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Aucun candidat pour le moment
+                  </h3>
+                  <p className="text-gray-600 text-sm max-w-md">
+                    {!jobId 
+                      ? 'Sélectionnez une offre d\'emploi pour voir les candidats'
+                      : 'Commencez à recevoir des candidatures en partageant votre offre d\'emploi'}
+                  </p>
+                </div>
+              </td>
+            </tr>
+          ) : (
+            displayCandidates.map((candidate, index) => (
                 <motion.tr
                   key={candidate.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -186,8 +175,8 @@ const PipelinePage = () => {
                 >
                   <td className="px-6 py-4">
                     <Checkbox
-                      checked={selectedCandidates.includes(candidate.id)}
-                      onCheckedChange={() => toggleCandidate(candidate.id)}
+                      checked={selectedCandidates.includes(String(candidate.id))}
+                      onCheckedChange={() => toggleCandidate(String(candidate.id))}
                     />
                   </td>
                   <td className="px-6 py-4">
@@ -244,7 +233,8 @@ const PipelinePage = () => {
                     </div>
                   </td>
                 </motion.tr>
-              ))}
+              ))
+          )}
             </tbody>
           </table>
         </div>
