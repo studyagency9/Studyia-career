@@ -91,6 +91,19 @@ const DashboardPage = () => {
                 {t('home.partner.dashboard.subtitle')}
               </motion.p>
             </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Link to="/pro">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all gap-2">
+                  <Sparkles className="w-5 h-5" />
+                  Accéder à Pro
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
 

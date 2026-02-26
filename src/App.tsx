@@ -31,6 +31,15 @@ const UploadCVPage = lazy(() => import("./pages/partner/UploadCVPage"));
 const PartnerBuilderPage = lazy(() => import("./pages/partner/PartnerBuilderPage"));
 const PricingPage = lazy(() => import("./pages/partner/PricingPage"));
 
+// Pro pages
+const ProLayout = lazy(() => import("./components/pro/ProLayout"));
+const ProDashboardPage = lazy(() => import("./pages/pro/DashboardPage"));
+const ProPipelinePage = lazy(() => import("./pages/pro/PipelinePage"));
+const ProAnalyticsPage = lazy(() => import("./pages/pro/AnalyticsPage"));
+const ProSettingsPage = lazy(() => import("./pages/pro/SettingsPage"));
+const JobPostsPage = lazy(() => import("./pages/pro/JobPostsPage"));
+const CreateJobPostPage = lazy(() => import("./pages/pro/CreateJobPostPage"));
+
 // Associate pages (Associés)
 const AssociateSignupPage = lazy(() => import("./pages/associate/SignupPage"));
 const AssociateLoginPage = lazy(() => import("./pages/associate/LoginPage"));
@@ -101,6 +110,17 @@ const AppRoutes = () => (
             <Route path="/partner/upload" element={<ProtectedRoute><UploadCVPage /></ProtectedRoute>} />
             <Route path="/partner/builder/:id" element={<ProtectedRoute><PartnerBuilderPage /></ProtectedRoute>} />
             <Route path="/partner/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
+            
+            {/* Pro Platform Routes */}
+            <Route path="/pro" element={<ProtectedRoute><ProLayout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<ProDashboardPage />} />
+              <Route path="pipeline" element={<ProPipelinePage />} />
+              <Route path="analytics" element={<ProAnalyticsPage />} />
+              <Route path="settings" element={<ProSettingsPage />} />
+              <Route path="jobs" element={<JobPostsPage />} />
+              <Route path="jobs/create" element={<CreateJobPostPage />} />
+            </Route>
             
             {/* Associate authentication routes */}
             <Route path="/associate/signup" element={<AssociateSignupPage />} />

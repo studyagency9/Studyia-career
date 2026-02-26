@@ -48,7 +48,6 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const t = useCallback((key: string): string => {
     const result = getNestedTranslation(translations[language], key);
-    console.log('🌍 Traduction demandée:', key, '->', result, '(langue:', language, ')');
     return result;
   }, [language]);
 

@@ -216,39 +216,53 @@ class GeminiService {
       
       // Debug: log la structure complète de la réponse
       console.log('🔍 Structure réponse Gemini API:', {
-        hasCandidates: !!result.candidates,
-        candidatesLength: result.candidates?.length || 0,
-        firstCandidate: result.candidates?.[0],
-        fullResult: result
+        isArray: Array.isArray(result),
+        length: Array.isArray(result) ? result.length : 'N/A',
+        firstElement: Array.isArray(result) ? result[0] : result
       });
       
-      // La nouvelle API retourne directement result.candidates
-      if (!result.candidates || result.candidates.length === 0) {
-        console.error('❌ Aucun candidat dans la réponse Gemini');
-        console.error('❌ Réponse complète:', JSON.stringify(result, null, 2));
-        throw new Error('Gemini API: No candidates in response');
+      // Gérer le format streaming: la réponse est un tableau de chunks
+      let combinedText = '';
+      
+      if (Array.isArray(result)) {
+        // Format streaming: concaténer tous les chunks
+        console.log('📦 Format streaming détecté, concaténation de', result.length, 'chunks');
+        
+        for (const chunk of result) {
+          if (chunk.candidates && chunk.candidates.length > 0) {
+            const candidate = chunk.candidates[0];
+            if (candidate.content && candidate.content.parts) {
+              for (const part of candidate.content.parts) {
+                if (part.text) {
+                  combinedText += part.text;
+                }
+              }
+            }
+          }
+        }
+      } else {
+        // Format non-streaming: extraction directe
+        if (!result.candidates || result.candidates.length === 0) {
+          console.error('❌ Aucun candidat dans la réponse Gemini');
+          console.error('❌ Réponse complète:', JSON.stringify(result, null, 2));
+          throw new Error('Gemini API: No candidates in response');
+        }
+        
+        const firstCandidate = result.candidates[0];
+        if (!firstCandidate.content || !firstCandidate.content.parts || firstCandidate.content.parts.length === 0) {
+          throw new Error('Gemini API: No content in candidate');
+        }
+        
+        combinedText = firstCandidate.content.parts[0].text || '';
       }
       
-      const firstCandidate = result.candidates[0];
-      if (!firstCandidate.content) {
-        console.error('❌ Pas de content dans le premier candidat');
-        throw new Error('Gemini API: No content in candidate');
-      }
-      
-      if (!firstCandidate.content.parts || firstCandidate.content.parts.length === 0) {
-        console.error('❌ Pas de parts dans le content');
-        throw new Error('Gemini API: No parts in content');
-      }
-      
-      const content = firstCandidate.content.parts[0].text || '';
-      
-      if (!content) {
+      if (!combinedText) {
         console.error('❌ Texte vide dans la réponse');
         throw new Error('Gemini API: Empty text in response');
       }
       
-      console.log('✅ Contenu Gemini extrait avec succès');
-      return content;
+      console.log('✅ Contenu Gemini extrait avec succès (', combinedText.length, 'caractères)');
+      return combinedText;
 
     } catch (error) {
       console.error('Gemini service error:', error);

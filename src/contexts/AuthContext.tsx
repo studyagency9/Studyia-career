@@ -121,6 +121,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     }
 
+    // 3. Fallback partenaire local pour les tests
+    if (email === 'partner@test.com' && password === 'PartnerTest2024') {
+      const testPartner: Partner = {
+        id: 'partner-test',
+        email: 'partner@test.com',
+        firstName: 'Partenaire',
+        lastName: 'Test',
+        company: 'Test Company',
+        plan: 'business',
+        cvUsedThisMonth: 0,
+        planRenewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active',
+        cvHistory: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      localStorage.setItem('partner_accessToken', 'partner-test-token');
+      localStorage.setItem('partner_refreshToken', 'partner-test-refresh');
+      localStorage.setItem('partner', JSON.stringify(testPartner));
+      
+      setPartner(testPartner);
+      setSavedCVs([]);
+
+      return true;
+    }
+
     return false;
   }, []);
 

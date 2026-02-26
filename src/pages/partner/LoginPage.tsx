@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSEO } from '@/hooks/useSEO';
 import { getWebPageSchema } from '@/utils/seo';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles, Shield, Zap } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles, Shield, Zap, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -43,9 +44,12 @@ const LoginPage = () => {
       if (success) {
         toast({
           title: t('home.partner.login.loginSuccess'),
-          description: t('home.partner.login.loginSuccessDesc'),
+          description: isPremium 
+            ? 'Bienvenue sur Studyia Career Pro !' 
+            : t('home.partner.login.loginSuccessDesc'),
         });
-        navigate('/partner/dashboard');
+        // Rediriger vers Pro si Premium, sinon vers Partner Dashboard
+        navigate(isPremium ? '/pro' : '/partner/dashboard');
       } else {
         toast({
           title: t('home.partner.login.loginError'),
@@ -161,6 +165,55 @@ const LoginPage = () => {
                 <h2 className="text-3xl font-bold text-foreground mb-2">{t('home.partner.login.title')}</h2>
                 <p className="text-muted-foreground">{t('home.partner.login.subtitle')}</p>
               </div>
+
+              {/* Account Type Switcher */}
+              <div className="mb-6 p-1 bg-muted rounded-xl flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setIsPremium(false)}
+                  className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                    !isPremium
+                      ? 'bg-background text-foreground shadow-md'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Shield className="w-5 h-5" />
+                  Partner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPremium(true)}
+                  className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                    isPremium
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/50'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Crown className="w-5 h-5" />
+                  Partner Premium
+                </button>
+              </div>
+
+              {/* Info Badge */}
+              {isPremium && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg border border-blue-200 dark:border-blue-800"
+                >
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-blue-900 dark:text-blue-100 text-sm">
+                        Accès à la plateforme Pro
+                      </p>
+                      <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                        Gestion avancée des candidats, analytics et pipeline de recrutement
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
