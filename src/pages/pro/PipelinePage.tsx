@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { CandidateFilters } from '@/components/pro/CandidateFilters';
 import { ScoreBadge } from '@/components/pro/ScoreBadge';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTranslation } from '@/i18n/i18nContext';
-import { useCandidates } from '@/hooks/useCandidates';
-import type { Candidate as APICandidate } from '@/services/candidatesService';
+import { candidatesService, type Candidate as APICandidate } from '@/services/candidatesService';
 
 interface Candidate {
   id: string | number;
@@ -32,11 +31,32 @@ interface Candidate {
 const PipelinePage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const jobId = searchParams.get('job');
-  
-  const { candidates: apiCandidates, loading } = useCandidates(jobId || '');
+  const [apiCandidates, setApiCandidates] = useState<APICandidate[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
+  
+  // Load ALL candidates (all jobs) on mount
+  useEffect(() => {
+    const loadAllCandidates = async () => {
+      try {
+        setLoading(true);
+        console.log('📡 Chargement de TOUS les candidats du partner...');
+        const data = await candidatesService.getAllCandidates({
+          sortBy: 'matchingAnalysis.globalScore',
+          sortOrder: 'desc'
+        });
+        console.log('✅ Candidats chargés:', data.candidates.length);
+        setApiCandidates(data.candidates);
+      } catch (error) {
+        console.error('❌ Erreur chargement candidats:', error);
+        setApiCandidates([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAllCandidates();
+  }, []);
   
   // Convert API candidates to display format - no mocks
   const displayCandidates: Candidate[] = apiCandidates.map(c => ({
@@ -157,9 +177,7 @@ const PipelinePage = () => {
                     Aucun candidat pour le moment
                   </h3>
                   <p className="text-gray-600 text-sm max-w-md">
-                    {!jobId 
-                      ? 'Sélectionnez une offre d\'emploi pour voir les candidats'
-                      : 'Commencez à recevoir des candidatures en partageant votre offre d\'emploi'}
+                    Commencez à recevoir des candidatures en partageant vos offres d'emploi
                   </p>
                 </div>
               </td>
@@ -171,7 +189,8 @@ const PipelinePage = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="hover:bg-gray-50 transition-colors"
+                  onDoubleClick={() => navigate(`/pro/candidates/${candidate.id}`)}
+                  className="hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   <td className="px-6 py-4">
                     <Checkbox
@@ -241,20 +260,22 @@ const PipelinePage = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
-          {t('pro.pipeline.showing')} <span className="font-medium">1-5</span> {t('pro.pipeline.of')}{' '}
-          <span className="font-medium">247</span> {t('pro.dashboard.candidates')}
-        </p>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            {t('pro.pipeline.previous')}
-          </Button>
-          <Button variant="outline" size="sm">
-            {t('pro.pipeline.next')}
-          </Button>
+      {displayCandidates.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-600">
+            {t('pro.pipeline.showing')} <span className="font-medium">1-{Math.min(displayCandidates.length, 20)}</span> {t('pro.pipeline.of')}{' '}
+            <span className="font-medium">{displayCandidates.length}</span> {t('pro.dashboard.candidates')}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled>
+              {t('pro.pipeline.previous')}
+            </Button>
+            <Button variant="outline" size="sm" disabled>
+              {t('pro.pipeline.next')}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

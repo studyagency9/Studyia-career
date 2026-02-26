@@ -8,8 +8,6 @@ const mapJobPost = (jobPost: any): JobPost => {
     throw new Error('JobPost data is missing from API response');
   }
   
-  console.log('🔄 mapJobPost: Mapping jobPost', { _id: jobPost._id, id: jobPost.id });
-  
   return {
     ...jobPost,
     id: jobPost._id || jobPost.id,
@@ -31,9 +29,8 @@ interface JobPostsResponse {
 
 interface JobPostResponse {
   success: boolean;
-  data: {
-    jobPost: JobPost;
-  };
+  data: any; // Flexible pour gérer data.jobPost ou data directement
+  jobPost?: JobPost; // Pour les réponses avec jobPost à la racine
 }
 
 interface JobPostStatsResponse {
@@ -56,7 +53,22 @@ class JobPostsService {
    */
   async createJobPost(data: CreateJobPostData): Promise<JobPost> {
     const response = await api.post<JobPostResponse>('/job-posts', data);
-    return mapJobPost(response.data.data.jobPost);
+    console.log('📡 Réponse createJobPost:', response);
+    console.log('📡 response.data:', response.data);
+    console.log('📡 response.data.data:', response.data.data);
+    console.log('📡 response.data.data.jobPost:', response.data.data?.jobPost);
+    
+    // Essayer différentes structures de réponse
+    if (response.data.data?.jobPost) {
+      return mapJobPost(response.data.data.jobPost);
+    } else if (response.data.jobPost) {
+      return mapJobPost(response.data.jobPost);
+    } else if (response.data.data) {
+      return mapJobPost(response.data.data);
+    } else {
+      console.error('❌ Structure de réponse API invalide');
+      throw new Error('Structure de réponse API invalide pour createJobPost');
+    }
   }
 
   /**
@@ -98,7 +110,16 @@ class JobPostsService {
     const response = await api.post<JobPostResponse>(`/job-posts/${id}/publish`);
     console.log('📡 publishJobPost API response:', response.data);
     console.log('📦 publishJobPost data.jobPost:', response.data.data?.jobPost);
-    return mapJobPost(response.data.data.jobPost);
+    
+    // Essayer différentes structures de réponse
+    if (response.data.data?.jobPost) {
+      return mapJobPost(response.data.data.jobPost);
+    } else if (response.data.data) {
+      return mapJobPost(response.data.data);
+    } else {
+      console.error('❌ Structure de réponse API invalide pour publishJobPost');
+      throw new Error('Structure de réponse API invalide pour publishJobPost');
+    }
   }
 
   /**
@@ -106,7 +127,16 @@ class JobPostsService {
    */
   async closeJobPost(id: string): Promise<JobPost> {
     const response = await api.post<JobPostResponse>(`/job-posts/${id}/close`);
-    return mapJobPost(response.data.data.jobPost);
+    
+    // Essayer différentes structures de réponse
+    if (response.data.data?.jobPost) {
+      return mapJobPost(response.data.data.jobPost);
+    } else if (response.data.data) {
+      return mapJobPost(response.data.data);
+    } else {
+      console.error('❌ Structure de réponse API invalide pour closeJobPost');
+      throw new Error('Structure de réponse API invalide pour closeJobPost');
+    }
   }
 
   /**

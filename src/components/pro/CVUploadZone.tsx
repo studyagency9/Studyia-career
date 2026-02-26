@@ -16,6 +16,8 @@ interface UploadedFile {
 
 interface CVUploadZoneProps {
   onFilesSelected: (files: File[]) => void;
+  onAnalyzeAll?: () => void;
+  isAnalyzing?: boolean;
   maxFiles?: number;
   maxSize?: number; // en MB
   className?: string;
@@ -23,11 +25,14 @@ interface CVUploadZoneProps {
 
 export const CVUploadZone = ({
   onFilesSelected,
+  onAnalyzeAll,
+  isAnalyzing = false,
   maxFiles = 10,
   maxSize = 10,
   className,
 }: CVUploadZoneProps) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const MAX_CV_LIMIT = 10;
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: any[]) => {
@@ -39,18 +44,32 @@ export const CVUploadZone = ({
         });
       }
 
+      // Vérifier la limite de 10 CV
+      const remainingSlots = MAX_CV_LIMIT - uploadedFiles.length;
+      if (remainingSlots <= 0) {
+        console.warn('⚠️ Limite de 10 CV atteinte');
+        return;
+      }
+
+      // Limiter le nombre de fichiers à ajouter
+      const filesToAdd = acceptedFiles.slice(0, remainingSlots);
+      if (filesToAdd.length < acceptedFiles.length) {
+        console.warn(`⚠️ Seulement ${filesToAdd.length} CV ajouté(s) - Limite de 10 atteinte`);
+      }
+
       // Ajouter les fichiers acceptés
-      const newFiles: UploadedFile[] = acceptedFiles.map((file) => ({
+      const newFiles: UploadedFile[] = filesToAdd.map((file) => ({
         file,
         id: Math.random().toString(36).substring(7),
         status: 'pending',
         progress: 0,
       }));
 
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-      onFilesSelected(acceptedFiles);
+      const allFiles = [...uploadedFiles, ...newFiles];
+      setUploadedFiles(allFiles);
+      onFilesSelected(allFiles.map(f => f.file));
     },
-    [onFilesSelected]
+    [onFilesSelected, uploadedFiles, MAX_CV_LIMIT]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -66,11 +85,14 @@ export const CVUploadZone = ({
   });
 
   const removeFile = (id: string) => {
-    setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
+    const updatedFiles = uploadedFiles.filter((f) => f.id !== id);
+    setUploadedFiles(updatedFiles);
+    onFilesSelected(updatedFiles.map(f => f.file));
   };
 
   const clearAll = () => {
     setUploadedFiles([]);
+    onFilesSelected([]);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -149,18 +171,26 @@ export const CVUploadZone = ({
             exit={{ opacity: 0, y: -20 }}
             className="space-y-3"
           >
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-gray-900">
-                {uploadedFiles.length} fichier{uploadedFiles.length > 1 ? 's' : ''} sélectionné{uploadedFiles.length > 1 ? 's' : ''}
-              </h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAll}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                Tout supprimer
-              </Button>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-semibold text-gray-900">
+                  {uploadedFiles.length} fichier{uploadedFiles.length > 1 ? 's' : ''} sélectionné{uploadedFiles.length > 1 ? 's' : ''}
+                </h4>
+                <div className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-xs font-medium">
+                  {uploadedFiles.length}/{MAX_CV_LIMIT}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAll}
+                  disabled={isAnalyzing}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs whitespace-nowrap"
+                >
+                  Tout supprimer
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -224,6 +254,26 @@ export const CVUploadZone = ({
                 </motion.div>
               ))}
             </div>
+
+            {/* Bouton Analyser en bas */}
+            {onAnalyzeAll && uploadedFiles.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <Button
+                  onClick={onAnalyzeAll}
+                  disabled={isAnalyzing}
+                  className="w-full bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Analyse en cours...
+                    </>
+                  ) : (
+                    `Analyser ${uploadedFiles.length > 1 ? `les ${uploadedFiles.length} CV` : 'le CV'}`
+                  )}
+                </Button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -57,7 +57,8 @@ export const JobPostCard = ({ job, onView, onEdit, onArchive, onDelete }: JobPos
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden"
+      onDoubleClick={() => onView?.(job._id || job.id)}
+      className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer"
     >
       <div className="p-6">
         {/* Header */}
@@ -90,21 +91,21 @@ export const JobPostCard = ({ job, onView, onEdit, onArchive, onDelete }: JobPos
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onView?.(job.id)}>
+                <DropdownMenuItem onClick={() => onView?.(job._id || job.id)}>
                   <Eye className="w-4 h-4 mr-2" />
                   Voir les candidats
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit?.(job.id)}>
+                <DropdownMenuItem onClick={() => onEdit?.(job._id || job.id)}>
                   <Edit className="w-4 h-4 mr-2" />
                   Modifier
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onArchive?.(job.id)}>
+                <DropdownMenuItem onClick={() => onArchive?.(job._id || job.id)}>
                   <Archive className="w-4 h-4 mr-2" />
                   Archiver
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => onDelete?.(job.id)}
+                  onClick={() => onDelete?.(job._id || job.id)}
                   className="text-red-600"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />

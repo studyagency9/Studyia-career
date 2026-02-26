@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { MatchingAnalysis } from '@/components/pro/MatchingAnalysis';
 import { ScoreBadge } from '@/components/pro/ScoreBadge';
+import { TemplateSelectionModal } from '@/components/pro/TemplateSelectionModal';
+import { convertCandidateToCVData } from '@/utils/candidateToCVData';
+import { generatePDFBlob } from '@/utils/pdfGenerator';
 import {
   ArrowLeft,
   Mail,
@@ -36,6 +39,8 @@ const CandidateDetailPage = () => {
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('cv');
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     const fetchCandidate = async () => {
@@ -77,6 +82,55 @@ const CandidateDetailPage = () => {
   const handleDownloadCV = () => {
     if (candidate?.originalFileUrl) {
       window.open(candidate.originalFileUrl, '_blank');
+    }
+  };
+
+  const handleDownloadWithTemplate = () => {
+    setIsTemplateModalOpen(true);
+  };
+
+  const handleGeneratePDF = async (templateId: string) => {
+    if (!candidate) return;
+
+    try {
+      setIsGeneratingPDF(true);
+      
+      toast({
+        title: '📝 Génération du CV',
+        description: 'Création du PDF avec le template sélectionné...',
+      });
+
+      // Convertir les données du candidat au format CVData
+      const cvData = convertCandidateToCVData(candidate, templateId);
+      
+      // Générer le PDF
+      const pdfBlob = await generatePDFBlob(cvData);
+      
+      // Télécharger le PDF
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `CV_${candidate.cvData.personalInfo.firstName}_${candidate.cvData.personalInfo.lastName}_${templateId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: '✅ CV téléchargé',
+        description: 'Le CV a été généré avec succès',
+      });
+
+      setIsTemplateModalOpen(false);
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la génération du PDF:', error);
+      toast({
+        title: '❌ Erreur',
+        description: error.message || 'Impossible de générer le PDF',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -178,8 +232,11 @@ const CandidateDetailPage = () => {
                   <Mail className="w-4 h-4" />
                   Contacter
                 </Button>
-                <Button variant="outline" onClick={handleDownloadCV} className="gap-2">
-                  <Download className="w-4 h-4" />
+                <Button 
+                  onClick={handleDownloadWithTemplate} 
+                  className="gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700"
+                >
+                  <FileText className="w-4 h-4" />
                   Télécharger CV
                 </Button>
               </div>
@@ -338,6 +395,16 @@ const CandidateDetailPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de sélection de template */}
+      <TemplateSelectionModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelectTemplate={handleGeneratePDF}
+        candidateName={`${candidate.cvData.personalInfo.firstName} ${candidate.cvData.personalInfo.lastName}`}
+        isGenerating={isGeneratingPDF}
+        cvData={candidate ? convertCandidateToCVData(candidate, 'professional') : undefined}
+      />
     </div>
   );
 };

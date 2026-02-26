@@ -26,8 +26,26 @@ api.interceptors.request.use(
   }
 );
 
-// NOTE: La logique de rafraîchissement du token a été omise pour l'instant
-// car elle nécessite une gestion plus complexe des différents types d'utilisateurs (associé/partenaire).
-// Elle pourra être ajoutée ultérieurement si nécessaire.
+// Intercepteur pour gérer les erreurs d'authentification
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si le token a expiré ou est invalide (401 Unauthorized)
+    if (error.response?.status === 401) {
+      console.log('🔒 Session expirée - Redirection vers login...');
+      
+      // Nettoyer le localStorage
+      localStorage.removeItem('associate_accessToken');
+      localStorage.removeItem('partner_accessToken');
+      localStorage.removeItem('associate_refreshToken');
+      localStorage.removeItem('partner_refreshToken');
+      
+      // Rediriger vers la page de login
+      window.location.href = '/login';
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 export default api;

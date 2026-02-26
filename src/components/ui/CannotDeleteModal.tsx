@@ -1,0 +1,128 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Archive, X, AlertCircle } from 'lucide-react';
+
+interface CannotDeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onArchive: () => void;
+  jobTitle: string;
+  candidateCount: number;
+  isArchiving?: boolean;
+}
+
+export const CannotDeleteModal = ({
+  isOpen,
+  onClose,
+  onArchive,
+  jobTitle,
+  candidateCount,
+  isArchiving = false,
+}: CannotDeleteModalProps) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            onClick={onClose}
+          />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', duration: 0.5 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+            >
+              <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 pb-8">
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                  className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, -10, 10, -10, 0] }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                  >
+                    <AlertCircle className="w-8 h-8 text-white" />
+                  </motion.div>
+                </motion.div>
+              </div>
+
+              <div className="p-6 pt-4">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+                  Impossible de supprimer
+                </h3>
+                <p className="text-gray-600 text-center mb-1">
+                  Cette offre d'emploi ne peut pas être supprimée car elle contient déjà des candidatures.
+                </p>
+                {jobTitle && (
+                  <p className="text-center mb-4">
+                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                      {jobTitle}
+                    </span>
+                  </p>
+                )}
+
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-lg font-bold text-blue-600">{candidateCount}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-blue-900 mb-1">
+                        {candidateCount} candidat{candidateCount > 1 ? 's' : ''} enregistré{candidateCount > 1 ? 's' : ''}
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        Pour préserver les données des candidats, nous vous recommandons d'archiver cette offre au lieu de la supprimer.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={isArchiving}
+                    className="flex-1 border-gray-300 hover:bg-gray-50"
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={onArchive}
+                    disabled={isArchiving}
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {isArchiving ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Archivage...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Archive className="w-4 h-4" />
+                        Archiver l'offre
+                      </div>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};

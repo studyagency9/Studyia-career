@@ -28,6 +28,8 @@ import {
   Play,
   Pause,
   Archive,
+  ChevronDown,
+  ChevronUp,
   FileText,
 } from 'lucide-react';
 import {
@@ -57,6 +59,7 @@ const JobDetailPage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStage, setAnalysisStage] = useState<'uploading' | 'extracting' | 'matching' | 'completed'>('uploading');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [filters, setFilters] = useState({
     gender: 'all',
     city: 'all',
@@ -437,8 +440,36 @@ const JobDetailPage = () => {
             <FileText className="w-5 h-5 text-violet-600" />
             Description du poste
           </h2>
-          <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
-            {jobPost.description}
+          <div className="relative">
+            <div 
+              className={`prose max-w-none text-gray-700 whitespace-pre-wrap transition-all duration-300 overflow-hidden ${
+                isDescriptionExpanded ? 'max-h-none' : 'max-h-48'
+              }`}
+            >
+              {jobPost.description}
+            </div>
+            {jobPost.description && jobPost.description.length > 300 && (
+              <div className={`${!isDescriptionExpanded ? 'absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent' : ''}`}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="w-full mt-2 text-violet-600 hover:text-violet-700 hover:bg-violet-50"
+                >
+                  {isDescriptionExpanded ? (
+                    <>
+                      <ChevronUp className="w-4 h-4 mr-1" />
+                      Voir moins
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4 mr-1" />
+                      Voir plus
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
           
           {/* Compétences requises */}
@@ -482,22 +513,11 @@ const JobDetailPage = () => {
                   Ajouter des candidatures
                 </h2>
               </div>
-              <CVUploadZone onFilesSelected={handleFilesSelected} />
-              {uploadedFiles.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4"
-                >
-                  <Button
-                    onClick={handleAnalyzeCV}
-                    className="w-full gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Analyser les CV avec l'IA
-                  </Button>
-                </motion.div>
-              )}
+              <CVUploadZone 
+                onFilesSelected={handleFilesSelected}
+                onAnalyzeAll={handleAnalyzeCV}
+                isAnalyzing={isAnalyzing}
+              />
             </Card>
           </div>
 

@@ -172,6 +172,30 @@ class CandidatesService {
   }
 
   /**
+   * Get ALL candidates (all jobs) - for Pipeline page
+   */
+  async getAllCandidates(
+    params?: {
+      status?: Candidate['status'];
+      minScore?: number;
+      maxScore?: number;
+      skills?: string;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+      page?: number;
+      limit?: number;
+    }
+  ): Promise<CandidatesResponse['data']> {
+    const response = await api.get<CandidatesResponse>(
+      `/candidates`,
+      { params }
+    );
+
+    return response.data.data;
+  }
+
+  /**
    * Get candidates for a job post (sorted by score)
    */
   async getCandidates(

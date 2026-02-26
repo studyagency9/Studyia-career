@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/i18n/i18nContext';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { JobPostCard } from '@/components/pro/JobPostCard';
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
+import { CannotDeleteModal } from '@/components/ui/CannotDeleteModal';
 import { 
   Plus, 
   Search, 
@@ -21,15 +24,35 @@ import {
 } from '@/components/ui/select';
 import type { JobPost, JobStatus } from '@/types/jobPost';
 import { useJobPosts } from '@/hooks/useJobPosts';
+import { jobPostsService } from '@/services/jobPostsService';
 
 const JobPostsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { jobPosts, loading, fetchJobPosts } = useJobPosts();
+  const { toast } = useToast();
+  const { jobPosts, loading, fetchJobPosts, deleteJobPost } = useJobPosts();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<JobStatus | 'all'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'deadline' | 'candidates'>('recent');
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; jobId: string; jobTitle: string }>({ 
+    isOpen: false, 
+    jobId: '', 
+    jobTitle: '' 
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [cannotDeleteModal, setCannotDeleteModal] = useState<{ 
+    isOpen: boolean; 
+    jobId: string; 
+    jobTitle: string; 
+    candidateCount: number 
+  }>({ 
+    isOpen: false, 
+    jobId: '', 
+    jobTitle: '', 
+    candidateCount: 0 
+  });
+  const [isArchiving, setIsArchiving] = useState(false);
 
   useEffect(() => {
     console.log('🔍 JobPostsPage: Fetching job posts from API...');
@@ -41,13 +64,79 @@ const JobPostsPage = () => {
     }).catch((error) => {
       console.error('❌ JobPostsPage: API error:', error);
     });
-  }, [statusFilter]);
+  }, [statusFilter, searchQuery]);
 
   const handleSearch = () => {
     fetchJobPosts({
       status: statusFilter === 'all' ? undefined : statusFilter,
       search: searchQuery || undefined,
     });
+  };
+
+  const handleDeleteClick = (id: string, title: string) => {
+    setDeleteModal({ isOpen: true, jobId: id, jobTitle: title });
+  };
+
+  const handleArchive = async () => {
+    try {
+      setIsArchiving(true);
+      await jobPostsService.updateJobPost(cannotDeleteModal.jobId, { status: 'archived' });
+      await fetchJobPosts({
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        search: searchQuery || undefined,
+      });
+      setCannotDeleteModal({ isOpen: false, jobId: '', jobTitle: '', candidateCount: 0 });
+      toast({
+        title: '📦 Offre archivée',
+        description: 'L\'offre d\'emploi a été archivée avec succès',
+      });
+    } catch (error: any) {
+      toast({
+        title: '❌ Erreur',
+        description: error.response?.data?.error || 'Impossible d\'archiver l\'offre',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setIsDeleting(true);
+      await deleteJobPost(deleteModal.jobId);
+      // Rafraîchir la liste après suppression
+      await fetchJobPosts({
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        search: searchQuery || undefined,
+      });
+      setDeleteModal({ isOpen: false, jobId: '', jobTitle: '' });
+      toast({
+        title: '✅ Offre supprimée',
+        description: 'L\'offre d\'emploi a été supprimée avec succès',
+      });
+    } catch (error: any) {
+      // Détecter l'erreur "existing candidates"
+      if (error.response?.data?.error?.includes('existing candidates')) {
+        const candidateCount = error.response?.data?.candidateCount || 0;
+        setDeleteModal({ isOpen: false, jobId: '', jobTitle: '' });
+        setCannotDeleteModal({
+          isOpen: true,
+          jobId: deleteModal.jobId,
+          jobTitle: deleteModal.jobTitle,
+          candidateCount,
+        });
+      } else {
+        toast({
+          title: '❌ Erreur',
+          description: error.response?.data?.error || 'Impossible de supprimer l\'offre',
+          variant: 'destructive',
+        });
+        setDeleteModal({ isOpen: false, jobId: '', jobTitle: '' });
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Using only real API data - no mocks
@@ -194,8 +283,26 @@ const JobPostsPage = () => {
                 job={job}
                 onView={(id) => navigate(`/pro/jobs/${id}`)}
                 onEdit={(id) => navigate(`/pro/jobs/edit/${id}`)}
-                onArchive={(id) => console.log('Archive:', id)}
-                onDelete={(id) => console.log('Delete:', id)}
+                onArchive={async (id) => {
+                  try {
+                    await jobPostsService.updateJobPost(id, { status: 'archived' });
+                    await fetchJobPosts({
+                      status: statusFilter === 'all' ? undefined : statusFilter,
+                      search: searchQuery || undefined,
+                    });
+                    toast({
+                      title: '📦 Offre archivée',
+                      description: 'L\'offre d\'emploi a été archivée avec succès',
+                    });
+                  } catch (error: any) {
+                    toast({
+                      title: '❌ Erreur',
+                      description: error.response?.data?.error || 'Impossible d\'archiver l\'offre',
+                      variant: 'destructive',
+                    });
+                  }
+                }}
+                onDelete={(id) => handleDeleteClick(id, job.title)}
               />
             </motion.div>
           ))
@@ -222,6 +329,26 @@ const JobPostsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de confirmation de suppression */}
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, jobId: '', jobTitle: '' })}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer cette offre d'emploi ?"
+        description="Vous êtes sur le point de supprimer définitivement cette offre d'emploi."
+        itemName={deleteModal.jobTitle}
+        isDeleting={isDeleting}
+      />
+
+      <CannotDeleteModal
+        isOpen={cannotDeleteModal.isOpen}
+        onClose={() => setCannotDeleteModal({ isOpen: false, jobId: '', jobTitle: '', candidateCount: 0 })}
+        onArchive={handleArchive}
+        jobTitle={cannotDeleteModal.jobTitle}
+        candidateCount={cannotDeleteModal.candidateCount}
+        isArchiving={isArchiving}
+      />
     </div>
   );
 };
