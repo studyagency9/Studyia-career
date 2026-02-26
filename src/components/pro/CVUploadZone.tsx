@@ -266,10 +266,10 @@ export const CVUploadZone = ({
                   {isAnalyzing ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Analyse en cours...
+                      Traitement en cours...
                     </>
                   ) : (
-                    `Analyser ${uploadedFiles.length > 1 ? `les ${uploadedFiles.length} CV` : 'le CV'}`
+                    `Traiter ${uploadedFiles.length > 1 ? `les ${uploadedFiles.length} CV` : 'le CV'}`
                   )}
                 </Button>
               </div>

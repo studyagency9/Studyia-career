@@ -1,5 +1,5 @@
 import { StatCard } from '@/components/pro/StatCard';
-import { Users, Briefcase, TrendingUp, Clock, Building2 } from 'lucide-react';
+import { Users, Briefcase, TrendingUp, Clock, Building2, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/i18n/i18nContext';
@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { analyticsService } from '@/services/analyticsService';
 import { jobPostsService } from '@/services/jobPostsService';
+import { TutorialModal } from '@/components/pro/TutorialModal';
 
 const DashboardPage = () => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [recentJobs, setRecentJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -47,6 +49,15 @@ const DashboardPage = () => {
     };
 
     fetchDashboardData();
+
+    // Vérifier si c'est la première visite
+    const tutorialCompleted = localStorage.getItem('studyia_tutorial_completed');
+    if (!tutorialCompleted) {
+      // Attendre un peu avant d'afficher le tutoriel pour une meilleure UX
+      setTimeout(() => {
+        setIsTutorialOpen(true);
+      }, 1000);
+    }
   }, []);
 
   const stats = [
@@ -91,12 +102,22 @@ const DashboardPage = () => {
             <p className="font-medium">{partner?.company}</p>
           </div>
         </div>
-        <Button 
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-          onClick={() => navigate('/pro/jobs/create')}
-        >
-          {t('pro.dashboard.createPost')}
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            variant="outline"
+            className="gap-2 border-violet-300 text-violet-700 hover:bg-violet-50"
+            onClick={() => setIsTutorialOpen(true)}
+          >
+            <HelpCircle className="w-4 h-4" />
+            Guide d'utilisation
+          </Button>
+          <Button 
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            onClick={() => navigate('/pro/jobs/create')}
+          >
+            {t('pro.dashboard.createPost')}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -180,6 +201,12 @@ const DashboardPage = () => {
           </p>
         </motion.div>
       </div>
+
+      {/* Tutorial Modal */}
+      <TutorialModal 
+        isOpen={isTutorialOpen} 
+        onClose={() => setIsTutorialOpen(false)} 
+      />
     </div>
   );
 };

@@ -28,7 +28,7 @@ export const CVAnalysisProgress = ({
       id: 'extracting',
       icon: FileSearch,
       title: 'Extraction des données',
-      description: 'Analyse des CV avec l\'IA...',
+      description: 'Traitement des CV en cours...',
       color: 'from-violet-500 to-purple-500',
     },
     {
@@ -41,8 +41,8 @@ export const CVAnalysisProgress = ({
     {
       id: 'completed',
       icon: CheckCircle,
-      title: 'Analyse terminée',
-      description: 'Tous les CV ont été analysés !',
+      title: 'Traitement terminé',
+      description: 'Tous les CV ont été traités avec succès !',
       color: 'from-green-500 to-emerald-500',
     },
   ];

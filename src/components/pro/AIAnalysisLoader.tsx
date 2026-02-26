@@ -7,7 +7,7 @@ interface AIAnalysisLoaderProps {
 
 export const AIAnalysisLoader = ({ stage = 'analyzing' }: AIAnalysisLoaderProps) => {
   const stages = [
-    { key: 'analyzing', icon: Brain, label: 'Analyse du texte', color: 'text-blue-600' },
+    { key: 'analyzing', icon: Brain, label: 'Traitement du texte', color: 'text-blue-600' },
     { key: 'extracting', icon: Zap, label: 'Extraction des données', color: 'text-purple-600' },
     { key: 'completing', icon: CheckCircle2, label: 'Finalisation', color: 'text-green-600' },
   ];
@@ -38,10 +38,10 @@ export const AIAnalysisLoader = ({ stage = 'analyzing' }: AIAnalysisLoaderProps)
           </motion.div>
           
           <h3 className="text-2xl font-bold text-gray-900 mb-2">
-            Analyse IA en cours
+            Traitement en cours
           </h3>
           <p className="text-gray-600 text-center">
-            L'intelligence artificielle analyse votre offre d'emploi
+            Analyse automatique de votre offre d'emploi
           </p>
         </div>
 
