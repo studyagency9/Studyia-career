@@ -1,5 +1,5 @@
 import { StatCard } from '@/components/pro/StatCard';
-import { Users, Briefcase, TrendingUp, Clock, Building2, HelpCircle } from 'lucide-react';
+import { Users, Briefcase, TrendingUp, Clock, Building2, HelpCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useTranslation } from '@/i18n/i18nContext';
@@ -110,6 +110,14 @@ const DashboardPage = () => {
           >
             <HelpCircle className="w-4 h-4" />
             Guide d'utilisation
+          </Button>
+          <Button 
+            variant="outline"
+            className="gap-2 border-blue-300 text-blue-700 hover:bg-blue-50"
+            onClick={() => navigate('/pro/gmail')}
+          >
+            <Mail className="w-4 h-4" />
+            Importer depuis Gmail
           </Button>
           <Button 
             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"

@@ -41,6 +41,7 @@ const CreateJobPostPage = lazy(() => import("./pages/pro/CreateJobPostPage"));
 const EditJobPostPage = lazy(() => import("./pages/pro/EditJobPostPage"));
 const JobDetailPage = lazy(() => import("./pages/pro/JobDetailPage"));
 const CandidateDetailPage = lazy(() => import("./pages/pro/CandidateDetailPage"));
+const GmailImportPage = lazy(() => import("./pages/pro/GmailImportPage"));
 
 // Associate pages (Associés)
 const AssociateSignupPage = lazy(() => import("./pages/associate/SignupPage"));
@@ -129,6 +130,9 @@ const AppRoutes = () => (
               <Route path="jobs/edit/:id" element={<EditJobPostPage />} />
               <Route path="jobs/:id" element={<JobDetailPage />} />
               <Route path="candidates/:id" element={<CandidateDetailPage />} />
+              <Route path="gmail" element={<GmailImportPage />} />
+              <Route path="gmail/success" element={<GmailImportPage />} />
+              <Route path="gmail/error" element={<GmailImportPage />} />
             </Route>
             
             {/* Associate authentication routes */}
