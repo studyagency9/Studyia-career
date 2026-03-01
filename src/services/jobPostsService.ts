@@ -83,7 +83,7 @@ class JobPostsService {
     const response = await api.get<JobPostsResponse>('/job-posts', { params });
     return {
       ...response.data.data,
-      jobPosts: response.data.data.jobPosts.map(mapJobPost),
+      jobPosts: (response.data.data.jobPosts || []).filter(Boolean).map(mapJobPost),
     };
   }
 
