@@ -40,7 +40,9 @@ interface CVData {
 
 const monthMap: { [key: string]: number } = {
   'Janvier': 0, 'Février': 1, 'Mars': 2, 'Avril': 3, 'Mai': 4, 'Juin': 5,
-  'Juillet': 6, 'Août': 7, 'Septembre': 8, 'Octobre': 9, 'Novembre': 10, 'Décembre': 11
+  'Juillet': 6, 'Août': 7, 'Septembre': 8, 'Octobre': 9, 'Novembre': 10, 'Décembre': 11,
+  'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+  'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
 };
 
 const parseDate = (dateString: string): Date => {
@@ -75,7 +77,7 @@ export const generatePDFBlob = async (cvData: CVData): Promise<Blob> => {
       const dateA = a.current ? new Date() : parseDate(a.endDate);
       const dateB = b.current ? new Date() : parseDate(b.endDate);
       
-      if (dateB.getTime() !== dateA.getTime()) {
+      if (dateA.getTime() !== dateB.getTime()) {
         return dateB.getTime() - dateA.getTime();
       }
       

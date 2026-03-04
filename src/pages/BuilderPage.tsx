@@ -510,6 +510,42 @@ const ExperienceItem = ({
   );
 };
 
+// Fonction utilitaire pour parser les dates au format "Mois Année"
+const parseExperienceDate = (dateString: string): Date => {
+  if (!dateString) return new Date(0);
+  const monthMap: { [key: string]: number } = {
+    'Janvier': 0, 'Février': 1, 'Mars': 2, 'Avril': 3, 'Mai': 4, 'Juin': 5,
+    'Juillet': 6, 'Août': 7, 'Septembre': 8, 'Octobre': 9, 'Novembre': 10, 'Décembre': 11,
+    'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+    'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+  };
+  const parts = dateString.split(' ');
+  const month = parts[0];
+  const year = parseInt(parts[1], 10);
+  const monthIndex = monthMap[month];
+
+  if (isNaN(year) || monthIndex === undefined) {
+    return new Date(0);
+  }
+  return new Date(year, monthIndex);
+};
+
+// Fonction pour trier les expériences de la plus récente à la moins récente
+const sortExperiencesByDate = (experiences: Experience[]): Experience[] => {
+  return [...experiences].sort((a, b) => {
+    const dateA = a.current ? new Date() : parseExperienceDate(a.endDate);
+    const dateB = b.current ? new Date() : parseExperienceDate(b.endDate);
+    
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateB.getTime() - dateA.getTime();
+    }
+    
+    const startDateA = parseExperienceDate(a.startDate);
+    const startDateB = parseExperienceDate(b.startDate);
+    return startDateB.getTime() - startDateA.getTime();
+  });
+};
+
 // Step 3: Experiences (simplified without drag-and-drop)
 const ExperiencesStep = ({ data, onChange }: { data: Experience[]; onChange: (data: Experience[]) => void }) => {
   const addExperience = () => {
@@ -518,7 +554,8 @@ const ExperiencesStep = ({ data, onChange }: { data: Experience[]; onChange: (da
   };
 
   const updateExperience = (id: string, field: keyof Experience, value: string | boolean) => {
-    onChange(data.map(exp => exp.id === id ? { ...exp, [field]: value } : exp));
+    const updatedData = data.map(exp => exp.id === id ? { ...exp, [field]: value } : exp);
+    onChange(sortExperiencesByDate(updatedData));
   };
 
   const removeExperience = (id: string) => {
@@ -526,6 +563,8 @@ const ExperiencesStep = ({ data, onChange }: { data: Experience[]; onChange: (da
   };
 
   const { t } = useTranslation();
+  
+  const sortedExperiences = sortExperiencesByDate(data);
   
   return (
     <div className="space-y-6">
@@ -542,7 +581,7 @@ const ExperiencesStep = ({ data, onChange }: { data: Experience[]; onChange: (da
         </div>
       ) : (
         <div className="space-y-4">
-          {data.map((exp, index) => (
+          {sortedExperiences.map((exp, index) => (
             <ExperienceItem
               key={exp.id}
               exp={exp}
@@ -951,20 +990,37 @@ const BuilderPage = ({ isPartner = false }: { isPartner?: boolean }) => {
       
       console.log('📤 Données Purchase:', purchaseData);
       
-      const purchaseResponse = await api.post('/cv/purchase', purchaseData);
+      // Utiliser fetch au lieu de api.post pour éviter l'intercepteur d'authentification
+      const baseURL = 'https://studyiacareer-backend-qpmpz.ondigitalocean.app/api';
+      const purchaseResponseRaw = await fetch(`${baseURL}/cv/purchase`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(purchaseData)
+      });
       
-      if (purchaseResponse.data.success) {
-        const cvId = purchaseResponse.data.data.cvId;
+      const purchaseResponse = await purchaseResponseRaw.json();
+      
+      if (purchaseResponse.success) {
+        const cvId = purchaseResponse.data.cvId;
         console.log('✅ Purchase réussi !');
         console.log(`   🆔 CV ID: ${cvId}`);
-        console.log(`   🔗 Download URL: ${purchaseResponse.data.data.downloadUrl}`);
+        console.log(`   🔗 Download URL: ${purchaseResponse.data.downloadUrl}`);
         
         // 2. RÉCUPÉRER PERSONNEL ID
         console.log('🔍 Récupération du Personnel ID...');
-        const personnelResponse = await api.get(`/personnel/by-cv/${cvId}`);
+        const personnelResponseRaw = await fetch(`${baseURL}/personnel/by-cv/${cvId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
         
-        if (personnelResponse.data.success) {
-          const personnelId = personnelResponse.data.personnel._id;
+        const personnelResponse = await personnelResponseRaw.json();
+        
+        if (personnelResponse.success) {
+          const personnelId = personnelResponse.personnel._id;
           console.log(`✅ Personnel ID récupéré: ${personnelId}`);
           
           // 3. GÉNÉRER ET UPLOADER LE PDF
@@ -1010,7 +1066,7 @@ const BuilderPage = ({ isPartner = false }: { isPartner?: boolean }) => {
           throw new Error('Impossible de récupérer le Personnel ID');
         }
       } else {
-        throw new Error(purchaseResponse.data.error || 'Erreur lors du purchase');
+        throw new Error(purchaseResponse.error || 'Erreur lors du purchase');
       }
       
     } catch (error) {
@@ -1068,7 +1124,10 @@ const BuilderPage = ({ isPartner = false }: { isPartner?: boolean }) => {
 
       if (data.personalInfo) newCVData.personalInfo = { ...newCVData.personalInfo, ...data.personalInfo };
       if (data.targetJob) newCVData.targetJob = data.targetJob;
-      if (data.experiences) newCVData.experiences = data.experiences.map((exp: any, index: number) => ({ id: Date.now().toString() + index, ...exp, current: false, description: exp.description || '' }));
+      if (data.experiences) {
+        const mappedExperiences = data.experiences.map((exp: any, index: number) => ({ id: Date.now().toString() + index, ...exp, current: false, description: exp.description || '' }));
+        newCVData.experiences = sortExperiencesByDate(mappedExperiences);
+      }
       if (data.education) newCVData.education = data.education.map((edu: any, index: number) => ({ id: Date.now().toString() + index + 100, ...edu, description: edu.description || '' }));
       if (data.skills) newCVData.skills = [...new Set(data.skills)] as string[];
 
@@ -1089,6 +1148,10 @@ const BuilderPage = ({ isPartner = false }: { isPartner?: boolean }) => {
     if (type === 'REPLACE') {
       if (payload.field in newCVData) {
         (newCVData as any)[payload.field] = payload.value;
+        // Trier les expériences si c'est le champ modifié
+        if (payload.field === 'experiences') {
+          newCVData.experiences = sortExperiencesByDate(payload.value);
+        }
       } else if (payload.field in newCVData.personalInfo) {
         (newCVData.personalInfo as any)[payload.field] = payload.value;
       }
@@ -1096,7 +1159,7 @@ const BuilderPage = ({ isPartner = false }: { isPartner?: boolean }) => {
       if (payload.field === 'experiences' && newCVData.experiences.length > 0) {
         const newExperiences = [...newCVData.experiences];
         newExperiences[0].description = `${newExperiences[0].description}\n${payload.value}`.trim();
-        newCVData = { ...newCVData, experiences: newExperiences };
+        newCVData = { ...newCVData, experiences: sortExperiencesByDate(newExperiences) };
       } else if (payload.field === 'skills') {
         const newSkills = [...newCVData.skills];
         payload.value.forEach((skill: string) => {
@@ -1179,6 +1242,11 @@ const BuilderPage = ({ isPartner = false }: { isPartner?: boolean }) => {
         
         // Assurer que le template original est conservé
         optimizedCV.template = cvData.template;
+        
+        // Trier les expériences de la plus récente à la moins récente
+        if (optimizedCV.experiences) {
+          optimizedCV.experiences = sortExperiencesByDate(optimizedCV.experiences);
+        }
 
         setSuggestedCvData(optimizedCV);
         setIsComparing(true);
@@ -1414,6 +1482,12 @@ const BuilderPage = ({ isPartner = false }: { isPartner?: boolean }) => {
     console.log(`Mise à jour de ${field}:`, value);
     setCVData(prev => {
       const newData = { ...prev, [field]: value };
+      
+      // Trier automatiquement les expériences si c'est le champ modifié
+      if (field === 'experiences') {
+        newData.experiences = sortExperiencesByDate(value);
+      }
+      
       console.log('Nouvel état cvData:', newData);
       return newData;
     });
